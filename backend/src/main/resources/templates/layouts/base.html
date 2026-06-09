@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:fragment="layout(title, content)">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${title} + ' — ClinicApp'">ClinicApp</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}"/>
+</head>
+<body>
+<div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <span class="brand-icon">⚕</span>
+            <span class="brand-name">ClinicApp</span>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">PRINCIPAL</div>
+            <a th:href="@{/dashboard}" class="nav-item" th:classappend="${#strings.startsWith(#httpServletRequest.requestURI,'/dashboard')} ? 'active'">
+                <span>⊞</span> Tableau de bord
+            </a>
+            <a th:href="@{/patients}" class="nav-item" th:classappend="${#strings.startsWith(#httpServletRequest.requestURI,'/patients')} ? 'active'">
+                <span>👤</span> Patients
+            </a>
+            <a th:href="@{/appointments}" class="nav-item" th:classappend="${#strings.startsWith(#httpServletRequest.requestURI,'/appointments')} ? 'active'">
+                <span>📅</span> Rendez-vous
+            </a>
+            <div class="nav-section">SOINS</div>
+            <a th:href="@{/consultations}" class="nav-item">
+                <span>🩺</span> Consultations
+            </a>
+            <a th:href="@{/pharmacy}" class="nav-item">
+                <span>💊</span> Pharmacie
+            </a>
+            <a th:href="@{/lab}" class="nav-item">
+                <span>🔬</span> Laboratoire
+            </a>
+            <div class="nav-section">GESTION</div>
+            <a th:href="@{/billing}" class="nav-item">
+                <span>💳</span> Facturation
+            </a>
+            <a th:href="@{/hospitalization}" class="nav-item">
+                <span>🏥</span> Hospitalisation
+            </a>
+            <sec:authorize access="hasRole('ADMIN')">
+            <div class="nav-section">ADMIN</div>
+            <a th:href="@{/admin/users}" class="nav-item">
+                <span>⚙</span> Utilisateurs
+            </a>
+            </sec:authorize>
+        </nav>
+        <div class="sidebar-footer">
+            <span sec:authentication="name">Utilisateur</span>
+            <a th:href="@{/logout}" class="btn btn-ghost btn-sm">Déconnexion</a>
+        </div>
+    </aside>
+
+    <!-- Contenu principal -->
+    <main class="main">
+        <div class="topbar">
+            <h1 class="topbar-title" th:text="${title}">Page</h1>
+            <div class="topbar-actions">
+                <span class="badge badge-blue" sec:authentication="name">User</span>
+            </div>
+        </div>
+        <div class="page-content">
+            <th:block th:replace="${content}"/>
+        </div>
+    </main>
+</div>
+</body>
+</html>

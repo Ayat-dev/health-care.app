@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Patients', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div class="panel">
+    <div class="panel-header">
+        <span>Liste des patients</span>
+        <a th:href="@{/patients/new}" class="btn btn-primary btn-sm">+ Nouveau patient</a>
+    </div>
+
+    <!-- Barre de recherche -->
+    <form method="get" th:action="@{/patients}" class="search-bar">
+        <input type="text" name="q" th:value="${q}"
+               placeholder="Rechercher par nom, N° dossier, téléphone…"
+               class="form-control" style="max-width:400px;"/>
+        <button type="submit" class="btn btn-primary btn-sm">Rechercher</button>
+        <a th:if="${q != ''}" th:href="@{/patients}" class="btn btn-ghost btn-sm">✕ Effacer</a>
+    </form>
+
+    <!-- Tableau -->
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>N° Dossier</th>
+                <th>Nom complet</th>
+                <th>Téléphone</th>
+                <th>Date naissance</th>
+                <th>Médecin référent</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${patients.isEmpty()}">
+                <td colspan="6" class="empty-state">Aucun patient trouvé.</td>
+            </tr>
+            <tr th:each="p : ${patients}">
+                <td><code th:text="${p.recordNumber}">PAT-2026-00001</code></td>
+                <td>
+                    <a th:href="@{/patients/{id}(id=${p.id})}"
+                       th:text="${p.lastName + ' ' + p.firstName}">Nom</a>
+                </td>
+                <td th:text="${p.phone}">—</td>
+                <td th:text="${p.birthDate != null ? #temporals.format(p.birthDate,'dd/MM/yyyy') : '—'}">—</td>
+                <td th:text="${p.assignedDoctor != null ? p.assignedDoctor.fullName : '—'}">—</td>
+                <td>
+                    <a th:href="@{/patients/{id}(id=${p.id})}" class="btn btn-ghost btn-sm">Voir</a>
+                    <a th:href="@{/patients/{id}/edit(id=${p.id})}" class="btn btn-ghost btn-sm">Modifier</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" th:if="${patients.totalPages > 1}">
+        <a th:if="${!patients.first}" th:href="@{/patients(q=${q},page=${currentPage-1})}" class="btn btn-ghost btn-sm">← Précédent</a>
+        <span th:text="'Page ' + (${currentPage}+1) + ' / ' + ${patients.totalPages}">Page 1/1</span>
+        <a th:if="${!patients.last}" th:href="@{/patients(q=${q},page=${currentPage+1})}" class="btn btn-ghost btn-sm">Suivant →</a>
+    </div>
+</div>
+
+</th:block></body>
+</html>

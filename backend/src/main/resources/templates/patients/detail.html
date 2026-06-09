@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(${patient.fullName}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<!-- En-tête dossier -->
+<div class="patient-header">
+    <div class="patient-avatar">
+        <img th:if="${patient.photoUrl != null}" th:src="${patient.photoUrl}" alt="Photo"/>
+        <div th:if="${patient.photoUrl == null}" class="avatar-placeholder"
+             th:text="${patient.firstName.charAt(0) + '' + patient.lastName.charAt(0)}">AB</div>
+    </div>
+    <div class="patient-info">
+        <h2 th:text="${patient.fullName}">Nom Prénom</h2>
+        <div class="patient-meta">
+            <span class="badge badge-blue" th:text="${patient.recordNumber}">PAT-2026-00001</span>
+            <span th:if="${patient.gender == 'M'}" class="badge badge-green">Masculin</span>
+            <span th:if="${patient.gender == 'F'}" class="badge badge-yellow">Féminin</span>
+            <span th:if="${patient.birthDate != null}"
+                  th:text="'Né(e) le ' + ${#temporals.format(patient.birthDate,'dd/MM/yyyy')}">—</span>
+        </div>
+    </div>
+    <div class="patient-actions">
+        <a th:href="@{/patients/{id}/edit(id=${patient.id})}" class="btn btn-primary btn-sm">Modifier</a>
+        <a th:href="@{/patients}" class="btn btn-ghost btn-sm">← Retour</a>
+    </div>
+</div>
+
+<!-- Onglets -->
+<div class="tabs">
+    <button class="tab active" onclick="showTab('info')">Informations</button>
+    <button class="tab" onclick="showTab('medical')">Médical</button>
+    <button class="tab" onclick="showTab('consultations')">Consultations</button>
+    <button class="tab" onclick="showTab('billing')">Facturation</button>
+</div>
+
+<!-- Onglet Informations -->
+<div id="tab-info" class="tab-content active panel">
+    <div class="form-grid-2">
+        <div><span class="detail-label">Téléphone</span>
+             <span th:text="${patient.phone ?: '—'}">—</span></div>
+        <div><span class="detail-label">Email</span>
+             <span th:text="${patient.email ?: '—'}">—</span></div>
+        <div><span class="detail-label">Adresse</span>
+             <span th:text="${patient.address ?: '—'}">—</span></div>
+        <div><span class="detail-label">Ville</span>
+             <span th:text="${patient.city ?: '—'}">—</span></div>
+        <div><span class="detail-label">N° CNI</span>
+             <span th:text="${patient.nationalId ?: '—'}">—</span></div>
+        <div><span class="detail-label">Nationalité</span>
+             <span th:text="${patient.nationality ?: '—'}">—</span></div>
+        <div><span class="detail-label">Contact urgence</span>
+             <span th:text="${patient.emergencyContactName ?: '—'}">—</span></div>
+        <div><span class="detail-label">Tél. urgence</span>
+             <span th:text="${patient.emergencyContactPhone ?: '—'}">—</span></div>
+    </div>
+</div>
+
+<!-- Onglet Médical -->
+<div id="tab-medical" class="tab-content panel" style="display:none">
+    <div class="form-grid-2">
+        <div><span class="detail-label">Groupe sanguin</span>
+             <span th:text="${patient.bloodType ?: '—'}">—</span></div>
+        <div><span class="detail-label">Médecin référent</span>
+             <span th:text="${patient.assignedDoctor != null ? patient.assignedDoctor.fullName : '—'}">—</span></div>
+    </div>
+    <div style="margin-top:16px">
+        <div class="detail-label">Allergies</div>
+        <p th:text="${patient.allergies ?: 'Aucune allergie connue'}">—</p>
+    </div>
+    <div style="margin-top:12px">
+        <div class="detail-label">Antécédents / Maladies chroniques</div>
+        <p th:text="${patient.chronicConditions ?: '—'}">—</p>
+    </div>
+</div>
+
+<!-- Onglet Consultations (placeholder) -->
+<div id="tab-consultations" class="tab-content panel" style="display:none">
+    <div class="empty-state">Les consultations seront disponibles dans le prochain module.</div>
+</div>
+
+<!-- Onglet Facturation (placeholder) -->
+<div id="tab-billing" class="tab-content panel" style="display:none">
+    <div class="empty-state">La facturation sera disponible dans le module Billing.</div>
+</div>
+
+<script>
+function showTab(name) {
+    document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + name).style.display = 'block';
+    event.target.classList.add('active');
+}
+</script>
+
+</th:block></body>
+</html>

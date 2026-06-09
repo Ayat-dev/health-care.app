@@ -1,0 +1,64 @@
+package com.clinic.backend.controller.web;
+
+import com.clinic.backend.dto.PatientDto;
+import com.clinic.backend.patient.Patient;
+import com.clinic.backend.patient.PatientService;
+import com.clinic.backend.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+
+@Controller
+@RequestMapping("/patients")
+@RequiredArgsConstructor
+public class PatientWebController {
+
+    private final PatientService patientService;
+    private final UserRepository userRepository;
+
+    @GetMapping
+    public String list(@RequestParam(defaultValue = "") String q,
+                       @RequestParam(defaultValue = "0") int page,
+                       Model model) {
+        Page<Patient> patients = patientService.search(q, page, 20);
+        model.addAttribute("patients", patients);
+        model.addAttribute("q", q);
+        model.addAttribute("currentPage", page);
+        return "patients/list";
+    }
+
+    @GetMapping("/{id}")
+    public String detail(@PathVariable Long id, Model model) {
+        Patient patient = patientService.getById(id);
+        model.addAttribute("patient", patient);
+        return "patients/detail";
+    }
+
+    @GetMapping("/new")
+    public String newForm(Model model) {
+        model.addAttribute("patient", new PatientDto());
+        model.addAttribute("doctors", userRepository.findAll());
+        return "patients/form";
+    }
+
+    @PostMapping("/new")
+    public String create(@ModelAttribute PatientDto dto) {
+        Patient created = patientService.create(dto);
+        return "redirect:/patients/" + created.getId();
+    }
+
+    @GetMapping("/{id}/edit")
+    public String editForm(@PathVariable Long id, Model model) {
+        model.addAttribute("patient", patientService.toDto(patientService.getById(id)));
+        model.addAttribute("doctors", userRepository.findAll());
+        return "patients/form";
+    }
+
+    @PostMapping("/{id}/edit")
+    public String update(@PathVariable Long id, @ModelAttribute PatientDto dto) {
+        patientService.update(id, dto);
+        return "redirect:/patients/" + id;
+    }
+}

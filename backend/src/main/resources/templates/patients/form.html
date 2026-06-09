@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(${patient.id == null ? 'Nouveau patient' : 'Modifier patient'}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div class="form-card">
+    <form th:action="${patient.id == null ? '/patients/new' : '/patients/' + patient.id + '/edit'}"
+          method="post">
+
+        <!-- Informations personnelles -->
+        <div class="form-section">
+            <h3 class="form-section-title">Informations personnelles</h3>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label">Prénom *</label>
+                    <input type="text" name="firstName" th:value="${patient.firstName}"
+                           class="form-control" required/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nom *</label>
+                    <input type="text" name="lastName" th:value="${patient.lastName}"
+                           class="form-control" required/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date de naissance</label>
+                    <input type="date" name="birthDate" th:value="${patient.birthDate}"
+                           class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Genre</label>
+                    <select name="gender" class="form-control">
+                        <option value="">— Sélectionner —</option>
+                        <option value="M" th:selected="${patient.gender == 'M'}">Masculin</option>
+                        <option value="F" th:selected="${patient.gender == 'F'}">Féminin</option>
+                        <option value="AUTRE" th:selected="${patient.gender == 'AUTRE'}">Autre</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Téléphone *</label>
+                    <input type="tel" name="phone" th:value="${patient.phone}"
+                           class="form-control" required/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Téléphone alternatif</label>
+                    <input type="tel" name="phoneAlt" th:value="${patient.phoneAlt}"
+                           class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" th:value="${patient.email}"
+                           class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">N° CNI / Passeport</label>
+                    <input type="text" name="nationalId" th:value="${patient.nationalId}"
+                           class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ville</label>
+                    <input type="text" name="city" th:value="${patient.city}"
+                           class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nationalité</label>
+                    <input type="text" name="nationality" th:value="${patient.nationality}"
+                           class="form-control"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Adresse</label>
+                <textarea name="address" class="form-control" rows="2"
+                          th:text="${patient.address}"></textarea>
+            </div>
+        </div>
+
+        <!-- Contact urgence -->
+        <div class="form-section">
+            <h3 class="form-section-title">Contact d'urgence</h3>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label">Nom du contact</label>
+                    <input type="text" name="emergencyContactName"
+                           th:value="${patient.emergencyContactName}" class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Téléphone du contact</label>
+                    <input type="tel" name="emergencyContactPhone"
+                           th:value="${patient.emergencyContactPhone}" class="form-control"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informations médicales -->
+        <div class="form-section">
+            <h3 class="form-section-title">Informations médicales</h3>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label">Groupe sanguin</label>
+                    <select name="bloodType" class="form-control">
+                        <option value="">— Inconnu —</option>
+                        <option th:each="bt : ${ {'A+','A-','B+','B-','AB+','AB-','O+','O-'} }"
+                                th:value="${bt}" th:text="${bt}"
+                                th:selected="${patient.bloodType == bt}">A+</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Médecin référent</label>
+                    <select name="assignedDoctorId" class="form-control">
+                        <option value="">— Aucun —</option>
+                        <option th:each="d : ${doctors}"
+                                th:value="${d.id}" th:text="${d.fullName}"
+                                th:selected="${patient.assignedDoctorId == d.id}">Dr.</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Allergies</label>
+                <textarea name="allergies" class="form-control" rows="2"
+                          th:text="${patient.allergies}"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Antécédents / Maladies chroniques</label>
+                <textarea name="chronicConditions" class="form-control" rows="2"
+                          th:text="${patient.chronicConditions}"></textarea>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+            <a th:href="@{/patients}" class="btn btn-ghost">Annuler</a>
+            <button type="submit" class="btn btn-primary">
+                <span th:text="${patient.id == null ? 'Créer le patient' : 'Enregistrer'}">Créer</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+</th:block></body>
+</html>
