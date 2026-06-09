@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.clinic.client.controller.PatientsController"
+            prefWidth="900" prefHeight="580">
+    <top>
+        <HBox spacing="8" style="-fx-padding:16; -fx-background-color:white; -fx-border-color:#e2e8f0; -fx-border-width:0 0 1 0;">
+            <Button text="← Retour" onAction="#goBack" style="-fx-cursor:hand;"/>
+            <Label text="Patients" style="-fx-font-size:16px; -fx-font-weight:bold;"/>
+            <HBox HBox.hgrow="ALWAYS"/>
+            <TextField fx:id="searchField" promptText="Recherche…" prefWidth="200"/>
+            <Button text="Rechercher" onAction="#search" style="-fx-background-color:#2563eb; -fx-text-fill:white; -fx-cursor:hand; -fx-background-radius:6;"/>
+        </HBox>
+    </top>
+    <center>
+        <VBox style="-fx-padding:16; -fx-background-color:#f1f5f9;">
+            <TableView fx:id="table" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="colRecord" text="N° Dossier" prefWidth="110"/>
+                    <TableColumn fx:id="colName"   text="Nom complet" prefWidth="180"/>
+                    <TableColumn fx:id="colBirth"  text="Naissance"   prefWidth="110"/>
+                    <TableColumn fx:id="colPhone"  text="Téléphone"   prefWidth="130"/>
+                    <TableColumn fx:id="colDoctor" text="Médecin"     prefWidth="160"/>
+                </columns>
+            </TableView>
+            <Label fx:id="statusLabel" style="-fx-text-fill:#64748b; -fx-font-size:12px; -fx-padding:6 0 0 0;"/>
+        </VBox>
+    </center>
+</BorderPane>

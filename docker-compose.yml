@@ -1,0 +1,44 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: medical_postgres
+    restart: always
+    env_file: ./backend/.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - medical_net
+
+  backend:
+    build: ./backend
+    container_name: medical_backend
+    restart: always
+    env_file: ./backend/.env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - medical_net
+
+  desktop:
+    build: ./desktop
+    container_name: medical_desktop
+    environment:
+      - DISPLAY=${DISPLAY}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    depends_on:
+      - backend
+    networks:
+      - medical_net
+
+networks:
+  medical_net:
+
+volumes:
+  postgres_data:
