@@ -949,6 +949,9 @@ body.login-page {
 .patient-header { display:flex; align-items:center; gap:20px; background:white; border:1px solid var(--border); border-radius:10px; padding:24px; margin-bottom:20px; }
 .patient-avatar img, .avatar-placeholder { width:72px; height:72px; border-radius:50%; object-fit:cover; }
 .avatar-placeholder { background:var(--blue); color:white; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:700; flex-shrink:0; }
+.patient-photo-col { display:flex; flex-direction:column; align-items:center; gap:8px; flex-shrink:0; }
+.photo-upload-form { margin:0; }
+.photo-upload-btn { cursor:pointer; }
 .patient-info { flex:1; }
 .patient-info h2 { font-size:22px; font-weight:700; margin-bottom:8px; }
 .patient-meta { display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-size:13px; color:var(--text-400); }

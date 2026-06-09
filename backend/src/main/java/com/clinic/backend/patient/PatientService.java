@@ -3,11 +3,13 @@ package com.clinic.backend.patient;
 import com.clinic.backend.dto.PatientDto;
 import com.clinic.backend.model.User;
 import com.clinic.backend.repository.UserRepository;
+import com.clinic.backend.storage.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.Year;
@@ -19,6 +21,7 @@ public class PatientService {
 
     private final PatientRepository patientRepository;
     private final UserRepository userRepository;
+    private final FileStorageService fileStorageService;
 
     // ── Recherche paginée ──────────────────────────────────────────────────
     @Transactional(readOnly = true)
@@ -45,6 +48,14 @@ public class PatientService {
     public Patient update(Long id, PatientDto dto) {
         Patient p = getById(id);
         mapDtoToEntity(dto, p);
+        return patientRepository.save(p);
+    }
+
+    // ── Upload photo ──────────────────────────────────────────────────────
+    public Patient uploadPhoto(Long id, MultipartFile file) {
+        Patient p = getById(id);
+        String url = fileStorageService.storeImage(file, "patients/" + id);
+        p.setPhotoUrl(url);
         return patientRepository.save(p);
     }
 

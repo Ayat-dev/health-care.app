@@ -173,7 +173,7 @@ cd backend && mvnd spring-boot:run
 
 > This is the single source of truth for "where are we?". Build modules **strictly in this order** (derived from FK dependencies, NOT from spec numbering). Check off sub-tasks as they land. `[ ]` = todo, `[~]` = in progress, `[x]` = done.
 > **Workflow rule (token discipline):** one module per session, implement inline (no sub-agents, no multi-agent GSD skills), `mvnd compile` to verify, tick boxes here, then `/clear` before the next module.
-> **👉 NEXT UP:** Wave 1 — module 4 Patients (02): finish photo upload + full history (CRUD already done).
+> **👉 NEXT UP:** Wave 1 — module 5 Appointments (03): week view + slot conflict check (CRUD already done).
 
 ### 🧱 Wave 0 — Foundations
 - [x] **0. Flyway baseline** — `V1__baseline_auth_patients.sql` formalizes the existing `users` + `patients` schema; Flyway added to pom, `ddl-auto` flipped to `validate`. Verified: Flyway migrates + Hibernate validate passes on H2. (NB: no Appointments table existed yet — that schema lands with module 5.)
@@ -182,7 +182,7 @@ cd backend && mvnd spring-boot:run
 - [x] **3. Config & Catalogs** (14, pulled up — socle) — four reference tables via `V4__config_catalogs_tables.sql` (DDL + seeds): `clinic_config` (singleton: identity, feature flags, payments, numbering prefixes), `insurance_providers`, `act_catalog` (FK→departments), `lab_test_catalog`. Entities/repos/services/DTOs in packages `clinicconfig`, `insurance`, `catalog`. Web (ADMIN): `/admin/config` (`AdminConfigWebController` + `admin/config/form.html`), `/admin/insurance`, `/admin/acts`, `/admin/lab-tests` (list+form each). REST (ADMIN-only writes): `/api/insurance-providers`, `/api/acts`, `/api/lab-tests`. Nav links added. **NB:** act-catalog DTO mapping is done inside the service tx (`listAllAsDto`/`getDtoById`) to reach the lazy `department` assoc. Verified end-to-end on H2: Flyway→v4, Hibernate validate passes, all admin pages render 200, create/save POST flows persist + checkbox feature-flags bind correctly. **Bonus fix:** `layouts/base.html` used the removed Thymeleaf 3.1 `#httpServletRequest` object (broke *every* web page over HTTP) — replaced with a `currentUri` model attr exposed by new `config/GlobalModelAdvice.java` (`@ControllerAdvice`).
 
 ### 👥 Wave 1 — Core entities
-- [ ] **4. Patients** (02) — 🟡 CRUD done · TODO: photo upload, full history
+- [x] **4. Patients** (02) — CRUD done · **photo upload done**: new pkg `storage` (`FileStorageService` validates JPEG/PNG/WebP, 5 Mo cap, stores under `app.storage.upload-dir`/patients/{id}/); `config/WebConfig` serves files at `/uploads/**` (kept behind web auth — medical privacy); `PatientService.uploadPhoto`; `POST /api/patients/{id}/photo` (multipart) + `POST /patients/{id}/photo` (web form auto-submits on file pick → flash msg); `detail.html` avatar gains a photo column + flash alerts. Verified: `mvnd compile` BUILD SUCCESS. · **Full history deferred** (blocked, not codeable yet): the dossier tabs depend on consultations/labs/invoices entities from Waves 2–3 — `detail.html` already shows empty-state placeholders; wire real aggregation (`getFullHistory` + `GET /api/patients/{id}/history`) once those modules land.
 - [ ] **5. Appointments** (03) — 🟡 CRUD done · TODO: week view, slot conflict check
 - [ ] **6. Consultations & Prescriptions** (04) — clinical pivot; prescriptions/lab/invoices/hospitalizations hang off this
 

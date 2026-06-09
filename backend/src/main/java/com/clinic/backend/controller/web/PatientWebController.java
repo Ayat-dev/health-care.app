@@ -9,6 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/patients")
@@ -59,6 +61,19 @@ public class PatientWebController {
     @PostMapping("/{id}/edit")
     public String update(@PathVariable Long id, @ModelAttribute PatientDto dto) {
         patientService.update(id, dto);
+        return "redirect:/patients/" + id;
+    }
+
+    @PostMapping("/{id}/photo")
+    public String uploadPhoto(@PathVariable Long id,
+                              @RequestParam("file") MultipartFile file,
+                              RedirectAttributes ra) {
+        try {
+            patientService.uploadPhoto(id, file);
+            ra.addFlashAttribute("success", "Photo du patient mise à jour.");
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/patients/" + id;
     }
 }

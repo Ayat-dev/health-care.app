@@ -2,12 +2,26 @@
 <html th:replace="~{layouts/base :: layout(${patient.fullName}, ~{::content})}">
 <body><th:block th:fragment="content">
 
+<!-- Messages flash -->
+<div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
 <!-- En-tête dossier -->
 <div class="patient-header">
-    <div class="patient-avatar">
-        <img th:if="${patient.photoUrl != null}" th:src="${patient.photoUrl}" alt="Photo"/>
-        <div th:if="${patient.photoUrl == null}" class="avatar-placeholder"
-             th:text="${patient.firstName.charAt(0) + '' + patient.lastName.charAt(0)}">AB</div>
+    <div class="patient-photo-col">
+        <div class="patient-avatar">
+            <img th:if="${patient.photoUrl != null}" th:src="${patient.photoUrl}" alt="Photo"/>
+            <div th:if="${patient.photoUrl == null}" class="avatar-placeholder"
+                 th:text="${patient.firstName.charAt(0) + '' + patient.lastName.charAt(0)}">AB</div>
+        </div>
+        <form th:action="@{/patients/{id}/photo(id=${patient.id})}" method="post"
+              enctype="multipart/form-data" class="photo-upload-form">
+            <label class="btn btn-ghost btn-sm photo-upload-btn">
+                <span th:text="${patient.photoUrl == null ? 'Ajouter une photo' : 'Changer'}">Ajouter une photo</span>
+                <input type="file" name="file" accept="image/jpeg,image/png,image/webp"
+                       hidden required onchange="this.form.submit()"/>
+            </label>
+        </form>
     </div>
     <div class="patient-info">
         <h2 th:text="${patient.fullName}">Nom Prénom</h2>

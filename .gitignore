@@ -26,3 +26,7 @@ logs/
 # Variables d'environnement sensibles (prod)
 .env
 application-prod.properties
+
+# Fichiers uploadés à l'exécution (photos patients, documents — données médicales)
+uploads/
+backend/uploads/

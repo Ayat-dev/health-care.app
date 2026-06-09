@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/patients")
@@ -37,6 +38,12 @@ public class PatientApiController {
     @PutMapping("/{id}")
     public PatientDto update(@PathVariable Long id, @RequestBody PatientDto dto) {
         return patientService.toDto(patientService.update(id, dto));
+    }
+
+    @PostMapping(value = "/{id}/photo", consumes = "multipart/form-data")
+    public PatientDto uploadPhoto(@PathVariable Long id,
+                                  @RequestParam("file") MultipartFile file) {
+        return patientService.toDto(patientService.uploadPhoto(id, file));
     }
 
     @DeleteMapping("/{id}")
