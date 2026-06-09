@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(${provider.id == null ? 'Nouvel assureur' : 'Modifier assureur'}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="form-card">
+    <form th:action="${provider.id == null ? '/admin/insurance/new' : '/admin/insurance/' + provider.id + '/edit'}"
+          method="post">
+
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label class="form-label">Nom *</label>
+                <input type="text" name="name" th:value="${provider.name}"
+                       class="form-control" placeholder="IPM" required/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Code</label>
+                <input type="text" name="code" th:value="${provider.code}"
+                       class="form-control" placeholder="IPM"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Type</label>
+                <select name="type" class="form-control">
+                    <option value="" th:selected="${provider.type == null}">—</option>
+                    <option value="PUBLIQUE" th:selected="${provider.type == 'PUBLIQUE'}">Publique</option>
+                    <option value="PRIVEE" th:selected="${provider.type == 'PRIVEE'}">Privée</option>
+                    <option value="MUTUELLE" th:selected="${provider.type == 'MUTUELLE'}">Mutuelle</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Prise en charge (%)</label>
+                <input type="number" name="coveragePercent" th:value="${provider.coveragePercent}"
+                       class="form-control" min="0" max="100" step="0.01" placeholder="80"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Contact</label>
+                <input type="text" name="contact" th:value="${provider.contact}" class="form-control"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Statut</label>
+                <select name="active" class="form-control">
+                    <option value="true" th:selected="${provider.active}">Actif</option>
+                    <option value="false" th:selected="${!provider.active}">Désactivé</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a th:href="@{/admin/insurance}" class="btn btn-ghost">Annuler</a>
+            <button type="submit" class="btn btn-primary">
+                <span th:text="${provider.id == null ? 'Créer l''assureur' : 'Enregistrer'}">Créer</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+</th:block></body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(${act.id == null ? 'Nouvel acte' : 'Modifier acte'}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="form-card">
+    <form th:action="${act.id == null ? '/admin/acts/new' : '/admin/acts/' + act.id + '/edit'}"
+          method="post">
+
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label class="form-label">Code *</label>
+                <input type="text" name="code" th:value="${act.code}"
+                       class="form-control" placeholder="CONS_GEN" required/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Nom *</label>
+                <input type="text" name="name" th:value="${act.name}"
+                       class="form-control" placeholder="Consultation médecine générale" required/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Département</label>
+                <select name="departmentId" class="form-control">
+                    <option value="" th:selected="${act.departmentId == null}">— Aucun (clinique entière)</option>
+                    <option th:each="d : ${departments}"
+                            th:value="${d.id}" th:text="${d.name}"
+                            th:selected="${act.departmentId == d.id}">Médecine générale</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Tarif *</label>
+                <input type="number" name="price" th:value="${act.price}"
+                       class="form-control" min="0" step="0.01" placeholder="5000" required/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Statut</label>
+                <select name="active" class="form-control">
+                    <option value="true" th:selected="${act.active}">Actif</option>
+                    <option value="false" th:selected="${!act.active}">Désactivé</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a th:href="@{/admin/acts}" class="btn btn-ghost">Annuler</a>
+            <button type="submit" class="btn btn-primary">
+                <span th:text="${act.id == null ? 'Créer l''acte' : 'Enregistrer'}">Créer</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+</th:block></body>
+</html>

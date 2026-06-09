@@ -18,13 +18,13 @@
         </div>
         <nav class="sidebar-nav">
             <div class="nav-section">PRINCIPAL</div>
-            <a th:href="@{/dashboard}" class="nav-item" th:classappend="${#strings.startsWith(#httpServletRequest.requestURI,'/dashboard')} ? 'active'">
+            <a th:href="@{/dashboard}" class="nav-item" th:classappend="${#strings.startsWith(currentUri,'/dashboard')} ? 'active'">
                 <span>⊞</span> Tableau de bord
             </a>
-            <a th:href="@{/patients}" class="nav-item" th:classappend="${#strings.startsWith(#httpServletRequest.requestURI,'/patients')} ? 'active'">
+            <a th:href="@{/patients}" class="nav-item" th:classappend="${#strings.startsWith(currentUri,'/patients')} ? 'active'">
                 <span>👤</span> Patients
             </a>
-            <a th:href="@{/appointments}" class="nav-item" th:classappend="${#strings.startsWith(#httpServletRequest.requestURI,'/appointments')} ? 'active'">
+            <a th:href="@{/appointments}" class="nav-item" th:classappend="${#strings.startsWith(currentUri,'/appointments')} ? 'active'">
                 <span>📅</span> Rendez-vous
             </a>
             <div class="nav-section">SOINS</div>
@@ -47,12 +47,28 @@
             <sec:authorize access="hasRole('ADMIN')">
             <div class="nav-section">ADMIN</div>
             <a th:href="@{/admin/users}" class="nav-item"
-               th:classappend="${#strings.startsWith(#httpServletRequest.requestURI,'/admin/users')} ? 'active'">
+               th:classappend="${#strings.startsWith(currentUri,'/admin/users')} ? 'active'">
                 <span>⚙</span> Utilisateurs
             </a>
             <a th:href="@{/admin/departments}" class="nav-item"
-               th:classappend="${#strings.startsWith(#httpServletRequest.requestURI,'/admin/departments')} ? 'active'">
+               th:classappend="${#strings.startsWith(currentUri,'/admin/departments')} ? 'active'">
                 <span>🏢</span> Départements
+            </a>
+            <a th:href="@{/admin/insurance}" class="nav-item"
+               th:classappend="${#strings.startsWith(currentUri,'/admin/insurance')} ? 'active'">
+                <span>🛡️</span> Assureurs
+            </a>
+            <a th:href="@{/admin/acts}" class="nav-item"
+               th:classappend="${#strings.startsWith(currentUri,'/admin/acts')} ? 'active'">
+                <span>🧾</span> Actes &amp; tarifs
+            </a>
+            <a th:href="@{/admin/lab-tests}" class="nav-item"
+               th:classappend="${#strings.startsWith(currentUri,'/admin/lab-tests')} ? 'active'">
+                <span>🔬</span> Analyses
+            </a>
+            <a th:href="@{/admin/config}" class="nav-item"
+               th:classappend="${#strings.startsWith(currentUri,'/admin/config')} ? 'active'">
+                <span>⚙️</span> Configuration
             </a>
             </sec:authorize>
         </nav>

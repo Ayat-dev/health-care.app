@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Configuration de la clinique', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="form-card">
+    <form th:action="@{/admin/config}" method="post">
+
+        <!-- Identité -->
+        <div class="form-section">
+            <div class="form-section-title">Identité</div>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label">Nom de la clinique *</label>
+                    <input type="text" name="name" th:value="${config.name}" class="form-control" required/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Slogan</label>
+                    <input type="text" name="slogan" th:value="${config.slogan}" class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Téléphone</label>
+                    <input type="text" name="phone" th:value="${config.phone}" class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" th:value="${config.email}" class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Site web</label>
+                    <input type="text" name="website" th:value="${config.website}" class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">URL du logo</label>
+                    <input type="text" name="logoUrl" th:value="${config.logoUrl}" class="form-control"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Adresse</label>
+                <textarea name="address" class="form-control" rows="2" th:text="${config.address}"></textarea>
+            </div>
+            <div class="form-grid-3">
+                <div class="form-group">
+                    <label class="form-label">Devise</label>
+                    <select name="currency" class="form-control">
+                        <option th:each="c : ${ {'XOF','MAD','DZD','EUR','USD'} }"
+                                th:value="${c}" th:text="${c}"
+                                th:selected="${config.currency == c}">XOF</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Fuseau horaire</label>
+                    <input type="text" name="timezone" th:value="${config.timezone}" class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Langue par défaut</label>
+                    <select name="defaultLanguage" class="form-control">
+                        <option value="fr" th:selected="${config.defaultLanguage == 'fr'}">Français</option>
+                        <option value="en" th:selected="${config.defaultLanguage == 'en'}">English</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modules -->
+        <div class="form-section">
+            <div class="form-section-title">Modules activés</div>
+            <div class="form-grid-3">
+                <label class="form-group" style="flex-direction:row;align-items:center;gap:8px">
+                    <input type="checkbox" name="modulePharmacy" value="true" th:checked="${config.modulePharmacy}"/> Pharmacie
+                </label>
+                <label class="form-group" style="flex-direction:row;align-items:center;gap:8px">
+                    <input type="checkbox" name="moduleLab" value="true" th:checked="${config.moduleLab}"/> Laboratoire
+                </label>
+                <label class="form-group" style="flex-direction:row;align-items:center;gap:8px">
+                    <input type="checkbox" name="moduleMaternity" value="true" th:checked="${config.moduleMaternity}"/> Maternité
+                </label>
+                <label class="form-group" style="flex-direction:row;align-items:center;gap:8px">
+                    <input type="checkbox" name="moduleDental" value="true" th:checked="${config.moduleDental}"/> Dentaire
+                </label>
+                <label class="form-group" style="flex-direction:row;align-items:center;gap:8px">
+                    <input type="checkbox" name="moduleRadiology" value="true" th:checked="${config.moduleRadiology}"/> Radiologie
+                </label>
+                <label class="form-group" style="flex-direction:row;align-items:center;gap:8px">
+                    <input type="checkbox" name="moduleHospitalization" value="true" th:checked="${config.moduleHospitalization}"/> Hospitalisation
+                </label>
+            </div>
+        </div>
+
+        <!-- Paiements -->
+        <div class="form-section">
+            <div class="form-section-title">Paiements</div>
+            <div class="form-grid-3">
+                <label class="form-group" style="flex-direction:row;align-items:center;gap:8px">
+                    <input type="checkbox" name="mobileMoneyEnabled" value="true" th:checked="${config.mobileMoneyEnabled}"/> Mobile Money activé
+                </label>
+                <div class="form-group">
+                    <label class="form-label">Fournisseur Mobile Money</label>
+                    <select name="mobileMoneyProvider" class="form-control">
+                        <option value="" th:selected="${config.mobileMoneyProvider == null}">—</option>
+                        <option value="ORANGE_MONEY" th:selected="${config.mobileMoneyProvider == 'ORANGE_MONEY'}">Orange Money</option>
+                        <option value="MTN_MOMO" th:selected="${config.mobileMoneyProvider == 'MTN_MOMO'}">MTN MoMo</option>
+                        <option value="WAVE" th:selected="${config.mobileMoneyProvider == 'WAVE'}">Wave</option>
+                    </select>
+                </div>
+                <label class="form-group" style="flex-direction:row;align-items:center;gap:8px">
+                    <input type="checkbox" name="insuranceEnabled" value="true" th:checked="${config.insuranceEnabled}"/> Assurances activées
+                </label>
+            </div>
+        </div>
+
+        <!-- Numérotation -->
+        <div class="form-section">
+            <div class="form-section-title">Préfixes de numérotation</div>
+            <div class="form-grid-3">
+                <div class="form-group">
+                    <label class="form-label">Dossiers patients</label>
+                    <input type="text" name="patientRecordPrefix" th:value="${config.patientRecordPrefix}" class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Factures</label>
+                    <input type="text" name="invoicePrefix" th:value="${config.invoicePrefix}" class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ordonnances</label>
+                    <input type="text" name="prescriptionPrefix" th:value="${config.prescriptionPrefix}" class="form-control"/>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Enregistrer la configuration</button>
+        </div>
+    </form>
+</div>
+
+</th:block></body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Catalogue des analyses', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="panel">
+    <div class="panel-header">
+        <span>Analyses de laboratoire</span>
+        <a th:href="@{/admin/lab-tests/new}" class="btn btn-primary btn-sm">+ Nouvelle analyse</a>
+    </div>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Code</th>
+                <th>Nom</th>
+                <th>Catégorie</th>
+                <th>Tarif</th>
+                <th>Délai (h)</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${tests.isEmpty()}">
+                <td colspan="7" class="empty-state">Aucune analyse.</td>
+            </tr>
+            <tr th:each="t : ${tests}">
+                <td><code th:text="${t.code}">NFS</code></td>
+                <td th:text="${t.name}">Numération Formule Sanguine</td>
+                <td th:text="${t.category != null ? t.category : '—'}">HEMATOLOGIE</td>
+                <td th:text="${#numbers.formatDecimal(t.price, 1, 'NONE', 0, 'NONE')}">4000</td>
+                <td th:text="${t.turnaroundHours != null ? t.turnaroundHours : '—'}">24</td>
+                <td>
+                    <span th:if="${t.active}" class="badge badge-green">Actif</span>
+                    <span th:unless="${t.active}" class="badge badge-red">Désactivé</span>
+                </td>
+                <td>
+                    <a th:href="@{/admin/lab-tests/{id}/edit(id=${t.id})}" class="btn btn-ghost btn-sm">Modifier</a>
+                    <form th:action="@{/admin/lab-tests/{id}/toggle(id=${t.id})}" method="post" style="display:inline">
+                        <button type="submit" class="btn btn-ghost btn-sm"
+                                th:text="${t.active ? 'Désactiver' : 'Activer'}">Désactiver</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</th:block></body>
+</html>

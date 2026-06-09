@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(${test.id == null ? 'Nouvelle analyse' : 'Modifier analyse'}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="form-card">
+    <form th:action="${test.id == null ? '/admin/lab-tests/new' : '/admin/lab-tests/' + test.id + '/edit'}"
+          method="post">
+
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label class="form-label">Code *</label>
+                <input type="text" name="code" th:value="${test.code}"
+                       class="form-control" placeholder="NFS" required/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Nom *</label>
+                <input type="text" name="name" th:value="${test.name}"
+                       class="form-control" placeholder="Numération Formule Sanguine" required/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Catégorie</label>
+                <select name="category" class="form-control">
+                    <option value="" th:selected="${test.category == null}">—</option>
+                    <option value="HEMATOLOGIE" th:selected="${test.category == 'HEMATOLOGIE'}">Hématologie</option>
+                    <option value="BIOCHIMIE" th:selected="${test.category == 'BIOCHIMIE'}">Biochimie</option>
+                    <option value="SEROLOGIE" th:selected="${test.category == 'SEROLOGIE'}">Sérologie</option>
+                    <option value="BACTERIO" th:selected="${test.category == 'BACTERIO'}">Bactériologie</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Tarif *</label>
+                <input type="number" name="price" th:value="${test.price}"
+                       class="form-control" min="0" step="0.01" placeholder="4000" required/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Délai de résultat (heures)</label>
+                <input type="number" name="turnaroundHours" th:value="${test.turnaroundHours}"
+                       class="form-control" min="0" placeholder="24"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Statut</label>
+                <select name="active" class="form-control">
+                    <option value="true" th:selected="${test.active}">Actif</option>
+                    <option value="false" th:selected="${!test.active}">Désactivé</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Valeurs de référence</label>
+            <textarea name="referenceRange" class="form-control" rows="2"
+                      th:text="${test.referenceRange}"></textarea>
+        </div>
+
+        <div class="form-actions">
+            <a th:href="@{/admin/lab-tests}" class="btn btn-ghost">Annuler</a>
+            <button type="submit" class="btn btn-primary">
+                <span th:text="${test.id == null ? 'Créer l''analyse' : 'Enregistrer'}">Créer</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+</th:block></body>
+</html>

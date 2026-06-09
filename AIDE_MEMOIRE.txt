@@ -1,5 +1,5 @@
 ╔══════════════════════════════════════════════════════════════════╗
-║                   CLINICAPP — AIDE-MÉMOIRE                       ║
+║                   CLINICAPP — AIDE-MÉMOIRE                                     	 	║
 ╚══════════════════════════════════════════════════════════════════╝
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -68,6 +68,10 @@
 
   AVANT chaque session importante :
     git add . && git commit -m "checkpoint avant session Claude Code"
+
+  Pour chaque session de dev, tu ouvres avec :
+
+"Lis docs/OVERVIEW.md et docs/DATABASE.md, puis implémente le module décrit dans docs/modules/05-PHARMACY.md en respectant les conventions."
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  COMMANDES GIT UTILES

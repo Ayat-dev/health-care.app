@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Actes & Tarifs', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="panel">
+    <div class="panel-header">
+        <span>Catalogue des actes</span>
+        <a th:href="@{/admin/acts/new}" class="btn btn-primary btn-sm">+ Nouvel acte</a>
+    </div>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Code</th>
+                <th>Nom</th>
+                <th>Département</th>
+                <th>Tarif</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${acts.isEmpty()}">
+                <td colspan="6" class="empty-state">Aucun acte.</td>
+            </tr>
+            <tr th:each="a : ${acts}">
+                <td><code th:text="${a.code}">CONS_GEN</code></td>
+                <td th:text="${a.name}">Consultation</td>
+                <td th:text="${a.departmentName != null ? a.departmentName : '—'}">—</td>
+                <td th:text="${#numbers.formatDecimal(a.price, 1, 'NONE', 0, 'NONE')}">5000</td>
+                <td>
+                    <span th:if="${a.active}" class="badge badge-green">Actif</span>
+                    <span th:unless="${a.active}" class="badge badge-red">Désactivé</span>
+                </td>
+                <td>
+                    <a th:href="@{/admin/acts/{id}/edit(id=${a.id})}" class="btn btn-ghost btn-sm">Modifier</a>
+                    <form th:action="@{/admin/acts/{id}/toggle(id=${a.id})}" method="post" style="display:inline">
+                        <button type="submit" class="btn btn-ghost btn-sm"
+                                th:text="${a.active ? 'Désactiver' : 'Activer'}">Désactiver</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</th:block></body>
+</html>
