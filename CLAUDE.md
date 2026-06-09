@@ -167,25 +167,37 @@ cd backend && mvn spring-boot:run
 
 ---
 
-## Current implementation status
+## Current implementation status & BUILD ORDER (the ledger)
 
-| Module | Status |
-|---|---|
-| Auth & Roles | 🟡 Partial — entities + JWT done, admin UI missing |
-| Patients | 🟡 Partial — CRUD done, photo upload + full history missing |
-| Appointments | 🟡 Partial — CRUD done, week view + slot check missing |
-| Consultations | ⚪ Not started |
-| Pharmacy | ⚪ Not started |
-| Maternity | ⚪ Not started |
-| Billing | ⚪ Not started (Invoice entity exists) |
-| Hospitalization | ⚪ Not started |
-| Lab | ⚪ Not started |
-| Radiology | ⚪ Not started |
-| Departments | ⚪ Not started |
-| Notifications | ⚪ Not started |
-| Reports | ⚪ Not started |
-| Config | ⚪ Not started |
-| Deployment | ✅ docker-compose.yml done |
+> This is the single source of truth for "where are we?". Build modules **strictly in this order** (derived from FK dependencies, NOT from spec numbering). Check off sub-tasks as they land. `[ ]` = todo, `[~]` = in progress, `[x]` = done.
+> **Workflow rule (token discipline):** one module per session, implement inline (no sub-agents, no multi-agent GSD skills), `mvn compile` to verify, tick boxes here, then `/clear` before the next module.
+> **👉 NEXT UP:** Wave 0 — finish Auth (admin user-management UI, role CRUD).
+
+### 🧱 Wave 0 — Foundations
+- [x] **0. Flyway baseline** — `V1__baseline_auth_patients.sql` formalizes the existing `users` + `patients` schema; Flyway added to pom, `ddl-auto` flipped to `validate`. Verified: Flyway migrates + Hibernate validate passes on H2. (NB: no Appointments table existed yet — that schema lands with module 5.)
+- [ ] **1. Auth & Roles** (01) — 🟡 entities + JWT done · TODO: admin user-management UI, role CRUD
+- [ ] **2. Departments** (11, pulled up) — `users/appointments/consultations/hospitalizations` FK this. Small reference module
+- [ ] **3. Config & Catalogs** (14, pulled up — socle) — `insurance_providers`, `act_catalog`, `lab_test_catalog`, clinic settings
+
+### 👥 Wave 1 — Core entities
+- [ ] **4. Patients** (02) — 🟡 CRUD done · TODO: photo upload, full history
+- [ ] **5. Appointments** (03) — 🟡 CRUD done · TODO: week view, slot conflict check
+- [ ] **6. Consultations & Prescriptions** (04) — clinical pivot; prescriptions/lab/invoices/hospitalizations hang off this
+
+### 🏥 Wave 2 — Downstream clinical
+- [ ] **7. Pharmacy & Stock** (05) — drugs, stock_items, dispensations → prescriptions
+- [ ] **8. Lab** (09) — lab_requests → consultations + lab_test_catalog
+- [ ] **9. Radiology** (10) — same pattern as Lab (factor shared "exam request → result")
+- [ ] **10. Hospitalization & Beds** (08) — rooms, hospitalizations → departments + consultations
+- [ ] **11. Maternity** (06) — maternity_records → patients + consultations
+
+### 💰 Wave 3 — Aggregation & cross-cutting
+- [ ] **12. Billing & Payments** (07) — ⚪ Invoice entity exists · invoices aggregate consultations/hospit/acts/insurance — must come AFTER billable modules
+- [ ] **13. Notifications** (12) — SMS/email: appointment reminders, lab-ready, stock alerts
+- [ ] **14. Reports & Statistics** (13) — reads all tables; only meaningful once data exists
+
+### 🚀 Wave 4 — Continuous
+- [x] **15. Deployment** (15) — docker-compose.yml done · TODO (ongoing): harden Flyway, backups, .env, audit trail
 
 ---
 
