@@ -3,6 +3,7 @@ package com.clinic.backend.model;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -21,6 +22,13 @@ public class User implements UserDetails {
     private String fullName;
     private String role;
 
+    private boolean active = true;
+
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    private LocalDateTime deletedAt;
+
     public User() {}
 
     public User(String username, String password, String fullName, String role) {
@@ -28,6 +36,11 @@ public class User implements UserDetails {
         this.password = password;
         this.fullName = fullName;
         this.role = role;
+    }
+
+    @PrePersist
+    void onCreate() {
+        if (createdAt == null) createdAt = LocalDateTime.now();
     }
 
     @Override
@@ -51,11 +64,29 @@ public class User implements UserDetails {
     public boolean isCredentialsNonExpired() { return true; }
 
     @Override
-    public boolean isEnabled() { return true; }
+    public boolean isEnabled() { return active; }
+
+    public Long getId() { return id; }
 
     public String getFullName() { return fullName; }
 
     public String getRole() { return role; }
 
+    public boolean isActive() { return active; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+
+    public LocalDateTime getDeletedAt() { return deletedAt; }
+
+    public void setUsername(String username) { this.username = username; }
+
     public void setPassword(String password) { this.password = password; }
+
+    public void setFullName(String fullName) { this.fullName = fullName; }
+
+    public void setRole(String role) { this.role = role; }
+
+    public void setActive(boolean active) { this.active = active; }
+
+    public void setDeletedAt(LocalDateTime deletedAt) { this.deletedAt = deletedAt; }
 }

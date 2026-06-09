@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Utilisateurs', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="panel">
+    <div class="panel-header">
+        <span>Comptes utilisateurs</span>
+        <a th:href="@{/admin/users/new}" class="btn btn-primary btn-sm">+ Nouvel utilisateur</a>
+    </div>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Identifiant</th>
+                <th>Nom complet</th>
+                <th>Rôle</th>
+                <th>Statut</th>
+                <th>Créé le</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${users.isEmpty()}">
+                <td colspan="6" class="empty-state">Aucun utilisateur.</td>
+            </tr>
+            <tr th:each="u : ${users}">
+                <td><code th:text="${u.username}">admin</code></td>
+                <td th:text="${u.fullName != null ? u.fullName : '—'}">Nom</td>
+                <td><span class="badge badge-blue" th:text="${u.role}">ROLE</span></td>
+                <td>
+                    <span th:if="${u.active}" class="badge badge-green">Actif</span>
+                    <span th:unless="${u.active}" class="badge badge-red">Désactivé</span>
+                </td>
+                <td th:text="${u.createdAt != null ? #temporals.format(u.createdAt,'dd/MM/yyyy') : '—'}">—</td>
+                <td>
+                    <a th:href="@{/admin/users/{id}/edit(id=${u.id})}" class="btn btn-ghost btn-sm">Modifier</a>
+                    <form th:action="@{/admin/users/{id}/toggle(id=${u.id})}" method="post" style="display:inline">
+                        <button type="submit" class="btn btn-ghost btn-sm"
+                                th:text="${u.active ? 'Désactiver' : 'Activer'}">Désactiver</button>
+                    </form>
+                    <form th:action="@{/admin/users/{id}/delete(id=${u.id})}" method="post" style="display:inline"
+                          onsubmit="return confirm('Supprimer cet utilisateur ?');">
+                        <button type="submit" class="btn btn-ghost btn-sm">Supprimer</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</th:block></body>
+</html>

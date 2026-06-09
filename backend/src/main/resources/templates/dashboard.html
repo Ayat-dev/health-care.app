@@ -1,0 +1,36 @@
+<html th:replace="~{layouts/base :: layout('Tableau de bord', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-card-label">Patients</div>
+        <div class="stat-card-value">—</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-label">Rendez-vous aujourd'hui</div>
+        <div class="stat-card-value">—</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-label">Consultations</div>
+        <div class="stat-card-value">—</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-label">Factures en attente</div>
+        <div class="stat-card-value">—</div>
+    </div>
+</div>
+
+<div class="panel" style="margin-top:24px;">
+    <div class="panel-header">
+        <h2 class="panel-title">Bienvenue sur ClinicApp</h2>
+    </div>
+    <div style="padding:24px; color:#64748b;">
+        <p>Le système de gestion est opérationnel. Utilisez la navigation à gauche pour accéder aux modules.</p>
+        <ul style="margin-top:12px; line-height:2;">
+            <li><a th:href="@{/patients}">📋 Gestion des patients</a></li>
+        </ul>
+    </div>
+</div>
+
+</th:block></body>
+</html>

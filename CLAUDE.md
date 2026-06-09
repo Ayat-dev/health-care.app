@@ -171,11 +171,11 @@ cd backend && mvn spring-boot:run
 
 > This is the single source of truth for "where are we?". Build modules **strictly in this order** (derived from FK dependencies, NOT from spec numbering). Check off sub-tasks as they land. `[ ]` = todo, `[~]` = in progress, `[x]` = done.
 > **Workflow rule (token discipline):** one module per session, implement inline (no sub-agents, no multi-agent GSD skills), `mvn compile` to verify, tick boxes here, then `/clear` before the next module.
-> **👉 NEXT UP:** Wave 0 — finish Auth (admin user-management UI, role CRUD).
+> **👉 NEXT UP:** Wave 0 — module 2 Departments (11, pulled up). Small reference module.
 
 ### 🧱 Wave 0 — Foundations
 - [x] **0. Flyway baseline** — `V1__baseline_auth_patients.sql` formalizes the existing `users` + `patients` schema; Flyway added to pom, `ddl-auto` flipped to `validate`. Verified: Flyway migrates + Hibernate validate passes on H2. (NB: no Appointments table existed yet — that schema lands with module 5.)
-- [ ] **1. Auth & Roles** (01) — 🟡 entities + JWT done · TODO: admin user-management UI, role CRUD
+- [~] **1. Auth & Roles** (01) — 🟢 entities + JWT done · admin user-management UI + role assignment done (`AdminUserWebController`, `UserService`, `UserDto`, `admin/users/{list,form}.html`; `V2__auth_user_admin_fields.sql` adds `active`/`created_at`/`deleted_at`; `Role` enum now holds all 8 roles). · TODO (deferred, lower prio): `/profile` page + self-service change-password, account lockout
 - [ ] **2. Departments** (11, pulled up) — `users/appointments/consultations/hospitalizations` FK this. Small reference module
 - [ ] **3. Config & Catalogs** (14, pulled up — socle) — `insurance_providers`, `act_catalog`, `lab_test_catalog`, clinic settings
 
