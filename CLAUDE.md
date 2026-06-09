@@ -143,8 +143,10 @@ Style: clean medical, dark sidebar (`#0f172a`), white surfaces, blue/green accen
 ## Development mode
 
 ```bash
-cd backend && mvn spring-boot:run
+cd backend && mvnd spring-boot:run
 ```
+
+> **Build tool:** this environment has the Maven Daemon (`mvnd`) on PATH, not plain `mvn`. Use `mvnd` for all Maven commands.
 
 - H2 in-memory database (auto-created, wiped on restart)
 - Test data seeded by `DataInitializer.java`
@@ -157,7 +159,7 @@ cd backend && mvn spring-boot:run
 
 1. Read the spec in `docs/modules/NN-MODULE.md` first
 2. Create package `com.clinic.backend.{module}/`
-3. Add entities → run `mvn compile` to check
+3. Add entities → run `mvnd compile` to check
 4. Add repositories, DTOs, service
 5. Add REST controller in `controller/api/`
 6. Add web controller in `controller/web/`
@@ -170,13 +172,13 @@ cd backend && mvn spring-boot:run
 ## Current implementation status & BUILD ORDER (the ledger)
 
 > This is the single source of truth for "where are we?". Build modules **strictly in this order** (derived from FK dependencies, NOT from spec numbering). Check off sub-tasks as they land. `[ ]` = todo, `[~]` = in progress, `[x]` = done.
-> **Workflow rule (token discipline):** one module per session, implement inline (no sub-agents, no multi-agent GSD skills), `mvn compile` to verify, tick boxes here, then `/clear` before the next module.
-> **👉 NEXT UP:** Wave 0 — module 2 Departments (11, pulled up). Small reference module.
+> **Workflow rule (token discipline):** one module per session, implement inline (no sub-agents, no multi-agent GSD skills), `mvnd compile` to verify, tick boxes here, then `/clear` before the next module.
+> **👉 NEXT UP:** Wave 0 — module 3 Config & Catalogs (14, pulled up — socle).
 
 ### 🧱 Wave 0 — Foundations
 - [x] **0. Flyway baseline** — `V1__baseline_auth_patients.sql` formalizes the existing `users` + `patients` schema; Flyway added to pom, `ddl-auto` flipped to `validate`. Verified: Flyway migrates + Hibernate validate passes on H2. (NB: no Appointments table existed yet — that schema lands with module 5.)
 - [~] **1. Auth & Roles** (01) — 🟢 entities + JWT done · admin user-management UI + role assignment done (`AdminUserWebController`, `UserService`, `UserDto`, `admin/users/{list,form}.html`; `V2__auth_user_admin_fields.sql` adds `active`/`created_at`/`deleted_at`; `Role` enum now holds all 8 roles). · TODO (deferred, lower prio): `/profile` page + self-service change-password, account lockout
-- [ ] **2. Departments** (11, pulled up) — `users/appointments/consultations/hospitalizations` FK this. Small reference module
+- [x] **2. Departments** (11, pulled up) — reference module: `departments` table (code/name/description/color/is_active), soft-disable via `is_active` (no `deleted_at` per schema). `Department` entity + repo + `DepartmentService` (code uniqueness, toggle) + `DepartmentDto`; `DepartmentApiController` (`/api/departments`, ADMIN-only writes) + `DepartmentWebController` (`/admin/departments`, ADMIN); `admin/departments/{list,form}.html`; nav link added; `V3__departments_tables.sql` (DDL + 10 seeded depts). Verified: Flyway migrates to v3 + Hibernate validate passes + app boots on H2.
 - [ ] **3. Config & Catalogs** (14, pulled up — socle) — `insurance_providers`, `act_catalog`, `lab_test_catalog`, clinic settings
 
 ### 👥 Wave 1 — Core entities

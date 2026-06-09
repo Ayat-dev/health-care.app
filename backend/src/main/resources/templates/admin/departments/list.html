@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Départements', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="panel">
+    <div class="panel-header">
+        <span>Départements &amp; services</span>
+        <a th:href="@{/admin/departments/new}" class="btn btn-primary btn-sm">+ Nouveau département</a>
+    </div>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Code</th>
+                <th>Nom</th>
+                <th>Couleur</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${departments.isEmpty()}">
+                <td colspan="5" class="empty-state">Aucun département.</td>
+            </tr>
+            <tr th:each="d : ${departments}">
+                <td><code th:text="${d.code}">MED_GEN</code></td>
+                <td th:text="${d.name}">Médecine générale</td>
+                <td>
+                    <span th:if="${d.color != null and d.color != ''}"
+                          th:style="'display:inline-block;width:16px;height:16px;border-radius:4px;vertical-align:middle;background:' + ${d.color}"></span>
+                    <span th:text="${d.color != null ? d.color : '—'}" style="vertical-align:middle;margin-left:6px">—</span>
+                </td>
+                <td>
+                    <span th:if="${d.active}" class="badge badge-green">Actif</span>
+                    <span th:unless="${d.active}" class="badge badge-red">Désactivé</span>
+                </td>
+                <td>
+                    <a th:href="@{/admin/departments/{id}/edit(id=${d.id})}" class="btn btn-ghost btn-sm">Modifier</a>
+                    <form th:action="@{/admin/departments/{id}/toggle(id=${d.id})}" method="post" style="display:inline">
+                        <button type="submit" class="btn btn-ghost btn-sm"
+                                th:text="${d.active ? 'Désactiver' : 'Activer'}">Désactiver</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</th:block></body>
+</html>

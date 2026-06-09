@@ -46,8 +46,13 @@
             </a>
             <sec:authorize access="hasRole('ADMIN')">
             <div class="nav-section">ADMIN</div>
-            <a th:href="@{/admin/users}" class="nav-item">
+            <a th:href="@{/admin/users}" class="nav-item"
+               th:classappend="${#strings.startsWith(#httpServletRequest.requestURI,'/admin/users')} ? 'active'">
                 <span>⚙</span> Utilisateurs
+            </a>
+            <a th:href="@{/admin/departments}" class="nav-item"
+               th:classappend="${#strings.startsWith(#httpServletRequest.requestURI,'/admin/departments')} ? 'active'">
+                <span>🏢</span> Départements
             </a>
             </sec:authorize>
         </nav>

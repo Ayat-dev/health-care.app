@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(${department.id == null ? 'Nouveau département' : 'Modifier département'}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="form-card">
+    <form th:action="${department.id == null ? '/admin/departments/new' : '/admin/departments/' + department.id + '/edit'}"
+          method="post">
+
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label class="form-label">Code *</label>
+                <input type="text" name="code" th:value="${department.code}"
+                       class="form-control" placeholder="MED_GEN" required/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Nom *</label>
+                <input type="text" name="name" th:value="${department.name}"
+                       class="form-control" placeholder="Médecine générale" required/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Couleur</label>
+                <input type="color" name="color"
+                       th:value="${department.color != null ? department.color : '#2563eb'}"
+                       class="form-control"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Statut</label>
+                <select name="active" class="form-control">
+                    <option value="true" th:selected="${department.active}">Actif</option>
+                    <option value="false" th:selected="${!department.active}">Désactivé</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea name="description" class="form-control" rows="3"
+                      th:text="${department.description}"></textarea>
+        </div>
+
+        <div class="form-actions">
+            <a th:href="@{/admin/departments}" class="btn btn-ghost">Annuler</a>
+            <button type="submit" class="btn btn-primary">
+                <span th:text="${department.id == null ? 'Créer le département' : 'Enregistrer'}">Créer</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+</th:block></body>
+</html>

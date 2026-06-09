@@ -85,7 +85,7 @@ ClinicApp est un système de gestion de clinique **complet, modulaire et adaptab
 | 08 | Hospitalisation & Lits | `modules/08-HOSPITALIZATION.md` | ⚪ Planifié |
 | 09 | Laboratoire | `modules/09-LAB.md` | ⚪ Planifié |
 | 10 | Imagerie médicale | `modules/10-RADIOLOGY.md` | ⚪ Planifié |
-| 11 | Départements spécialisés | `modules/11-DEPARTMENTS.md` | ⚪ Planifié |
+| 11 | Départements spécialisés | `modules/11-DEPARTMENTS.md` | 🟡 En cours — table de référence `departments` faite (socle) ; sous-modules cliniques (dentaire, pédiatrie…) à venir |
 | 12 | Notifications (SMS/Email) | `modules/12-NOTIFICATIONS.md` | ⚪ Planifié |
 | 13 | Rapports & Statistiques | `modules/13-REPORTS.md` | ⚪ Planifié |
 | 14 | Configuration clinique | `modules/14-CONFIG.md` | ⚪ Planifié |
