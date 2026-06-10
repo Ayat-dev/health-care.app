@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Dispensation', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${success}" class="alert alert-info" th:text="${success}">OK</div>
+
+<div class="panel">
+    <div class="panel-header">
+        <span>Dispensation #<th:block th:text="${dispensation.id}">1</th:block></span>
+        <a th:href="@{/pharmacy/dispensations}" class="btn btn-ghost btn-sm">← Historique</a>
+    </div>
+
+    <div style="padding:16px 20px; display:grid; grid-template-columns:repeat(2,1fr); gap:12px;">
+        <div><span style="color:#64748b;">Patient :</span>
+            <strong th:text="${dispensation.patientName}">Patient</strong>
+            <span th:if="${dispensation.patientRecordNumber}" style="color:#94a3b8;"
+                  th:text="' · ' + ${dispensation.patientRecordNumber}"></span>
+        </div>
+        <div><span style="color:#64748b;">Date :</span>
+            <strong th:text="${#temporals.format(dispensation.dispensedAt,'dd/MM/yyyy HH:mm')}">01/01 09:00</strong>
+        </div>
+        <div><span style="color:#64748b;">Ordonnance :</span>
+            <span th:if="${dispensation.prescriptionNumber}" class="badge badge-blue"
+                  th:text="${dispensation.prescriptionNumber}">ORD</span>
+            <span th:unless="${dispensation.prescriptionNumber}">Vente libre</span>
+        </div>
+        <div><span style="color:#64748b;">Pharmacien :</span>
+            <strong th:text="${dispensation.pharmacistName ?: '—'}">Pharmacien</strong>
+        </div>
+        <div th:if="${dispensation.notes}" style="grid-column:1/3;">
+            <span style="color:#64748b;">Note :</span> <span th:text="${dispensation.notes}">Note</span>
+        </div>
+    </div>
+</div>
+
+<div class="panel" style="margin-top:20px;">
+    <div class="panel-header"><span>Lignes dispensées</span></div>
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Médicament</th>
+                <th>Lot</th>
+                <th style="text-align:right;">Quantité</th>
+                <th style="text-align:right;">Prix unitaire</th>
+                <th style="text-align:right;">Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="it : ${dispensation.items}">
+                <td><strong th:text="${it.drugName}">Médicament</strong></td>
+                <td th:text="${it.batchNumber ?: '—'}">LOT</td>
+                <td style="text-align:right;" th:text="${it.quantity}">0</td>
+                <td style="text-align:right;"
+                    th:text="${#numbers.formatDecimal(it.unitPrice,0,'WHITESPACE',0,'POINT')} + ' F'">0 F</td>
+                <td style="text-align:right;"
+                    th:text="${#numbers.formatDecimal(it.totalPrice,0,'WHITESPACE',0,'POINT')} + ' F'">0 F</td>
+            </tr>
+            </tbody>
+            <tfoot>
+            <tr>
+                <td colspan="4" style="text-align:right;"><strong>Total</strong></td>
+                <td style="text-align:right;">
+                    <strong th:text="${#numbers.formatDecimal(dispensation.totalAmount,0,'WHITESPACE',0,'POINT')} + ' F'">0 F</strong>
+                </td>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+</th:block></body>
+</html>

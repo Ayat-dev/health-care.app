@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Pharmacie', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${success}" class="alert alert-info" th:text="${success}">OK</div>
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-card-label">Lots en stock faible</div>
+        <div class="stat-card-value" style="color:var(--red);" th:text="${dash.lowStockCount}">0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-label">Lots périmant (&lt; 30 j)</div>
+        <div class="stat-card-value" style="color:var(--yellow,#d97706);" th:text="${dash.expiringCount}">0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-label">Lots périmés</div>
+        <div class="stat-card-value" th:text="${dash.expiredCount}">0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-label">Valeur du stock</div>
+        <div class="stat-card-value"
+             th:text="${#numbers.formatDecimal(dash.stockValue,0,'WHITESPACE',0,'POINT')} + ' F'">0 F</div>
+    </div>
+</div>
+
+<div style="display:flex; gap:12px; margin-top:20px; flex-wrap:wrap;">
+    <a th:href="@{/pharmacy/dispensations/new}" class="btn btn-primary">💊 Nouvelle dispensation</a>
+    <a th:href="@{/pharmacy/stock/receive}" class="btn btn-ghost">📥 Réceptionner un lot</a>
+    <a th:href="@{/pharmacy/stock}" class="btn btn-ghost">📦 État du stock</a>
+    <a th:href="@{/pharmacy/drugs}" class="btn btn-ghost">📚 Catalogue</a>
+</div>
+
+<div class="panel" style="margin-top:24px;">
+    <div class="panel-header">
+        <span>Top médicaments dispensés (ce mois)</span>
+    </div>
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr><th>#</th><th>Médicament</th><th style="text-align:right;">Quantité dispensée</th></tr>
+            </thead>
+            <tbody>
+            <tr th:if="${dash.topDispensed.isEmpty()}">
+                <td colspan="3" class="empty-state">Aucune dispensation ce mois.</td>
+            </tr>
+            <tr th:each="t,it : ${dash.topDispensed}">
+                <td th:text="${it.count}">1</td>
+                <td>
+                    <a th:href="@{/pharmacy/drugs}" th:text="${t.drugName}">Médicament</a>
+                </td>
+                <td style="text-align:right;"><strong th:text="${t.totalQuantity}">0</strong></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</th:block></body>
+</html>

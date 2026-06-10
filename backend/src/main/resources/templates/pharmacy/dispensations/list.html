@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Dispensations', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${success}" class="alert alert-info" th:text="${success}">OK</div>
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="panel">
+    <div class="panel-header">
+        <span>Historique des dispensations</span>
+        <th:block sec:authorize="hasAnyRole('PHARMACIEN','ADMIN')">
+            <a th:href="@{/pharmacy/dispensations/new}" class="btn btn-primary btn-sm">+ Nouvelle dispensation</a>
+        </th:block>
+    </div>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Date</th>
+                <th>Patient</th>
+                <th>Ordonnance</th>
+                <th>Pharmacien</th>
+                <th style="text-align:right;">Montant</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${dispensations.isEmpty()}">
+                <td colspan="6" class="empty-state">Aucune dispensation.</td>
+            </tr>
+            <tr th:each="d : ${dispensations}">
+                <td><strong th:text="${#temporals.format(d.dispensedAt,'dd/MM/yyyy HH:mm')}">01/01 09:00</strong></td>
+                <td th:text="${d.patientName ?: '—'}">Patient</td>
+                <td>
+                    <span th:if="${d.prescriptionNumber}" class="badge badge-blue" th:text="${d.prescriptionNumber}">ORD</span>
+                    <span th:unless="${d.prescriptionNumber}" style="color:#94a3b8;">Vente libre</span>
+                </td>
+                <td th:text="${d.pharmacistName ?: '—'}">Pharmacien</td>
+                <td style="text-align:right;"
+                    th:text="${#numbers.formatDecimal(d.totalAmount,0,'WHITESPACE',0,'POINT')} + ' F'">0 F</td>
+                <td>
+                    <a th:href="@{/pharmacy/dispensations/{id}(id=${d.id})}" class="btn btn-ghost btn-sm">Voir</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</th:block></body>
+</html>

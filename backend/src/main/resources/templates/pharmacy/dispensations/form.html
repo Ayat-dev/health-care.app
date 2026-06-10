@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Nouvelle dispensation', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div th:if="${dispensation.prescriptionNumber}" class="alert alert-info">
+    Dispensation sur ordonnance <strong th:text="${dispensation.prescriptionNumber}">ORD</strong>.
+    L'ordonnance sera marquée comme dispensée.
+</div>
+
+<div class="form-card">
+    <form th:action="@{/pharmacy/dispensations/new}" method="post" th:object="${dispensation}">
+
+        <input type="hidden" th:field="*{prescriptionId}"/>
+
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label class="form-label">Patient *</label>
+                <select th:field="*{patientId}" class="form-control" required>
+                    <option value="">— Choisir un patient —</option>
+                    <option th:each="p : ${patients}" th:value="${p.id}"
+                            th:text="${p.fullName + ' · ' + p.recordNumber}">Patient</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Note</label>
+                <input type="text" th:field="*{notes}" class="form-control" placeholder="Optionnel"/>
+            </div>
+        </div>
+
+        <h3 style="margin:20px 0 8px;">Médicaments à dispenser</h3>
+        <p style="color:#64748b; margin-bottom:12px; font-size:0.9em;">
+            Le stock est consommé en FIFO (le lot périmant le plus tôt sort en premier). Les lots périmés sont exclus.
+        </p>
+
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                <tr><th style="width:70%;">Médicament</th><th>Quantité</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="line,st : *{items}">
+                    <td>
+                        <select th:field="*{items[__${st.index}__].drugId}" class="form-control">
+                            <option value="">— Aucun —</option>
+                            <option th:each="d : ${drugs}" th:value="${d.id}"
+                                    th:text="${d.name + (d.dosageStrength != null ? ' ' + d.dosageStrength : '')}">Médicament</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="number" th:field="*{items[__${st.index}__].quantity}"
+                               class="form-control" min="0" step="1" style="max-width:120px;"/>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="form-actions">
+            <a th:href="@{/pharmacy/dispensations}" class="btn btn-ghost">Annuler</a>
+            <button type="submit" class="btn btn-primary">Dispenser</button>
+        </div>
+    </form>
+</div>
+
+</th:block></body>
+</html>

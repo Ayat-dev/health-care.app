@@ -31,7 +31,8 @@
             <a th:href="@{/consultations}" class="nav-item">
                 <span>🩺</span> Consultations
             </a>
-            <a th:href="@{/pharmacy}" class="nav-item">
+            <a th:href="@{/pharmacy}" class="nav-item"
+               th:classappend="${#strings.startsWith(currentUri,'/pharmacy')} ? 'active'">
                 <span>💊</span> Pharmacie
             </a>
             <a th:href="@{/lab}" class="nav-item">

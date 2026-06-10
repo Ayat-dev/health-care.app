@@ -10,6 +10,10 @@ import com.clinic.backend.consultation.PrescriptionRepository;
 import com.clinic.backend.model.User;
 import com.clinic.backend.patient.Patient;
 import com.clinic.backend.patient.PatientRepository;
+import com.clinic.backend.pharmacy.Drug;
+import com.clinic.backend.pharmacy.DrugRepository;
+import com.clinic.backend.pharmacy.StockItem;
+import com.clinic.backend.pharmacy.StockItemRepository;
 import com.clinic.backend.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +32,8 @@ public class DataInitializer {
                                AppointmentRepository appointmentRepository,
                                ConsultationRepository consultationRepository,
                                PrescriptionRepository prescriptionRepository,
+                               DrugRepository drugRepository,
+                               StockItemRepository stockItemRepository,
                                PasswordEncoder passwordEncoder) {
         return args -> {
             if (userRepository.count() > 0) return;
@@ -81,6 +87,25 @@ public class DataInitializer {
             seedAppointment(appointmentRepository, p1, doctor, admin,
                     today.plusDays(2).atTime(8, 30), "URGENCE", "PLANIFIE", "Fièvre");
 
+            // Catalogue pharmacie + stock de test
+            Drug omeprazole = seedDrug(drugRepository, "OMEP20", "Oméprazole", "Oméprazole",
+                    "ANTIULCEREUX", "COMPRIME", "20mg", "COMPRIME", true);
+            Drug phloro = seedDrug(drugRepository, "PHLO80", "Phloroglucinol", "Phloroglucinol",
+                    "ANTISPASMODIQUE", "COMPRIME", "80mg", "COMPRIME", false);
+            Drug para = seedDrug(drugRepository, "PARA500", "Paracétamol", "Paracétamol",
+                    "ANALGESIQUE", "COMPRIME", "500mg", "COMPRIME", false);
+            Drug amox = seedDrug(drugRepository, "AMOX500", "Amoxicilline", "Amoxicilline",
+                    "ANTIBIOTIQUE", "GELULE", "500mg", "GELULE", true);
+
+            seedStock(stockItemRepository, omeprazole, "LOT-OMP-01", today.plusYears(2),
+                    200, 30, new java.math.BigDecimal("150.00"), admin);
+            seedStock(stockItemRepository, phloro, "LOT-PHL-07", today.plusYears(1),
+                    8, 20, new java.math.BigDecimal("100.00"), admin);   // stock faible (8 ≤ 20)
+            seedStock(stockItemRepository, para, "LOT-PAR-22", today.plusDays(18),
+                    500, 50, new java.math.BigDecimal("50.00"), admin);  // périme bientôt (< 30 j)
+            seedStock(stockItemRepository, amox, "LOT-AMX-03", today.plusMonths(14),
+                    120, 30, new java.math.BigDecimal("200.00"), admin);
+
             // Consultation clôturée (avec ordonnance) — pour p1
             Consultation c1 = new Consultation();
             c1.setPatient(p1);
@@ -108,8 +133,8 @@ public class DataInitializer {
             rx.setIssueDate(c1.getConsultationDate().toLocalDate());
             rx.setValidityDays(30);
             rx.setNotes("À prendre avant les repas.");
-            rx.addItem(seedItem("Oméprazole", "20mg", "1x/jour", "28 jours", 28, 0));
-            rx.addItem(seedItem("Phloroglucinol", "80mg", "3x/jour", "5 jours", 15, 1));
+            rx.addItem(seedItem(omeprazole, "20mg", "1x/jour", "28 jours", 28, 0));
+            rx.addItem(seedItem(phloro, "80mg", "3x/jour", "5 jours", 15, 1));
             prescriptionRepository.save(rx);
 
             // Consultation en cours — pour p2
@@ -124,6 +149,41 @@ public class DataInitializer {
             c2.setStatus("EN_COURS");
             consultationRepository.save(c2);
         };
+    }
+
+    private Drug seedDrug(DrugRepository repo, String code, String name, String generic,
+                          String category, String form, String dosage, String unit, boolean requiresRx) {
+        Drug d = new Drug();
+        d.setCode(code);
+        d.setName(name);
+        d.setGenericName(generic);
+        d.setCategory(category);
+        d.setForm(form);
+        d.setDosageStrength(dosage);
+        d.setUnit(unit);
+        d.setRequiresPrescription(requiresRx);
+        return repo.save(d);
+    }
+
+    private void seedStock(StockItemRepository repo, Drug drug, String batch, LocalDate expiry,
+                           int quantity, int alert, java.math.BigDecimal sellingPrice, User receivedBy) {
+        StockItem s = new StockItem();
+        s.setDrug(drug);
+        s.setBatchNumber(batch);
+        s.setExpiryDate(expiry);
+        s.setQuantity(quantity);
+        s.setQuantityAlert(alert);
+        s.setSellingPrice(sellingPrice);
+        s.setReceivedBy(receivedBy);
+        s.setReceivedAt(LocalDate.now());
+        repo.save(s);
+    }
+
+    private PrescriptionItem seedItem(Drug drug, String dosage, String freq,
+                                      String duration, Integer qty, int order) {
+        PrescriptionItem it = seedItem(drug.getName(), dosage, freq, duration, qty, order);
+        it.setDrugId(drug.getId());
+        return it;
     }
 
     private PrescriptionItem seedItem(String name, String dosage, String freq,

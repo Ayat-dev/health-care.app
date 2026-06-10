@@ -79,7 +79,7 @@ ClinicApp est un système de gestion de clinique **complet, modulaire et adaptab
 | 02 | Gestion des patients | `modules/02-PATIENTS.md` | 🟡 En cours |
 | 03 | Rendez-vous & Agenda | `modules/03-APPOINTMENTS.md` | ✅ Terminé |
 | 04 | Consultations & Ordonnances | `modules/04-CONSULTATIONS.md` | ✅ Terminé — `consultations` + `prescriptions` + `prescription_items` (V6), constantes/diagnostic/CIM-10, ordonnances ORD-YYYY-NNNNN, clôture diagnostic-obligatoire, impression HTML (PDF binaire différé), onglet dossier patient câblé |
-| 05 | Pharmacie & Stock | `modules/05-PHARMACY.md` | ⚪ Planifié |
+| 05 | Pharmacie & Stock | `modules/05-PHARMACY.md` | ✅ Terminé — `drugs` + `stock_items` + `dispensations` + `dispensation_items` (V7), catalogue + réception de lots, alertes stock faible/péremption, dispensation FIFO (lot périmant en premier, périmés exclus) sur ordonnance ou vente libre, ordonnance dispensée une seule fois, tableau de bord (compteurs + top dispensés + valeur stock), job quotidien `StockAlertService` |
 | 06 | Maternité & Obstétrique | `modules/06-MATERNITY.md` | ⚪ Planifié |
 | 07 | Facturation & Paiements | `modules/07-BILLING.md` | ⚪ Planifié |
 | 08 | Hospitalisation & Lits | `modules/08-HOSPITALIZATION.md` | ⚪ Planifié |

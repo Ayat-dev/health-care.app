@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(${drug.id == null ? 'Nouveau médicament' : 'Modifier médicament'}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="form-card">
+    <form th:action="${drug.id == null ? '/pharmacy/drugs/new' : '/pharmacy/drugs/' + drug.id + '/edit'}"
+          method="post">
+
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label class="form-label">Code</label>
+                <input type="text" name="code" th:value="${drug.code}"
+                       class="form-control" placeholder="AMOX500"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Nom commercial *</label>
+                <input type="text" name="name" th:value="${drug.name}"
+                       class="form-control" placeholder="Clamoxyl" required/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">DCI (nom générique)</label>
+                <input type="text" name="genericName" th:value="${drug.genericName}"
+                       class="form-control" placeholder="Amoxicilline"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Catégorie</label>
+                <input type="text" name="category" th:value="${drug.category}"
+                       class="form-control" placeholder="ANTIBIOTIQUE"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Forme</label>
+                <input type="text" name="form" th:value="${drug.form}"
+                       class="form-control" placeholder="COMPRIME"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Dosage</label>
+                <input type="text" name="dosageStrength" th:value="${drug.dosageStrength}"
+                       class="form-control" placeholder="500mg"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Unité *</label>
+                <input type="text" name="unit" th:value="${drug.unit}"
+                       class="form-control" placeholder="COMPRIME" required/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Délivrance</label>
+                <select name="requiresPrescription" class="form-control">
+                    <option value="true" th:selected="${drug.requiresPrescription}">Sur ordonnance</option>
+                    <option value="false" th:selected="${!drug.requiresPrescription}">Vente libre</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Statut</label>
+                <select name="active" class="form-control">
+                    <option value="true" th:selected="${drug.active}">Actif</option>
+                    <option value="false" th:selected="${!drug.active}">Désactivé</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Notes</label>
+            <textarea name="notes" class="form-control" rows="2" th:text="${drug.notes}"></textarea>
+        </div>
+
+        <div class="form-actions">
+            <a th:href="@{/pharmacy/drugs}" class="btn btn-ghost">Annuler</a>
+            <button type="submit" class="btn btn-primary"
+                    th:text="${drug.id == null ? 'Créer le médicament' : 'Enregistrer'}">Créer</button>
+        </div>
+    </form>
+</div>
+
+</th:block></body>
+</html>

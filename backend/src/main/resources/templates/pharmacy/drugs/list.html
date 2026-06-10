@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Catalogue médicaments', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${success}" class="alert alert-info" th:text="${success}">OK</div>
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="panel">
+    <div class="panel-header">
+        <span>Catalogue des médicaments</span>
+        <th:block sec:authorize="hasAnyRole('PHARMACIEN','ADMIN')">
+            <a th:href="@{/pharmacy/drugs/new}" class="btn btn-primary btn-sm">+ Nouveau médicament</a>
+        </th:block>
+    </div>
+
+    <form method="get" th:action="@{/pharmacy/drugs}" class="search-bar" style="align-items:center;">
+        <input type="text" name="q" th:value="${q}" class="form-control"
+               placeholder="Nom, DCI ou code…" style="max-width:280px;"/>
+        <select name="category" class="form-control" style="max-width:220px;">
+            <option value="">— Toutes catégories —</option>
+            <option th:each="c : ${categories}" th:value="${c}" th:text="${c}"
+                    th:selected="${category == c}">Catégorie</option>
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm">Filtrer</button>
+    </form>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Code</th>
+                <th>Nom commercial</th>
+                <th>DCI</th>
+                <th>Forme</th>
+                <th>Dosage</th>
+                <th>Catégorie</th>
+                <th>Ordonnance</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${drugs.isEmpty()}">
+                <td colspan="9" class="empty-state">Aucun médicament.</td>
+            </tr>
+            <tr th:each="d : ${drugs}">
+                <td th:text="${d.code ?: '—'}">COD</td>
+                <td><strong th:text="${d.name}">Nom</strong></td>
+                <td th:text="${d.genericName ?: '—'}">DCI</td>
+                <td th:text="${d.form ?: '—'}">Forme</td>
+                <td th:text="${d.dosageStrength ?: '—'}">500mg</td>
+                <td th:text="${d.category ?: '—'}">Cat</td>
+                <td>
+                    <span th:if="${d.requiresPrescription}" class="badge badge-yellow">Sur ordonnance</span>
+                    <span th:unless="${d.requiresPrescription}" class="badge badge-green">Vente libre</span>
+                </td>
+                <td>
+                    <span th:if="${d.active}" class="badge badge-green">Actif</span>
+                    <span th:unless="${d.active}" class="badge badge-red">Désactivé</span>
+                </td>
+                <td style="white-space:nowrap;">
+                    <th:block sec:authorize="hasAnyRole('PHARMACIEN','ADMIN')">
+                        <a th:href="@{/pharmacy/stock/receive(drugId=${d.id})}" class="btn btn-ghost btn-sm">Réceptionner</a>
+                        <a th:href="@{/pharmacy/drugs/{id}/edit(id=${d.id})}" class="btn btn-ghost btn-sm">Modifier</a>
+                        <form th:action="@{/pharmacy/drugs/{id}/toggle(id=${d.id})}" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-ghost btn-sm"
+                                    th:text="${d.active ? 'Désactiver' : 'Activer'}">Basculer</button>
+                        </form>
+                    </th:block>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</th:block></body>
+</html>
