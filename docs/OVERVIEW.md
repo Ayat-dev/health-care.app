@@ -83,7 +83,7 @@ ClinicApp est un système de gestion de clinique **complet, modulaire et adaptab
 | 06 | Maternité & Obstétrique | `modules/06-MATERNITY.md` | ⚪ Planifié |
 | 07 | Facturation & Paiements | `modules/07-BILLING.md` | ⚪ Planifié |
 | 08 | Hospitalisation & Lits | `modules/08-HOSPITALIZATION.md` | ⚪ Planifié |
-| 09 | Laboratoire | `modules/09-LAB.md` | ⚪ Planifié |
+| 09 | Laboratoire | `modules/09-LAB.md` | ✅ Terminé — `lab_requests` + `lab_request_items` + `lab_results` (V8), demande d'analyses depuis une consultation (catalogue `lab_test_catalog` V4), travail du jour laborantin (urgent en premier), saisie des résultats avec détection automatique des valeurs anormales (intervalles numériques + qualitatif « Négatif »), validation médecin/biologiste (EN_ATTENTE→EN_COURS→VALIDE→LIVRE), bulletin de résultats imprimable, historique par patient |
 | 10 | Imagerie médicale | `modules/10-RADIOLOGY.md` | ⚪ Planifié |
 | 11 | Départements spécialisés | `modules/11-DEPARTMENTS.md` | 🟡 En cours — table de référence `departments` faite (socle) ; sous-modules cliniques (dentaire, pédiatrie…) à venir |
 | 12 | Notifications (SMS/Email) | `modules/12-NOTIFICATIONS.md` | ⚪ Planifié |
@@ -131,7 +131,7 @@ ClinicApp est un système de gestion de clinique **complet, modulaire et adaptab
 
 ### Phase 3 — Spécialités (Mois 3–4)
 - [ ] Module Maternité (suivi grossesse, CPN, accouchements)
-- [ ] Module Laboratoire (prescriptions labo, saisie résultats)
+- [x] Module Laboratoire (demandes d'analyses, saisie résultats, validation, bulletin)
 - [ ] Module Dentisterie (schéma dentaire, devis, actes)
 - [ ] Module Pédiatrie (courbe de croissance, vaccinations)
 - [ ] Module Ophtalmologie (acuité visuelle, prescriptions lunettes)

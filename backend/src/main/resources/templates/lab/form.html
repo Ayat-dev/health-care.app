@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Nouvelle demande d’analyses', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<form method="post" th:action="@{/lab/requests/new}" th:object="${request}">
+    <div class="form-card">
+        <div class="panel-header"><span>Demande d'analyses</span></div>
+
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label class="form-label">Patient *</label>
+                <select th:field="*{patientId}" class="form-control" required>
+                    <option value="">— Choisir un patient —</option>
+                    <option th:each="p : ${patients}" th:value="${p.id}"
+                            th:text="${p.fullName} + ' (' + ${p.recordNumber} + ')'">Patient</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Médecin prescripteur *</label>
+                <select th:field="*{doctorId}" class="form-control" required>
+                    <option value="">— Choisir un médecin —</option>
+                    <option th:each="d : ${doctors}" th:value="${d.id}" th:text="${d.fullName}">Dr.</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Priorité</label>
+                <select th:field="*{priority}" class="form-control">
+                    <option value="NORMAL">Normal</option>
+                    <option value="URGENT">Urgent</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Notes cliniques</label>
+                <input type="text" th:field="*{notes}" class="form-control" placeholder="Renseignements cliniques…"/>
+            </div>
+        </div>
+
+        <input type="hidden" th:field="*{consultationId}"/>
+
+        <div class="form-group">
+            <label class="form-label">Analyses demandées *</label>
+            <div class="table-wrap">
+                <table class="table">
+                    <thead>
+                    <tr><th style="width:48px;"></th><th>Code</th><th>Analyse</th><th>Catégorie</th><th>Valeurs de référence</th><th>Tarif</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${tests.isEmpty()}">
+                        <td colspan="6" class="empty-state">Aucune analyse au catalogue. Ajoutez-en via Admin → Analyses.</td>
+                    </tr>
+                    <tr th:each="t : ${tests}">
+                        <td style="text-align:center;">
+                            <input type="checkbox" name="testIds" th:value="${t.id}"
+                                   th:checked="${request.testIds != null and #lists.contains(request.testIds, t.id)}"/>
+                        </td>
+                        <td><strong th:text="${t.code}">NFS</strong></td>
+                        <td th:text="${t.name}">Numération formule sanguine</td>
+                        <td><span class="badge" th:text="${t.category ?: '—'}">HEMATOLOGIE</span></td>
+                        <td th:text="${t.referenceRange ?: '—'}">—</td>
+                        <td th:text="${#numbers.formatDecimal(t.price,1,'WHITESPACE',0,'POINT')} + ' F'">2 000 F</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div style="display:flex; gap:.5rem; margin-top:12px;">
+            <button type="submit" class="btn btn-primary">Enregistrer la demande</button>
+            <a th:href="@{/lab}" class="btn btn-ghost">Annuler</a>
+        </div>
+    </div>
+</form>
+
+</th:block></body>
+</html>

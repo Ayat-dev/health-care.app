@@ -35,7 +35,8 @@
                th:classappend="${#strings.startsWith(currentUri,'/pharmacy')} ? 'active'">
                 <span>💊</span> Pharmacie
             </a>
-            <a th:href="@{/lab}" class="nav-item">
+            <a th:href="@{/lab}" class="nav-item"
+               th:classappend="${#strings.startsWith(currentUri,'/lab')} ? 'active'">
                 <span>🔬</span> Laboratoire
             </a>
             <div class="nav-section">GESTION</div>

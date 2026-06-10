@@ -99,6 +99,18 @@
     </div>
 </div>
 
+<!-- Analyses de laboratoire -->
+<div class="panel" style="margin-top:16px;">
+    <div class="panel-header">
+        <span>Analyses de laboratoire</span>
+        <a th:href="@{/lab/requests/new(consultationId=${consultation.id},patientId=${consultation.patientId})}"
+           class="btn btn-ghost btn-sm">+ Demander des analyses</a>
+    </div>
+    <div style="padding:12px 16px;" class="empty-state">
+        Créez une demande d'analyses ; le suivi des résultats se fait dans le module Laboratoire.
+    </div>
+</div>
+
 <div style="margin-top:16px;">
     <a th:href="@{/consultations}" class="btn btn-ghost">← Retour à la liste</a>
     <a th:if="${consultation.patientId != null}" th:href="@{/patients/{id}(id=${consultation.patientId})}"

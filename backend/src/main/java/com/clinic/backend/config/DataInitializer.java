@@ -7,6 +7,12 @@ import com.clinic.backend.consultation.ConsultationRepository;
 import com.clinic.backend.consultation.Prescription;
 import com.clinic.backend.consultation.PrescriptionItem;
 import com.clinic.backend.consultation.PrescriptionRepository;
+import com.clinic.backend.catalog.LabTestCatalog;
+import com.clinic.backend.catalog.LabTestCatalogRepository;
+import com.clinic.backend.lab.LabRequest;
+import com.clinic.backend.lab.LabRequestItem;
+import com.clinic.backend.lab.LabRequestRepository;
+import com.clinic.backend.lab.LabResult;
 import com.clinic.backend.model.User;
 import com.clinic.backend.patient.Patient;
 import com.clinic.backend.patient.PatientRepository;
@@ -34,6 +40,8 @@ public class DataInitializer {
                                PrescriptionRepository prescriptionRepository,
                                DrugRepository drugRepository,
                                StockItemRepository stockItemRepository,
+                               LabTestCatalogRepository labTestCatalogRepository,
+                               LabRequestRepository labRequestRepository,
                                PasswordEncoder passwordEncoder) {
         return args -> {
             if (userRepository.count() > 0) return;
@@ -47,6 +55,8 @@ public class DataInitializer {
                     passwordEncoder.encode("secretaire123"), "Secrétaire", "SECRETAIRE"));
             userRepository.save(new User("pharmacien",
                     passwordEncoder.encode("pharmacien123"), "Pharmacien", "PHARMACIEN"));
+            User laborantin = userRepository.save(new User("laborantin",
+                    passwordEncoder.encode("laborantin123"), "Laborantin", "LABORANTIN"));
 
             // Patients de test
             Patient p1 = new Patient();
@@ -148,7 +158,67 @@ public class DataInitializer {
             c2.setPulseBpm(78);
             c2.setStatus("EN_COURS");
             consultationRepository.save(c2);
+
+            // ── Laboratoire ───────────────────────────────────────────────────
+            LabTestCatalog nfs   = labTestCatalogRepository.findByCodeIgnoreCase("NFS").orElse(null);
+            LabTestCatalog glyc  = labTestCatalogRepository.findByCodeIgnoreCase("GLYCEMIE").orElse(null);
+            LabTestCatalog creat = labTestCatalogRepository.findByCodeIgnoreCase("CREAT").orElse(null);
+            LabTestCatalog hiv   = labTestCatalogRepository.findByCodeIgnoreCase("HIV").orElse(null);
+
+            // Demande validée pour p1 (issue de c1) — glycémie anormale
+            LabRequest lr1 = new LabRequest();
+            lr1.setRequestNumber("LAB-" + today.getYear() + "-00001");
+            lr1.setConsultation(c1);
+            lr1.setPatient(p1);
+            lr1.setDoctor(doctor);
+            lr1.setRequestedAt(today.minusDays(7).atTime(9, 45));
+            lr1.setPriority("NORMAL");
+            lr1.setStatus("VALIDE");
+            lr1.setNotes("Bilan douleurs abdominales.");
+            if (nfs != null) lr1.addItem(seedLabResult(nfs, "5.2", "G/L", nfs.getReferenceRange(), false,
+                    laborantin, doctor, today.minusDays(6).atTime(11, 0)));
+            if (glyc != null) lr1.addItem(seedLabResult(glyc, "1.45", "g/L", glyc.getReferenceRange(), true,
+                    laborantin, doctor, today.minusDays(6).atTime(11, 0)));
+            labRequestRepository.save(lr1);
+
+            // Demande en attente pour p2 — apparaît dans le travail du jour
+            LabRequest lr2 = new LabRequest();
+            lr2.setRequestNumber("LAB-" + today.getYear() + "-00002");
+            lr2.setPatient(p2);
+            lr2.setDoctor(doctor);
+            lr2.setRequestedAt(today.atTime(10, 45));
+            lr2.setPriority("URGENT");
+            lr2.setStatus("EN_ATTENTE");
+            lr2.setNotes("Contrôle fonction rénale + sérologie.");
+            if (creat != null) lr2.addItem(seedLabItem(creat));
+            if (hiv != null) lr2.addItem(seedLabItem(hiv));
+            labRequestRepository.save(lr2);
         };
+    }
+
+    private LabRequestItem seedLabItem(LabTestCatalog test) {
+        LabRequestItem item = new LabRequestItem();
+        item.setTest(test);
+        item.setStatus("EN_ATTENTE");
+        return item;
+    }
+
+    private LabRequestItem seedLabResult(LabTestCatalog test, String value, String unit, String range,
+                                         boolean abnormal, User laborantin, User validator,
+                                         LocalDateTime validatedAt) {
+        LabRequestItem item = new LabRequestItem();
+        item.setTest(test);
+        item.setStatus("SAISI");
+        LabResult res = new LabResult();
+        res.setResultValue(value);
+        res.setUnit(unit);
+        res.setReferenceRange(range);
+        res.setAbnormal(abnormal);
+        res.setLaborantin(laborantin);
+        res.setValidatedBy(validator);
+        res.setValidatedAt(validatedAt);
+        item.setResultValueObject(res);
+        return item;
     }
 
     private Drug seedDrug(DrugRepository repo, String code, String name, String generic,

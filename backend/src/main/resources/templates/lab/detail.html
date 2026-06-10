@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Demande d’analyses', ~{::content})}"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body><th:block th:fragment="content">
+
+<div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<!-- En-tête -->
+<div class="panel">
+    <div class="panel-header">
+        <span>
+            <strong th:text="${request.requestNumber}">LAB-…</strong>
+            <span class="badge badge-blue" th:text="${request.patientRecordNumber}">PAT-…</span>
+            <span class="badge" th:classappend="'badge-' + ${request.status}" th:text="${request.status}">EN_ATTENTE</span>
+            <span th:if="${request.priority == 'URGENT'}" class="badge badge-red">URGENT</span>
+            <span th:if="${request.abnormalCount > 0}" class="badge badge-red"
+                  th:text="${request.abnormalCount} + ' valeur(s) anormale(s)'">anormal</span>
+        </span>
+        <div style="display:flex; gap:.5rem;">
+            <a th:if="${request.status != 'VALIDE' and request.status != 'LIVRE' and request.status != 'ANNULE'}"
+               th:href="@{/lab/requests/{id}/results(id=${request.id})}" class="btn btn-primary btn-sm">Saisir les résultats</a>
+            <th:block sec:authorize="hasAnyRole('MEDECIN','ADMIN')">
+                <form th:if="${request.status == 'EN_COURS' and request.allResultsEntered}" method="post"
+                      th:action="@{/lab/requests/{id}/validate(id=${request.id})}" style="display:inline;">
+                    <button class="btn btn-primary btn-sm">Valider</button>
+                </form>
+            </th:block>
+            <a th:if="${request.status == 'VALIDE' or request.status == 'LIVRE'}"
+               th:href="@{/lab/requests/{id}/bulletin(id=${request.id})}" target="_blank"
+               class="btn btn-ghost btn-sm">Imprimer le bulletin</a>
+            <form th:if="${request.status == 'VALIDE'}" method="post"
+                  th:action="@{/lab/requests/{id}/deliver(id=${request.id})}" style="display:inline;">
+                <button class="btn btn-ghost btn-sm">Marquer livré</button>
+            </form>
+            <form th:if="${request.status != 'VALIDE' and request.status != 'LIVRE' and request.status != 'ANNULE'}"
+                  method="post" th:action="@{/lab/requests/{id}/cancel(id=${request.id})}" style="display:inline;"
+                  onsubmit="return confirm('Annuler cette demande ?');">
+                <button class="btn btn-ghost btn-sm">Annuler</button>
+            </form>
+        </div>
+    </div>
+    <div class="form-grid-2" style="padding:12px 16px;">
+        <div><span class="detail-label">Patient</span> <span th:text="${request.patientName}">—</span></div>
+        <div><span class="detail-label">Prescripteur</span> <span th:text="${request.doctorName ?: '—'}">—</span></div>
+        <div><span class="detail-label">Demandé le</span>
+             <span th:text="${#temporals.format(request.requestedAt,'dd/MM/yyyy HH:mm')}">—</span></div>
+        <div><span class="detail-label">Renseignements</span> <span th:text="${request.notes ?: '—'}">—</span></div>
+    </div>
+</div>
+
+<!-- Résultats -->
+<div class="panel" style="margin-top:16px;">
+    <div class="panel-header"><span>Analyses &amp; résultats</span></div>
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Analyse</th>
+                <th>Catégorie</th>
+                <th>Résultat</th>
+                <th>Réf.</th>
+                <th>Statut</th>
+                <th>Saisi par</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="it : ${request.items}" th:classappend="${it.abnormal} ? 'row-abnormal'">
+                <td><strong th:text="${it.testName}">NFS</strong> <small th:text="${it.testCode}">NFS</small></td>
+                <td><span class="badge" th:text="${it.category ?: '—'}">HEMATO</span></td>
+                <td>
+                    <span th:if="${it.resultValue != null}">
+                        <strong th:text="${it.resultValue} + (${it.unit != null} ? ' ' + ${it.unit} : '')">12.5 g/dL</strong>
+                        <span th:if="${it.abnormal}" class="badge badge-red">⚠ Anormal</span>
+                    </span>
+                    <span th:unless="${it.resultValue != null}" style="color:#94a3b8;">en attente</span>
+                </td>
+                <td th:text="${it.referenceRange ?: (it.catalogReferenceRange ?: '—')}">—</td>
+                <td><span class="badge" th:text="${it.status}">EN_ATTENTE</span></td>
+                <td th:text="${it.laborantinName ?: '—'}">—</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div th:if="${request.status == 'VALIDE' or request.status == 'LIVRE'}"
+         style="padding:10px 16px; color:#475569; font-size:13px;">
+        Validé par <strong th:text="${request.items[0].validatedByName ?: '—'}">Dr.</strong>
+        <span th:if="${request.items[0].validatedAt != null}"
+              th:text="' le ' + ${#temporals.format(request.items[0].validatedAt,'dd/MM/yyyy HH:mm')}"> le —</span>
+    </div>
+</div>
+
+<div style="margin-top:16px;">
+    <a th:href="@{/lab}" class="btn btn-ghost">← Travail du jour</a>
+    <a th:if="${request.patientId != null}" th:href="@{/patients/{id}(id=${request.patientId})}"
+       class="btn btn-ghost">Dossier patient</a>
+</div>
+
+</th:block></body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Saisie des résultats', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="panel" style="margin-bottom:16px;">
+    <div class="panel-header">
+        <span>
+            <strong th:text="${request.requestNumber}">LAB-…</strong> —
+            <span th:text="${request.patientName}">Patient</span>
+            <span class="badge badge-blue" th:text="${request.patientRecordNumber}">PAT-…</span>
+            <span th:if="${request.priority == 'URGENT'}" class="badge badge-red">URGENT</span>
+        </span>
+    </div>
+    <div style="padding:8px 16px; color:#475569; font-size:13px;"
+         th:if="${request.notes}" th:text="'Renseignements : ' + ${request.notes}">Renseignements</div>
+</div>
+
+<form method="post" th:action="@{/lab/requests/{id}/results(id=${request.id})}" th:object="${request}">
+    <div class="form-card">
+        <div class="panel-header"><span>Résultats par analyse</span></div>
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Analyse</th>
+                    <th style="width:160px;">Valeur</th>
+                    <th style="width:110px;">Unité</th>
+                    <th style="width:180px;">Valeurs de référence</th>
+                    <th style="width:80px;">Anormal</th>
+                    <th>Note</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="it,stat : ${request.items}">
+                    <td>
+                        <strong th:text="${it.testName}">NFS</strong><br/>
+                        <small th:text="${it.testCode}">NFS</small>
+                        <input type="hidden" th:field="*{items[__${stat.index}__].id}"/>
+                    </td>
+                    <td><input type="text" class="form-control" th:field="*{items[__${stat.index}__].resultValue}" placeholder="—"/></td>
+                    <td><input type="text" class="form-control" th:field="*{items[__${stat.index}__].unit}"
+                               th:placeholder="${it.unit ?: ''}"/></td>
+                    <td><input type="text" class="form-control" th:field="*{items[__${stat.index}__].referenceRange}"
+                               th:placeholder="${it.catalogReferenceRange ?: ''}"/></td>
+                    <td style="text-align:center;">
+                        <input type="checkbox" th:field="*{items[__${stat.index}__].abnormal}"/>
+                    </td>
+                    <td><input type="text" class="form-control" th:field="*{items[__${stat.index}__].resultNotes}" placeholder="—"/></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p style="padding:6px 16px; color:#64748b; font-size:12px;">
+            Laissez la valeur vide pour les analyses non encore réalisées. La case « Anormal » est aussi
+            cochée automatiquement si la valeur sort des bornes de référence numériques.
+        </p>
+        <div style="display:flex; gap:.5rem; margin-top:8px;">
+            <button type="submit" class="btn btn-primary">Enregistrer les résultats</button>
+            <a th:href="@{/lab/requests/{id}(id=${request.id})}" class="btn btn-ghost">Retour</a>
+        </div>
+    </div>
+</form>
+
+</th:block></body>
+</html>
