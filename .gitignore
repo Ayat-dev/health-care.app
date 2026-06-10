@@ -30,3 +30,6 @@ application-prod.properties
 # Fichiers uploadés à l'exécution (photos patients, documents — données médicales)
 uploads/
 backend/uploads/
+
+#autres
+AIDE_MEMOIRE.txt
