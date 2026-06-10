@@ -36,6 +36,13 @@ public class PatientService {
                 .orElseThrow(() -> new RuntimeException("Patient introuvable : " + id));
     }
 
+    /** Dossier view: patient with assignedDoctor initialized (OSIV is off). */
+    @Transactional(readOnly = true)
+    public Patient getByIdWithDoctor(Long id) {
+        return patientRepository.findWithDoctorById(id)
+                .orElseThrow(() -> new RuntimeException("Patient introuvable : " + id));
+    }
+
     // ── Création ──────────────────────────────────────────────────────────
     public Patient create(PatientDto dto) {
         Patient p = new Patient();

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(${consultation.id == null ? 'Nouvelle consultation' : 'Modifier consultation'}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="form-card">
+    <form th:action="${consultation.id == null ? '/consultations/new' : '/consultations/' + consultation.id + '/edit'}"
+          method="post">
+
+        <input type="hidden" name="appointmentId" th:value="${consultation.appointmentId}"/>
+
+        <!-- Contexte -->
+        <div class="form-section">
+            <h3 class="form-section-title">Contexte</h3>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label">Patient *</label>
+                    <select name="patientId" class="form-control" required>
+                        <option value="">— Sélectionner —</option>
+                        <option th:each="p : ${patients}" th:value="${p.id}"
+                                th:text="${p.lastName + ' ' + p.firstName + ' (' + p.recordNumber + ')'}"
+                                th:selected="${consultation.patientId == p.id}">Patient</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Médecin *</label>
+                    <select name="doctorId" class="form-control" required>
+                        <option value="">— Sélectionner —</option>
+                        <option th:each="d : ${doctors}" th:value="${d.id}" th:text="${d.fullName}"
+                                th:selected="${consultation.doctorId == d.id}">Dr.</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Département</label>
+                    <select name="departmentId" class="form-control">
+                        <option value="">— Aucun —</option>
+                        <option th:each="dep : ${departments}" th:value="${dep.id}" th:text="${dep.name}"
+                                th:selected="${consultation.departmentId == dep.id}">Service</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date / heure</label>
+                    <input type="datetime-local" name="consultationDate" class="form-control"
+                           th:value="${consultation.consultationDate != null ? #temporals.format(consultation.consultationDate,'yyyy-MM-dd''T''HH:mm') : ''}"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">
+                        <input type="checkbox" name="emergency" value="true" th:checked="${consultation.emergency}"/>
+                        Urgence
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Constantes vitales -->
+        <div class="form-section">
+            <h3 class="form-section-title">Constantes vitales</h3>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label">Poids (kg)</label>
+                    <input type="number" step="0.01" name="weightKg" class="form-control" th:value="${consultation.weightKg}"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Taille (cm)</label>
+                    <input type="number" step="0.1" name="heightCm" class="form-control" th:value="${consultation.heightCm}"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Température (°C)</label>
+                    <input type="number" step="0.1" name="temperatureC" class="form-control" th:value="${consultation.temperatureC}"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Pouls (bpm)</label>
+                    <input type="number" name="pulseBpm" class="form-control" th:value="${consultation.pulseBpm}"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tension systolique</label>
+                    <input type="number" name="bpSystolic" class="form-control" th:value="${consultation.bpSystolic}"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tension diastolique</label>
+                    <input type="number" name="bpDiastolic" class="form-control" th:value="${consultation.bpDiastolic}"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">SpO₂ (%)</label>
+                    <input type="number" step="0.1" name="spo2Percent" class="form-control" th:value="${consultation.spo2Percent}"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Fréquence respiratoire</label>
+                    <input type="number" name="respiratoryRate" class="form-control" th:value="${consultation.respiratoryRate}"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clinique -->
+        <div class="form-section">
+            <h3 class="form-section-title">Examen clinique</h3>
+            <div class="form-group">
+                <label class="form-label">Motif de consultation</label>
+                <input type="text" name="chiefComplaint" class="form-control" th:value="${consultation.chiefComplaint}"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Anamnèse / Histoire de la maladie</label>
+                <textarea name="history" class="form-control" rows="3" th:text="${consultation.history}"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Examen physique</label>
+                <textarea name="physicalExam" class="form-control" rows="3" th:text="${consultation.physicalExam}"></textarea>
+            </div>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label">Diagnostic <small>(obligatoire pour clôturer)</small></label>
+                    <textarea name="diagnosis" class="form-control" rows="2" th:text="${consultation.diagnosis}"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Codes CIM-10</label>
+                    <input type="text" name="icd10Codes" class="form-control" th:value="${consultation.icd10Codes}"
+                           placeholder="ex: J06.9, R50.9"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Plan de traitement</label>
+                <textarea name="treatmentPlan" class="form-control" rows="3" th:text="${consultation.treatmentPlan}"></textarea>
+            </div>
+            <div class="form-group" style="max-width:220px;">
+                <label class="form-label">Date de suivi</label>
+                <input type="date" name="followUpDate" class="form-control"
+                       th:value="${consultation.followUpDate != null ? #temporals.format(consultation.followUpDate,'yyyy-MM-dd') : ''}"/>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a th:href="@{/consultations}" class="btn btn-ghost">Annuler</a>
+            <button type="submit" class="btn btn-primary">
+                <span th:text="${consultation.id == null ? 'Enregistrer la consultation' : 'Enregistrer'}">Enregistrer</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+</th:block></body>
+</html>

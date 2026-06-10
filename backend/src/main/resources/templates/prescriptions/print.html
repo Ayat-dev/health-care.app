@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="'Ordonnance ' + ${prescription.prescriptionNumber}">Ordonnance</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: "Segoe UI", Arial, sans-serif; color: #0f172a; margin: 0; padding: 24px; background: #f1f5f9; }
+        .sheet { max-width: 800px; margin: 0 auto; background: #fff; padding: 32px 40px; border: 1px solid #e2e8f0; }
+        .rx-header { display: flex; justify-content: space-between; align-items: flex-start;
+                     border-bottom: 2px solid #0f172a; padding-bottom: 12px; }
+        .clinic-name { font-size: 22px; font-weight: 700; }
+        .clinic-meta { font-size: 12px; color: #475569; line-height: 1.5; }
+        .logo { max-height: 64px; }
+        .rx-row { display: flex; justify-content: space-between; gap: 24px; margin-top: 16px; font-size: 14px; }
+        .rx-block { line-height: 1.6; }
+        .rx-label { color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+        .rx-title { font-size: 18px; font-weight: 700; margin: 24px 0 8px; }
+        ol.meds { margin: 0; padding-left: 22px; }
+        ol.meds li { margin-bottom: 14px; font-size: 15px; }
+        ol.meds .posology { color: #334155; font-size: 13px; }
+        ol.meds .instructions { color: #64748b; font-size: 12px; font-style: italic; }
+        .notes { margin-top: 20px; font-size: 13px; padding: 10px 12px; background: #f8fafc; border-left: 3px solid #2563eb; }
+        .rx-footer { margin-top: 48px; display: flex; justify-content: space-between; align-items: flex-end;
+                     font-size: 12px; color: #475569; }
+        .signature { text-align: center; }
+        .signature .line { width: 200px; border-top: 1px solid #94a3b8; margin-top: 48px; padding-top: 4px; }
+        .toolbar { max-width: 800px; margin: 0 auto 16px; text-align: right; }
+        .btn { display: inline-block; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer;
+               font-size: 13px; text-decoration: none; }
+        .btn-print { background: #2563eb; color: #fff; }
+        .btn-back { background: #e2e8f0; color: #0f172a; margin-right: 8px; }
+        @media print {
+            body { background: #fff; padding: 0; }
+            .sheet { border: none; max-width: none; }
+            .toolbar { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <a href="javascript:history.back()" class="btn btn-back">← Retour</a>
+    <button onclick="window.print()" class="btn btn-print">Imprimer</button>
+</div>
+
+<div class="sheet">
+    <div class="rx-header">
+        <div>
+            <div class="clinic-name" th:text="${config.name}">Nom de la clinique</div>
+            <div class="clinic-meta">
+                <div th:if="${config.slogan}" th:text="${config.slogan}">Slogan</div>
+                <div th:text="${config.address}">Adresse</div>
+                <div>
+                    <span th:if="${config.phone}" th:text="'Tél : ' + ${config.phone}">Tél</span>
+                    <span th:if="${config.email}" th:text="' · ' + ${config.email}">Email</span>
+                </div>
+            </div>
+        </div>
+        <img th:if="${config.logoUrl}" th:src="${config.logoUrl}" class="logo" alt="Logo"/>
+    </div>
+
+    <div class="rx-row">
+        <div class="rx-block">
+            <div class="rx-label">Médecin</div>
+            <div th:text="'Dr. ' + ${prescription.doctorName}">Dr. Nom</div>
+        </div>
+        <div class="rx-block" style="text-align:right;">
+            <div class="rx-label">Date</div>
+            <div th:text="${#temporals.format(prescription.issueDate,'dd/MM/yyyy')}">01/01/2026</div>
+        </div>
+    </div>
+
+    <div class="rx-row" style="border-top:1px solid #e2e8f0; padding-top:12px;">
+        <div class="rx-block">
+            <div class="rx-label">Patient</div>
+            <div th:text="${prescription.patientName}">NOM Prénom</div>
+            <div class="clinic-meta" th:text="'N° dossier : ' + ${prescription.patientRecordNumber}">N° dossier</div>
+        </div>
+        <div class="rx-block" style="text-align:right;">
+            <div class="rx-label">Âge</div>
+            <div th:text="${patientAge != null ? patientAge + ' ans' : '—'}">— ans</div>
+        </div>
+    </div>
+
+    <div class="rx-title">Rp/</div>
+    <ol class="meds">
+        <li th:each="it : ${prescription.items}">
+            <div th:text="${it.drugName} + (${it.dosage != null and !it.dosage.isEmpty()} ? ' ' + ${it.dosage} : '')">MÉDICAMENT 500mg</div>
+            <div class="posology">
+                <span th:text="${it.frequency}">3x/jour</span>
+                <span th:if="${it.duration}" th:text="' · pendant ' + ${it.duration}"> · pendant 7 jours</span>
+                <span th:if="${it.quantity}" th:text="' · Qté : ' + ${it.quantity}"> · Qté : 1</span>
+            </div>
+            <div class="instructions" th:if="${it.instructions}" th:text="${it.instructions}">Instructions</div>
+        </li>
+    </ol>
+
+    <div class="notes" th:if="${prescription.notes}" th:text="${prescription.notes}">Notes</div>
+
+    <div class="rx-footer">
+        <div th:text="'Ordonnance ' + ${prescription.prescriptionNumber} + ' · valable ' + ${prescription.validityDays} + ' jours'">
+            Valable 30 jours
+        </div>
+        <div class="signature">
+            <div class="line">Signature / Cachet</div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

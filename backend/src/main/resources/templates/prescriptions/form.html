@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Ordonnance', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="form-card">
+    <div class="panel-header" style="padding:0 0 12px;">
+        <span>
+            Ordonnance pour <strong th:text="${consultation.patientName}">Patient</strong>
+            <span class="badge badge-blue" th:text="${consultation.patientRecordNumber}">PAT-…</span>
+        </span>
+    </div>
+
+    <form th:action="@{/consultations/{id}/prescription(id=${consultation.id})}" method="post">
+        <input type="hidden" name="id" th:value="${prescription.id}"/>
+
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label class="form-label">Date de délivrance</label>
+                <input type="date" name="issueDate" class="form-control"
+                       th:value="${prescription.issueDate != null ? #temporals.format(prescription.issueDate,'yyyy-MM-dd') : ''}"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Validité (jours)</label>
+                <input type="number" name="validityDays" class="form-control"
+                       th:value="${prescription.validityDays > 0 ? prescription.validityDays : 30}"/>
+            </div>
+        </div>
+
+        <h3 class="form-section-title" style="margin-top:8px;">Médicaments (Rp/)</h3>
+        <div class="table-wrap">
+            <table class="table" id="rx-table">
+                <thead>
+                <tr>
+                    <th style="width:26%;">Médicament *</th>
+                    <th>Posologie *</th>
+                    <th>Fréquence *</th>
+                    <th>Durée</th>
+                    <th style="width:70px;">Qté</th>
+                    <th>Instructions</th>
+                </tr>
+                </thead>
+                <tbody id="rx-body">
+                <tr th:each="it,stat : ${prescription.items}">
+                    <td><input type="text" class="form-control" th:name="'items[' + ${stat.index} + '].drugName'" th:value="${it.drugName}"/></td>
+                    <td><input type="text" class="form-control" th:name="'items[' + ${stat.index} + '].dosage'" th:value="${it.dosage}" placeholder="500mg"/></td>
+                    <td><input type="text" class="form-control" th:name="'items[' + ${stat.index} + '].frequency'" th:value="${it.frequency}" placeholder="3x/jour"/></td>
+                    <td><input type="text" class="form-control" th:name="'items[' + ${stat.index} + '].duration'" th:value="${it.duration}" placeholder="7 jours"/></td>
+                    <td><input type="number" class="form-control" th:name="'items[' + ${stat.index} + '].quantity'" th:value="${it.quantity}"/></td>
+                    <td><input type="text" class="form-control" th:name="'items[' + ${stat.index} + '].instructions'" th:value="${it.instructions}"/></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="addRxRow()">+ Ajouter une ligne</button>
+
+        <div class="form-group" style="margin-top:12px;">
+            <label class="form-label">Notes / Recommandations</label>
+            <textarea name="notes" class="form-control" rows="2" th:text="${prescription.notes}"></textarea>
+        </div>
+
+        <div class="form-actions">
+            <a th:href="@{/consultations/{id}(id=${consultation.id})}" class="btn btn-ghost">Annuler</a>
+            <button type="submit" class="btn btn-primary">Enregistrer l'ordonnance</button>
+        </div>
+    </form>
+</div>
+
+<script th:inline="javascript">
+let rxIndex = /*[[${prescription.items.size()}]]*/ 0;
+function addRxRow() {
+    const body = document.getElementById('rx-body');
+    const i = rxIndex++;
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+        '<td><input type="text" class="form-control" name="items[' + i + '].drugName"></td>' +
+        '<td><input type="text" class="form-control" name="items[' + i + '].dosage" placeholder="500mg"></td>' +
+        '<td><input type="text" class="form-control" name="items[' + i + '].frequency" placeholder="3x/jour"></td>' +
+        '<td><input type="text" class="form-control" name="items[' + i + '].duration" placeholder="7 jours"></td>' +
+        '<td><input type="number" class="form-control" name="items[' + i + '].quantity"></td>' +
+        '<td><input type="text" class="form-control" name="items[' + i + '].instructions"></td>';
+    body.appendChild(tr);
+}
+</script>
+
+</th:block></body>
+</html>

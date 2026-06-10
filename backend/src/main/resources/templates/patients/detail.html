@@ -87,9 +87,32 @@
     </div>
 </div>
 
-<!-- Onglet Consultations (placeholder) -->
+<!-- Onglet Consultations -->
 <div id="tab-consultations" class="tab-content panel" style="display:none">
-    <div class="empty-state">Les consultations seront disponibles dans le prochain module.</div>
+    <div class="panel-header" style="padding:0 0 12px;">
+        <span>Historique des consultations</span>
+        <a th:href="@{/consultations/new(patientId=${patient.id})}" class="btn btn-primary btn-sm">+ Nouvelle consultation</a>
+    </div>
+    <div th:if="${consultations == null or consultations.isEmpty()}" class="empty-state">
+        Aucune consultation enregistrée pour ce patient.
+    </div>
+    <div th:unless="${consultations == null or consultations.isEmpty()}" class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr><th>Date</th><th>Médecin</th><th>Motif</th><th>Diagnostic</th><th>Statut</th><th></th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="c : ${consultations}">
+                <td th:text="${#temporals.format(c.consultationDate,'dd/MM/yyyy HH:mm')}">01/01 09:00</td>
+                <td th:text="${c.doctor != null ? c.doctor.fullName : '—'}">Médecin</td>
+                <td th:text="${c.chiefComplaint ?: '—'}">Motif</td>
+                <td th:text="${c.diagnosis ?: '—'}">Diagnostic</td>
+                <td><span class="badge" th:classappend="'badge-' + ${c.status}" th:text="${c.status}">EN_COURS</span></td>
+                <td><a th:href="@{/consultations/{id}(id=${c.id})}" class="btn btn-ghost btn-sm">Voir</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <!-- Onglet Facturation (placeholder) -->

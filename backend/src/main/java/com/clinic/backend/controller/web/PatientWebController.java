@@ -19,6 +19,7 @@ public class PatientWebController {
 
     private final PatientService patientService;
     private final UserRepository userRepository;
+    private final com.clinic.backend.consultation.ConsultationService consultationService;
 
     @GetMapping
     public String list(@RequestParam(defaultValue = "") String q,
@@ -33,8 +34,9 @@ public class PatientWebController {
 
     @GetMapping("/{id}")
     public String detail(@PathVariable Long id, Model model) {
-        Patient patient = patientService.getById(id);
+        Patient patient = patientService.getByIdWithDoctor(id);
         model.addAttribute("patient", patient);
+        model.addAttribute("consultations", consultationService.findForPatient(id));
         return "patients/detail";
     }
 

@@ -2,6 +2,11 @@ package com.clinic.backend.config;
 
 import com.clinic.backend.appointment.Appointment;
 import com.clinic.backend.appointment.AppointmentRepository;
+import com.clinic.backend.consultation.Consultation;
+import com.clinic.backend.consultation.ConsultationRepository;
+import com.clinic.backend.consultation.Prescription;
+import com.clinic.backend.consultation.PrescriptionItem;
+import com.clinic.backend.consultation.PrescriptionRepository;
 import com.clinic.backend.model.User;
 import com.clinic.backend.patient.Patient;
 import com.clinic.backend.patient.PatientRepository;
@@ -21,6 +26,8 @@ public class DataInitializer {
     CommandLineRunner initData(UserRepository userRepository,
                                PatientRepository patientRepository,
                                AppointmentRepository appointmentRepository,
+                               ConsultationRepository consultationRepository,
+                               PrescriptionRepository prescriptionRepository,
                                PasswordEncoder passwordEncoder) {
         return args -> {
             if (userRepository.count() > 0) return;
@@ -73,7 +80,62 @@ public class DataInitializer {
                     today.plusDays(1).atTime(14, 0), "CONSULTATION", "PLANIFIE", "Première visite");
             seedAppointment(appointmentRepository, p1, doctor, admin,
                     today.plusDays(2).atTime(8, 30), "URGENCE", "PLANIFIE", "Fièvre");
+
+            // Consultation clôturée (avec ordonnance) — pour p1
+            Consultation c1 = new Consultation();
+            c1.setPatient(p1);
+            c1.setDoctor(doctor);
+            c1.setConsultationDate(today.minusDays(7).atTime(9, 30));
+            c1.setChiefComplaint("Douleurs abdominales");
+            c1.setHistory("Douleurs épigastriques depuis 3 jours, sans fièvre.");
+            c1.setPhysicalExam("Abdomen souple, sensibilité épigastrique.");
+            c1.setDiagnosis("Gastrite aiguë");
+            c1.setIcd10Codes("K29.1");
+            c1.setTreatmentPlan("IPP 4 semaines, régime, contrôle si persistance.");
+            c1.setWeightKg(new java.math.BigDecimal("64.50"));
+            c1.setTemperatureC(new java.math.BigDecimal("37.2"));
+            c1.setBpSystolic(120);
+            c1.setBpDiastolic(80);
+            c1.setPulseBpm(72);
+            c1.setStatus("TERMINE");
+            consultationRepository.save(c1);
+
+            Prescription rx = new Prescription();
+            rx.setPrescriptionNumber("ORD-" + today.getYear() + "-00001");
+            rx.setConsultation(c1);
+            rx.setPatient(p1);
+            rx.setDoctor(doctor);
+            rx.setIssueDate(c1.getConsultationDate().toLocalDate());
+            rx.setValidityDays(30);
+            rx.setNotes("À prendre avant les repas.");
+            rx.addItem(seedItem("Oméprazole", "20mg", "1x/jour", "28 jours", 28, 0));
+            rx.addItem(seedItem("Phloroglucinol", "80mg", "3x/jour", "5 jours", 15, 1));
+            prescriptionRepository.save(rx);
+
+            // Consultation en cours — pour p2
+            Consultation c2 = new Consultation();
+            c2.setPatient(p2);
+            c2.setDoctor(doctor);
+            c2.setConsultationDate(today.atTime(10, 30));
+            c2.setChiefComplaint("Contrôle tension");
+            c2.setBpSystolic(145);
+            c2.setBpDiastolic(95);
+            c2.setPulseBpm(78);
+            c2.setStatus("EN_COURS");
+            consultationRepository.save(c2);
         };
+    }
+
+    private PrescriptionItem seedItem(String name, String dosage, String freq,
+                                      String duration, Integer qty, int order) {
+        PrescriptionItem it = new PrescriptionItem();
+        it.setDrugName(name);
+        it.setDosage(dosage);
+        it.setFrequency(freq);
+        it.setDuration(duration);
+        it.setQuantity(qty);
+        it.setSortOrder(order);
+        return it;
     }
 
     private void seedAppointment(AppointmentRepository repo, Patient patient, User doctor,
