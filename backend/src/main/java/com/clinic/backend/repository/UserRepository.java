@@ -10,5 +10,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findByDeletedAtIsNullOrderByUsernameAsc();
 
+    List<User> findByRoleAndDeletedAtIsNullOrderByFullNameAsc(String role);
+
     boolean existsByUsername(String username);
 }

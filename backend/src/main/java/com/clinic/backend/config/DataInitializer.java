@@ -1,5 +1,7 @@
 package com.clinic.backend.config;
 
+import com.clinic.backend.appointment.Appointment;
+import com.clinic.backend.appointment.AppointmentRepository;
 import com.clinic.backend.model.User;
 import com.clinic.backend.patient.Patient;
 import com.clinic.backend.patient.PatientRepository;
@@ -10,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Configuration
 public class DataInitializer {
@@ -17,6 +20,7 @@ public class DataInitializer {
     @Bean
     CommandLineRunner initData(UserRepository userRepository,
                                PatientRepository patientRepository,
+                               AppointmentRepository appointmentRepository,
                                PasswordEncoder passwordEncoder) {
         return args -> {
             if (userRepository.count() > 0) return;
@@ -58,6 +62,32 @@ public class DataInitializer {
             p3.setGender("F"); p3.setPhone("+221 70 456 78 90");
             p3.setCity("Bamako");
             patientRepository.save(p3);
+
+            // Rendez-vous de test (aujourd'hui + cette semaine, pour dr.martin)
+            LocalDate today = LocalDate.now();
+            seedAppointment(appointmentRepository, p1, doctor, admin,
+                    today.atTime(9, 0), "CONSULTATION", "PLANIFIE", "Douleurs abdominales");
+            seedAppointment(appointmentRepository, p2, doctor, admin,
+                    today.atTime(10, 30), "SUIVI", "CONFIRME", "Contrôle tension");
+            seedAppointment(appointmentRepository, p3, doctor, admin,
+                    today.plusDays(1).atTime(14, 0), "CONSULTATION", "PLANIFIE", "Première visite");
+            seedAppointment(appointmentRepository, p1, doctor, admin,
+                    today.plusDays(2).atTime(8, 30), "URGENCE", "PLANIFIE", "Fièvre");
         };
+    }
+
+    private void seedAppointment(AppointmentRepository repo, Patient patient, User doctor,
+                                 User createdBy, LocalDateTime start, String type,
+                                 String status, String reason) {
+        Appointment a = new Appointment();
+        a.setPatient(patient);
+        a.setDoctor(doctor);
+        a.setStartTime(start);
+        a.setEndTime(start.plusMinutes(30));
+        a.setType(type);
+        a.setStatus(status);
+        a.setReason(reason);
+        a.setCreatedBy(createdBy);
+        repo.save(a);
     }
 }

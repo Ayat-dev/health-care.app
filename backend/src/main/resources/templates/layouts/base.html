@@ -44,7 +44,7 @@
             <a th:href="@{/hospitalization}" class="nav-item">
                 <span>🏥</span> Hospitalisation
             </a>
-            <sec:authorize access="hasRole('ADMIN')">
+            <th:block sec:authorize="hasRole('ADMIN')">
             <div class="nav-section">ADMIN</div>
             <a th:href="@{/admin/users}" class="nav-item"
                th:classappend="${#strings.startsWith(currentUri,'/admin/users')} ? 'active'">
@@ -70,7 +70,7 @@
                th:classappend="${#strings.startsWith(currentUri,'/admin/config')} ? 'active'">
                 <span>⚙️</span> Configuration
             </a>
-            </sec:authorize>
+            </th:block>
         </nav>
         <div class="sidebar-footer">
             <span sec:authentication="name">Utilisateur</span>

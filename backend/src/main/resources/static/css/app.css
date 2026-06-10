@@ -969,3 +969,28 @@ body.login-page {
 .form-section { margin-bottom:28px; }
 .form-section-title { font-size:14px; font-weight:600; color:var(--text-900); margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid var(--border); }
 .form-actions { display:flex; gap:12px; justify-content:flex-end; padding-top:20px; border-top:1px solid var(--border); margin-top:8px; }
+
+/* ── Vue semaine (agenda) ─────────────────────────────────── */
+.week-grid { table-layout: fixed; }
+.week-grid th, .week-grid td { text-align: center; vertical-align: top; }
+.week-grid thead th { font-size: 12px; }
+.week-grid thead th small { display:block; font-weight:400; color:var(--text-400); }
+.week-grid th.week-today { background: var(--blue-mid); border-radius: var(--radius-sm) var(--radius-sm) 0 0; }
+.week-hour { font-size: 11px; color: var(--text-400); white-space: nowrap; }
+.week-cell { height: 34px; padding: 2px !important; }
+.week-appt {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  width: 100%;
+  margin-bottom: 2px;
+  padding: 3px 5px;
+  font-size: 11px;
+  line-height: 1.2;
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.week-appt:hover { filter: brightness(.95); text-decoration: none; }

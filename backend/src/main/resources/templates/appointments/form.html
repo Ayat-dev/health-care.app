@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(${appointment.id == null ? 'Nouveau rendez-vous' : 'Modifier rendez-vous'}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="form-card">
+    <form th:action="${appointment.id == null ? '/appointments/new' : '/appointments/' + appointment.id + '/edit'}"
+          method="post">
+
+        <div class="form-section">
+            <h3 class="form-section-title">Rendez-vous</h3>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label">Patient *</label>
+                    <select name="patientId" class="form-control" required>
+                        <option value="">— Sélectionner —</option>
+                        <option th:each="p : ${patients}" th:value="${p.id}"
+                                th:text="${p.lastName + ' ' + p.firstName + ' (' + p.recordNumber + ')'}"
+                                th:selected="${appointment.patientId == p.id}">Patient</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Médecin *</label>
+                    <select name="doctorId" class="form-control" required>
+                        <option value="">— Sélectionner —</option>
+                        <option th:each="d : ${doctors}" th:value="${d.id}" th:text="${d.fullName}"
+                                th:selected="${appointment.doctorId == d.id}">Dr.</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Début *</label>
+                    <input type="datetime-local" name="startTime" class="form-control" required
+                           th:value="${appointment.startTime != null ? #temporals.format(appointment.startTime,'yyyy-MM-dd''T''HH:mm') : ''}"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Fin <small>(par défaut : +30 min)</small></label>
+                    <input type="datetime-local" name="endTime" class="form-control"
+                           th:value="${appointment.endTime != null ? #temporals.format(appointment.endTime,'yyyy-MM-dd''T''HH:mm') : ''}"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Type</label>
+                    <select name="type" class="form-control">
+                        <option value="">— Sélectionner —</option>
+                        <option value="CONSULTATION" th:selected="${appointment.type == 'CONSULTATION'}">Consultation</option>
+                        <option value="SUIVI" th:selected="${appointment.type == 'SUIVI'}">Suivi</option>
+                        <option value="URGENCE" th:selected="${appointment.type == 'URGENCE'}">Urgence</option>
+                        <option value="TELECONSULTATION" th:selected="${appointment.type == 'TELECONSULTATION'}">Téléconsultation</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Statut</label>
+                    <select name="status" class="form-control">
+                        <option value="PLANIFIE" th:selected="${appointment.status == 'PLANIFIE'}">Planifié</option>
+                        <option value="CONFIRME" th:selected="${appointment.status == 'CONFIRME'}">Confirmé</option>
+                        <option value="EN_COURS" th:selected="${appointment.status == 'EN_COURS'}">En cours</option>
+                        <option value="TERMINE" th:selected="${appointment.status == 'TERMINE'}">Terminé</option>
+                        <option value="ABSENT" th:selected="${appointment.status == 'ABSENT'}">Absent</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Motif</label>
+                <input type="text" name="reason" th:value="${appointment.reason}" class="form-control"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Notes</label>
+                <textarea name="notes" class="form-control" rows="2" th:text="${appointment.notes}"></textarea>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a th:href="@{/appointments}" class="btn btn-ghost">Annuler</a>
+            <button type="submit" class="btn btn-primary">
+                <span th:text="${appointment.id == null ? 'Créer le rendez-vous' : 'Enregistrer'}">Créer</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+</th:block></body>
+</html>

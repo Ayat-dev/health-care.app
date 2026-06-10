@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Agenda — semaine', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div class="panel">
+    <div class="panel-header">
+        <span>Semaine du <span th:text="${#temporals.format(weekStart,'dd/MM/yyyy')}">01/01</span></span>
+        <div style="display:flex; gap:.5rem; align-items:center;">
+            <a th:href="@{/appointments(date=${weekStart},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm">Vue jour</a>
+            <a th:href="@{/appointments/new}" class="btn btn-primary btn-sm">+ Nouveau RDV</a>
+        </div>
+    </div>
+
+    <!-- Navigation semaine + filtre médecin -->
+    <form method="get" th:action="@{/appointments/week}" class="search-bar" style="align-items:center;">
+        <a th:href="@{/appointments/week(date=${prevWeek},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm">← Semaine préc.</a>
+        <a th:href="@{/appointments/week(date=${nextWeek},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm">Semaine suiv. →</a>
+        <a th:href="@{/appointments/week(date=${today},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm">Cette semaine</a>
+        <select name="doctorId" class="form-control" style="max-width:240px;" onchange="this.form.submit()">
+            <option value="">— Tous les médecins —</option>
+            <option th:each="d : ${doctors}" th:value="${d.id}" th:text="${d.fullName}"
+                    th:selected="${selectedDoctorId != null and selectedDoctorId == d.id}">Dr.</option>
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm">Filtrer</button>
+    </form>
+
+    <!-- Légende -->
+    <div style="display:flex; gap:.75rem; margin:.5rem 0 1rem; flex-wrap:wrap;">
+        <span class="badge badge-PLANIFIE">Planifié</span>
+        <span class="badge badge-CONFIRME">Confirmé</span>
+        <span class="badge badge-EN_COURS">En cours</span>
+        <span class="badge badge-TERMINE">Terminé</span>
+        <span class="badge badge-ANNULE">Annulé</span>
+        <span class="badge badge-ABSENT">Absent</span>
+    </div>
+
+    <div class="table-wrap">
+        <table class="table week-grid">
+            <thead>
+            <tr>
+                <th style="width:64px;">Heure</th>
+                <th th:each="day : ${days}"
+                    th:classappend="${day == today} ? 'week-today'">
+                    <div th:text="${#temporals.format(day,'EEE')}">Lun</div>
+                    <small th:text="${#temporals.format(day,'dd/MM')}">01/01</small>
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="slot : ${slots}">
+                <td class="week-hour" th:text="${#temporals.format(slot,'HH:mm')}">08:00</td>
+                <td th:each="day : ${days}" class="week-cell"
+                    th:with="cell=${cellMap.get(day.toString() + '_' + slot.toString())}">
+                    <th:block th:if="${cell != null}">
+                        <a th:each="a : ${cell}"
+                           th:href="@{/appointments/{id}/edit(id=${a.id})}"
+                           class="badge week-appt"
+                           th:classappend="'badge-' + ${a.status}"
+                           th:title="${a.patient.fullName + ' — ' + (a.reason ?: '')}">
+                            <span th:text="${#temporals.format(a.startTime,'HH:mm')}">08:00</span>
+                            <span th:text="${a.patient.lastName}">Nom</span>
+                        </a>
+                    </th:block>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</th:block></body>
+</html>
