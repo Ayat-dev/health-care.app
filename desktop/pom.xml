@@ -33,12 +33,15 @@
     </dependencies>
 
     <build>
+        <!-- Shaded artifact is named desktop-app.jar so run-desktop.sh / .bat can find it. -->
+        <finalName>desktop-app</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
             </plugin>
+            <!-- Dev: `mvn javafx:run` launches MainApp with the JavaFX runtime on the module path. -->
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
@@ -46,6 +49,45 @@
                 <configuration>
                     <mainClass>com.clinic.client.MainApp</mainClass>
                 </configuration>
+            </plugin>
+            <!-- Distributable: `mvn package` builds a self-contained fat jar (app + JavaFX
+                 classes + host-OS natives) runnable with `java -jar target/desktop-app.jar`.
+                 Main-Class is the non-Application Launcher (see Launcher.java). -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <transformers>
+                                <transformer
+                                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.clinic.client.Launcher</mainClass>
+                                </transformer>
+                            </transformers>
+                            <filters>
+                                <filter>
+                                    <!-- Drop signatures + duplicate module descriptors from
+                                         the bundled jars so the fat jar stays loadable. -->
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>module-info.class</exclude>
+                                        <exclude>META-INF/versions/*/module-info.class</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

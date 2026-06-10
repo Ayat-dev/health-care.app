@@ -39,23 +39,12 @@
                             </columns>
                         </TableView>
                     </Tab>
-                    <Tab text="Actes &amp; tarifs">
-                        <TableView fx:id="actTable">
-                            <columns>
-                                <TableColumn fx:id="actCode" text="Code" prefWidth="120"/>
-                                <TableColumn fx:id="actName" text="Acte" prefWidth="280"/>
-                                <TableColumn fx:id="actDept" text="Département" prefWidth="180"/>
-                                <TableColumn fx:id="actPrice" text="Tarif" prefWidth="110"/>
-                            </columns>
-                        </TableView>
-                    </Tab>
                     <Tab text="Analyses">
                         <TableView fx:id="labTable">
                             <columns>
-                                <TableColumn fx:id="labCode" text="Code" prefWidth="120"/>
-                                <TableColumn fx:id="labName" text="Analyse" prefWidth="260"/>
-                                <TableColumn fx:id="labCategory" text="Catégorie" prefWidth="160"/>
-                                <TableColumn fx:id="labPrice" text="Tarif" prefWidth="110"/>
+                                <TableColumn fx:id="labCode" text="Code" prefWidth="140"/>
+                                <TableColumn fx:id="labName" text="Analyse" prefWidth="300"/>
+                                <TableColumn fx:id="labCategory" text="Catégorie" prefWidth="200"/>
                             </columns>
                         </TableView>
                     </Tab>

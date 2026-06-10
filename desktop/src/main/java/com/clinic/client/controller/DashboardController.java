@@ -20,7 +20,7 @@ public class DashboardController extends BaseController {
     public void initialize() {
         AuthState auth = AuthState.get();
         welcomeLabel.setText("Bonjour, " + auth.getFullName());
-        roleLabel.setText(auth.getRole());
+        roleLabel.setText(AuthState.roleLabel(auth.getRole()));
         loadStats();
     }
 

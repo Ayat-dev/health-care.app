@@ -12,7 +12,7 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage stage) {
-        stage.setTitle("ClinicApp — Bureau");
+        stage.setTitle("ClinicApp — Poste de soin");
         stage.setMinWidth(800);
         stage.setMinHeight(520);
         SceneManager.setStage(stage);

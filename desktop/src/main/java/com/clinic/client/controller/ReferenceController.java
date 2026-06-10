@@ -16,14 +16,11 @@ public class ReferenceController extends BaseController {
 
     @FXML private TableView<JSONObject> deptTable;
     @FXML private TableColumn<JSONObject, String> deptCode, deptName, deptDesc, deptActive;
-    @FXML private TableView<JSONObject> actTable;
-    @FXML private TableColumn<JSONObject, String> actCode, actName, actDept, actPrice;
     @FXML private TableView<JSONObject> labTable;
-    @FXML private TableColumn<JSONObject, String> labCode, labName, labCategory, labPrice;
+    @FXML private TableColumn<JSONObject, String> labCode, labName, labCategory;
     @FXML private Label statusLabel;
 
     private final ObservableList<JSONObject> depts = FXCollections.observableArrayList();
-    private final ObservableList<JSONObject> acts  = FXCollections.observableArrayList();
     private final ObservableList<JSONObject> labs  = FXCollections.observableArrayList();
 
     @FXML
@@ -34,16 +31,9 @@ public class ReferenceController extends BaseController {
         deptActive.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().optBoolean("active") ? "Oui" : "Non"));
         deptTable.setItems(depts);
 
-        actCode.setCellValueFactory(c -> str(c.getValue(), "code"));
-        actName.setCellValueFactory(c -> str(c.getValue(), "name"));
-        actDept.setCellValueFactory(c -> str(c.getValue(), "departmentName"));
-        actPrice.setCellValueFactory(c -> str(c.getValue(), "price"));
-        actTable.setItems(acts);
-
         labCode.setCellValueFactory(c -> str(c.getValue(), "code"));
         labName.setCellValueFactory(c -> str(c.getValue(), "name"));
         labCategory.setCellValueFactory(c -> str(c.getValue(), "category"));
-        labPrice.setCellValueFactory(c -> str(c.getValue(), "price"));
         labTable.setItems(labs);
 
         refresh();
@@ -58,10 +48,9 @@ public class ReferenceController extends BaseController {
         statusLabel.setText("Chargement…");
         async(() -> {
             int d = fill("/api/departments", depts);
-            int a = fill("/api/acts", acts);
             int l = fill("/api/lab-tests", labs);
             Platform.runLater(() -> statusLabel.setText(
-                    d + " département(s) · " + a + " acte(s) · " + l + " analyse(s)"));
+                    d + " département(s) · " + l + " analyse(s)"));
         });
     }
 

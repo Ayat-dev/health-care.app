@@ -43,10 +43,18 @@ public class LoginController {
                 int status = resp.status();
                 if (status == 200) {
                     JSONObject o = resp.asObject();
+                    String role = o.getString("role");
+                    if (!AuthState.isDesktopRole(role)) {
+                        // Compte valide mais hors cible : ce poste est réservé aux soignants.
+                        message.setText("Ce poste est réservé au personnel soignant "
+                                + "(médecins, infirmiers). Votre profil « " + AuthState.roleLabel(role)
+                                + " » s'utilise depuis l'application web.");
+                        return;
+                    }
                     AuthState.get().login(
                         o.getString("token"),
                         o.getString("username"),
-                        o.getString("role"),
+                        role,
                         o.getString("fullName")
                     );
                     try { SceneManager.navigateTo("dashboard.fxml"); } catch (java.io.IOException ex) { message.setText("Erreur navigation : " + ex.getMessage()); }

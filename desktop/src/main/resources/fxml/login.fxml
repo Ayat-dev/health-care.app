@@ -10,7 +10,7 @@
     <VBox spacing="14" alignment="CENTER" maxWidth="380">
         <Label text="ClinicApp"
                style="-fx-font-size:32px; -fx-font-weight:bold; -fx-text-fill:#2563eb;"/>
-        <Label text="Connexion à votre espace"
+        <Label text="Poste de soin — médecins &amp; infirmiers"
                style="-fx-text-fill:#64748b; -fx-font-size:14px;"/>
 
         <VBox spacing="10"
