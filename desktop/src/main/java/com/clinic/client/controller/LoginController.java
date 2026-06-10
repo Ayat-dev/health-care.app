@@ -37,7 +37,7 @@ public class LoginController {
                 JSONObject body = new JSONObject();
                 body.put("username", user);
                 body.put("password", pass);
-                JSONObject resp = ApiClient.post("/auth/login", body);
+                JSONObject resp = ApiClient.post("/api/auth/login", body);
 
                 Platform.runLater(() -> {
                     setLoading(false);
