@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Saisie du compte-rendu', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="panel" style="margin-bottom:16px;">
+    <div class="panel-header">
+        <span>
+            <strong th:text="${request.requestNumber}">RAD-…</strong> —
+            <span th:text="${request.patientName}">Patient</span>
+            <span class="badge badge-blue" th:text="${request.patientRecordNumber}">PAT-…</span>
+            <span th:if="${request.priority == 'URGENT'}" class="badge badge-red">URGENT</span>
+        </span>
+    </div>
+    <div style="padding:8px 16px; color:#475569; font-size:13px;">
+        <div th:if="${request.clinicalInfo}" th:text="'Renseignements : ' + ${request.clinicalInfo}">Renseignements</div>
+        <div>Examens :
+            <span th:each="it,iter : ${request.items}"
+                  th:text="${it.examName} + (${iter.last} ? '' : ', ')">Examen</span>
+        </div>
+    </div>
+</div>
+
+<!-- Compte-rendu -->
+<form method="post" th:action="@{/radiology/requests/{id}/report(id=${request.id})}" th:object="${request}">
+    <div class="form-card">
+        <div class="panel-header"><span>Compte-rendu radiologique</span></div>
+        <div class="form-group">
+            <label class="form-label">Résultats / Description</label>
+            <textarea th:field="*{findings}" class="form-control" rows="8"
+                      placeholder="Description des images, structures explorées, anomalies…"></textarea>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Conclusion</label>
+            <textarea th:field="*{conclusion}" class="form-control" rows="4"
+                      placeholder="Synthèse diagnostique…"></textarea>
+        </div>
+        <div style="display:flex; gap:.5rem; margin-top:8px;">
+            <button type="submit" class="btn btn-primary">Enregistrer le compte-rendu</button>
+            <a th:href="@{/radiology/requests/{id}(id=${request.id})}" class="btn btn-ghost">Retour</a>
+        </div>
+    </div>
+</form>
+
+<!-- Images -->
+<div class="form-card" style="margin-top:16px;">
+    <div class="panel-header"><span th:text="'Images (' + ${request.imageCount} + ')'">Images</span></div>
+
+    <form method="post" th:action="@{/radiology/requests/{id}/images(id=${request.id})}"
+          enctype="multipart/form-data" style="display:flex; gap:.5rem; align-items:flex-end; flex-wrap:wrap;">
+        <div class="form-group" style="margin:0;">
+            <label class="form-label">Ajouter une image (JPEG, PNG, WebP)</label>
+            <input type="file" name="file" accept="image/jpeg,image/png,image/webp" class="form-control" required/>
+        </div>
+        <div class="form-group" style="margin:0; flex:1; min-width:180px;">
+            <label class="form-label">Légende (optionnel)</label>
+            <input type="text" name="caption" class="form-control" placeholder="ex. Cliché de face"/>
+        </div>
+        <button type="submit" class="btn btn-primary">Téléverser</button>
+    </form>
+
+    <div th:if="${request.images.isEmpty()}" class="empty-state" style="margin-top:12px;">Aucune image attachée.</div>
+    <div th:unless="${request.images.isEmpty()}" class="radio-gallery" style="margin-top:12px;">
+        <figure th:each="img : ${request.images}" class="radio-thumb">
+            <a th:href="${img.url}" target="_blank"><img th:src="${img.url}" alt="Image"/></a>
+            <figcaption th:text="${img.caption ?: ''}"></figcaption>
+            <form method="post" th:action="@{/radiology/requests/{id}/images/{imgId}/delete(id=${request.id},imgId=${img.id})}"
+                  onsubmit="return confirm('Supprimer cette image ?');">
+                <button class="btn btn-ghost btn-sm">Supprimer</button>
+            </form>
+        </figure>
+    </div>
+</div>
+
+</th:block></body>
+</html>

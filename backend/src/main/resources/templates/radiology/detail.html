@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Demande d’imagerie', ~{::content})}"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body><th:block th:fragment="content">
+
+<div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<!-- En-tête -->
+<div class="panel">
+    <div class="panel-header">
+        <span>
+            <strong th:text="${request.requestNumber}">RAD-…</strong>
+            <span class="badge badge-blue" th:text="${request.patientRecordNumber}">PAT-…</span>
+            <span class="badge" th:classappend="'badge-' + ${request.status}" th:text="${request.status}">EN_ATTENTE</span>
+            <span th:if="${request.priority == 'URGENT'}" class="badge badge-red">URGENT</span>
+        </span>
+        <div style="display:flex; gap:.5rem;">
+            <a th:if="${request.status != 'VALIDE' and request.status != 'LIVRE' and request.status != 'ANNULE'}"
+               th:href="@{/radiology/requests/{id}/report(id=${request.id})}" class="btn btn-primary btn-sm">Saisir le compte-rendu</a>
+            <th:block sec:authorize="hasAnyRole('MEDECIN','ADMIN')">
+                <form th:if="${request.status == 'EN_COURS' and request.hasReport}" method="post"
+                      th:action="@{/radiology/requests/{id}/validate(id=${request.id})}" style="display:inline;">
+                    <button class="btn btn-primary btn-sm">Valider</button>
+                </form>
+            </th:block>
+            <a th:if="${request.status == 'VALIDE' or request.status == 'LIVRE'}"
+               th:href="@{/radiology/requests/{id}/bulletin(id=${request.id})}" target="_blank"
+               class="btn btn-ghost btn-sm">Imprimer le compte-rendu</a>
+            <form th:if="${request.status == 'VALIDE'}" method="post"
+                  th:action="@{/radiology/requests/{id}/deliver(id=${request.id})}" style="display:inline;">
+                <button class="btn btn-ghost btn-sm">Marquer livré</button>
+            </form>
+            <form th:if="${request.status != 'VALIDE' and request.status != 'LIVRE' and request.status != 'ANNULE'}"
+                  method="post" th:action="@{/radiology/requests/{id}/cancel(id=${request.id})}" style="display:inline;"
+                  onsubmit="return confirm('Annuler cette demande ?');">
+                <button class="btn btn-ghost btn-sm">Annuler</button>
+            </form>
+        </div>
+    </div>
+    <div class="form-grid-2" style="padding:12px 16px;">
+        <div><span class="detail-label">Patient</span> <span th:text="${request.patientName}">—</span></div>
+        <div><span class="detail-label">Prescripteur</span> <span th:text="${request.doctorName ?: '—'}">—</span></div>
+        <div><span class="detail-label">Demandé le</span>
+             <span th:text="${#temporals.format(request.requestedAt,'dd/MM/yyyy HH:mm')}">—</span></div>
+        <div><span class="detail-label">Renseignements</span> <span th:text="${request.clinicalInfo ?: '—'}">—</span></div>
+    </div>
+</div>
+
+<!-- Examens -->
+<div class="panel" style="margin-top:16px;">
+    <div class="panel-header"><span>Examens demandés</span></div>
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr><th>Examen</th><th>Type</th><th>Région</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="it : ${request.items}">
+                <td><strong th:text="${it.examName}">Radiographie du thorax</strong> <small th:text="${it.examCode}">RX_THORAX</small></td>
+                <td><span class="badge" th:text="${it.examType ?: '—'}">RADIOGRAPHIE</span></td>
+                <td th:text="${it.examRegion ?: '—'}">Thorax</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Compte-rendu -->
+<div class="panel" style="margin-top:16px;">
+    <div class="panel-header"><span>Compte-rendu</span></div>
+    <div style="padding:12px 16px;">
+        <div th:if="${!request.hasReport}" class="empty-state">Aucun compte-rendu saisi.</div>
+        <div th:if="${request.hasReport}">
+            <div style="margin-bottom:10px;"><div class="detail-label">Résultats / Description</div>
+                <p style="white-space:pre-line;" th:text="${request.findings ?: '—'}">—</p></div>
+            <div><div class="detail-label">Conclusion</div>
+                <p style="white-space:pre-line;" th:text="${request.conclusion ?: '—'}">—</p></div>
+            <p style="margin-top:10px; color:#475569; font-size:13px;">
+                Rédigé par <strong th:text="${request.radiologistName ?: '—'}">Dr.</strong>
+                <span th:if="${request.validatedByName != null}">
+                    · Validé par <strong th:text="${request.validatedByName}">Dr.</strong>
+                    <span th:if="${request.validatedAt != null}"
+                          th:text="' le ' + ${#temporals.format(request.validatedAt,'dd/MM/yyyy HH:mm')}"> le —</span>
+                </span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Images -->
+<div class="panel" style="margin-top:16px;">
+    <div class="panel-header"><span th:text="'Images (' + ${request.imageCount} + ')'">Images</span></div>
+    <div style="padding:12px 16px;">
+        <div th:if="${request.images.isEmpty()}" class="empty-state">Aucune image attachée.</div>
+        <div th:unless="${request.images.isEmpty()}" class="radio-gallery">
+            <figure th:each="img : ${request.images}" class="radio-thumb">
+                <a th:href="${img.url}" target="_blank"><img th:src="${img.url}" alt="Image"/></a>
+                <figcaption th:text="${img.caption ?: ''}"></figcaption>
+            </figure>
+        </div>
+    </div>
+</div>
+
+<div style="margin-top:16px;">
+    <a th:href="@{/radiology}" class="btn btn-ghost">← Travail du jour</a>
+    <a th:if="${request.patientId != null}" th:href="@{/patients/{id}(id=${request.patientId})}"
+       class="btn btn-ghost">Dossier patient</a>
+</div>
+
+</th:block></body>
+</html>

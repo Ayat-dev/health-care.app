@@ -39,6 +39,10 @@
                th:classappend="${#strings.startsWith(currentUri,'/lab')} ? 'active'">
                 <span>🔬</span> Laboratoire
             </a>
+            <a th:href="@{/radiology}" class="nav-item"
+               th:classappend="${#strings.startsWith(currentUri,'/radiology')} ? 'active'">
+                <span>🩻</span> Imagerie
+            </a>
             <div class="nav-section">GESTION</div>
             <a th:href="@{/billing}" class="nav-item">
                 <span>💳</span> Facturation

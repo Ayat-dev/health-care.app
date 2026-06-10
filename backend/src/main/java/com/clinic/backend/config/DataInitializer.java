@@ -13,6 +13,12 @@ import com.clinic.backend.lab.LabRequest;
 import com.clinic.backend.lab.LabRequestItem;
 import com.clinic.backend.lab.LabRequestRepository;
 import com.clinic.backend.lab.LabResult;
+import com.clinic.backend.radiology.RadiologyExamCatalog;
+import com.clinic.backend.radiology.RadiologyExamCatalogRepository;
+import com.clinic.backend.radiology.RadiologyReport;
+import com.clinic.backend.radiology.RadiologyRequest;
+import com.clinic.backend.radiology.RadiologyRequestItem;
+import com.clinic.backend.radiology.RadiologyRequestRepository;
 import com.clinic.backend.model.User;
 import com.clinic.backend.patient.Patient;
 import com.clinic.backend.patient.PatientRepository;
@@ -42,6 +48,8 @@ public class DataInitializer {
                                StockItemRepository stockItemRepository,
                                LabTestCatalogRepository labTestCatalogRepository,
                                LabRequestRepository labRequestRepository,
+                               RadiologyExamCatalogRepository radiologyExamCatalogRepository,
+                               RadiologyRequestRepository radiologyRequestRepository,
                                PasswordEncoder passwordEncoder) {
         return args -> {
             if (userRepository.count() > 0) return;
@@ -57,6 +65,8 @@ public class DataInitializer {
                     passwordEncoder.encode("pharmacien123"), "Pharmacien", "PHARMACIEN"));
             User laborantin = userRepository.save(new User("laborantin",
                     passwordEncoder.encode("laborantin123"), "Laborantin", "LABORANTIN"));
+            User radiologue = userRepository.save(new User("radiologue",
+                    passwordEncoder.encode("radiologue123"), "Dr. Sow (Radiologie)", "MEDECIN"));
 
             // Patients de test
             Patient p1 = new Patient();
@@ -193,7 +203,53 @@ public class DataInitializer {
             if (creat != null) lr2.addItem(seedLabItem(creat));
             if (hiv != null) lr2.addItem(seedLabItem(hiv));
             labRequestRepository.save(lr2);
+
+            // ── Imagerie ──────────────────────────────────────────────────────
+            RadiologyExamCatalog rxThorax = radiologyExamCatalogRepository.findByCodeIgnoreCase("RX_THORAX").orElse(null);
+            RadiologyExamCatalog echoAbdo = radiologyExamCatalogRepository.findByCodeIgnoreCase("ECHO_ABDO").orElse(null);
+            RadiologyExamCatalog scanCrane = radiologyExamCatalogRepository.findByCodeIgnoreCase("SCAN_CRANE").orElse(null);
+
+            // Demande validée pour p1 (issue de c1) — compte-rendu rédigé + validé
+            RadiologyRequest rr1 = new RadiologyRequest();
+            rr1.setRequestNumber("RAD-" + today.getYear() + "-00001");
+            rr1.setConsultation(c1);
+            rr1.setPatient(p1);
+            rr1.setDoctor(doctor);
+            rr1.setRequestedAt(today.minusDays(7).atTime(10, 0));
+            rr1.setPriority("NORMAL");
+            rr1.setStatus("VALIDE");
+            rr1.setClinicalInfo("Douleurs épigastriques — recherche d'épanchement.");
+            if (echoAbdo != null) rr1.addItem(seedRadioItem(echoAbdo));
+            RadiologyReport rep1 = new RadiologyReport();
+            rep1.setRadiologist(radiologue);
+            rep1.setFindings("Foie de taille et d'échostructure normales. Pas de dilatation des voies biliaires. "
+                    + "Vésicule alithiasique. Reins en place, sans dilatation pyélocalicielle. "
+                    + "Pas d'épanchement intra-péritonéal.");
+            rep1.setConclusion("Échographie abdominale sans particularité.");
+            rep1.setValidatedBy(radiologue);
+            rep1.setValidatedAt(today.minusDays(6).atTime(9, 30));
+            rr1.setReportObject(rep1);
+            radiologyRequestRepository.save(rr1);
+
+            // Demande en attente pour p2 — apparaît dans le travail du jour
+            RadiologyRequest rr2 = new RadiologyRequest();
+            rr2.setRequestNumber("RAD-" + today.getYear() + "-00002");
+            rr2.setPatient(p2);
+            rr2.setDoctor(doctor);
+            rr2.setRequestedAt(today.atTime(11, 0));
+            rr2.setPriority("URGENT");
+            rr2.setStatus("EN_ATTENTE");
+            rr2.setClinicalInfo("Céphalées + HTA — éliminer un processus expansif.");
+            if (rxThorax != null) rr2.addItem(seedRadioItem(rxThorax));
+            if (scanCrane != null) rr2.addItem(seedRadioItem(scanCrane));
+            radiologyRequestRepository.save(rr2);
         };
+    }
+
+    private RadiologyRequestItem seedRadioItem(RadiologyExamCatalog exam) {
+        RadiologyRequestItem item = new RadiologyRequestItem();
+        item.setExam(exam);
+        return item;
     }
 
     private LabRequestItem seedLabItem(LabTestCatalog test) {

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Imagerie — Travail du jour', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="panel">
+    <div class="panel-header">
+        <span>Travail du jour — demandes en attente</span>
+        <div style="display:flex; gap:.5rem;">
+            <a th:href="@{/radiology/requests}" class="btn btn-ghost btn-sm">Toutes les demandes</a>
+            <a th:href="@{/radiology/requests/new}" class="btn btn-primary btn-sm">+ Nouvelle demande</a>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>N°</th>
+                <th>Priorité</th>
+                <th>Patient</th>
+                <th>Prescripteur</th>
+                <th>Examens</th>
+                <th>Demandé le</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${requests.isEmpty()}">
+                <td colspan="8" class="empty-state">Aucune demande en attente. 🎉</td>
+            </tr>
+            <tr th:each="r : ${requests}">
+                <td><strong th:text="${r.requestNumber}">RAD-…</strong></td>
+                <td>
+                    <span th:if="${r.priority == 'URGENT'}" class="badge badge-red">URGENT</span>
+                    <span th:unless="${r.priority == 'URGENT'}" class="badge">Normal</span>
+                </td>
+                <td>
+                    <span th:text="${r.patientName}">Patient</span>
+                    <span class="badge badge-blue" th:text="${r.patientRecordNumber}">PAT-…</span>
+                </td>
+                <td th:text="${r.doctorName ?: '—'}">Médecin</td>
+                <td>
+                    <span th:each="it,iter : ${r.items}"
+                          th:text="${it.examCode} + (${iter.last} ? '' : ', ')">RX_THORAX</span>
+                </td>
+                <td th:text="${#temporals.format(r.requestedAt,'dd/MM/yyyy HH:mm')}">01/01 09:00</td>
+                <td><span class="badge" th:classappend="'badge-' + ${r.status}" th:text="${r.status}">EN_ATTENTE</span></td>
+                <td style="white-space:nowrap;">
+                    <a th:href="@{/radiology/requests/{id}/report(id=${r.id})}" class="btn btn-primary btn-sm">Compte-rendu</a>
+                    <a th:href="@{/radiology/requests/{id}(id=${r.id})}" class="btn btn-ghost btn-sm">Voir</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</th:block></body>
+</html>

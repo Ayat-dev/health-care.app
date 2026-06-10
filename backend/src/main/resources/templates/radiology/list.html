@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Imagerie — Demandes', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="panel">
+    <div class="panel-header">
+        <span>Demandes d'imagerie</span>
+        <div style="display:flex; gap:.5rem;">
+            <a th:href="@{/radiology}" class="btn btn-ghost btn-sm">Travail du jour</a>
+            <a th:href="@{/radiology/requests/new}" class="btn btn-primary btn-sm">+ Nouvelle demande</a>
+        </div>
+    </div>
+
+    <form method="get" th:action="@{/radiology/requests}" class="search-bar" style="align-items:center;">
+        <input type="date" name="from" th:value="${from}" class="form-control" style="max-width:170px;"/>
+        <span>→</span>
+        <input type="date" name="to" th:value="${to}" class="form-control" style="max-width:170px;"/>
+        <select name="status" class="form-control" style="max-width:170px;">
+            <option value="">— Tous statuts —</option>
+            <option value="EN_ATTENTE" th:selected="${status == 'EN_ATTENTE'}">En attente</option>
+            <option value="EN_COURS" th:selected="${status == 'EN_COURS'}">En cours</option>
+            <option value="VALIDE" th:selected="${status == 'VALIDE'}">Validé</option>
+            <option value="LIVRE" th:selected="${status == 'LIVRE'}">Livré</option>
+            <option value="ANNULE" th:selected="${status == 'ANNULE'}">Annulé</option>
+        </select>
+        <select name="priority" class="form-control" style="max-width:160px;">
+            <option value="">— Toutes priorités —</option>
+            <option value="NORMAL" th:selected="${priority == 'NORMAL'}">Normal</option>
+            <option value="URGENT" th:selected="${priority == 'URGENT'}">Urgent</option>
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm">Filtrer</button>
+    </form>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>N°</th>
+                <th>Priorité</th>
+                <th>Patient</th>
+                <th>Prescripteur</th>
+                <th>Demandé le</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${requests.isEmpty()}">
+                <td colspan="7" class="empty-state">Aucune demande.</td>
+            </tr>
+            <tr th:each="r : ${requests}">
+                <td><strong th:text="${r.requestNumber}">RAD-…</strong></td>
+                <td>
+                    <span th:if="${r.priority == 'URGENT'}" class="badge badge-red">URGENT</span>
+                    <span th:unless="${r.priority == 'URGENT'}" class="badge">Normal</span>
+                </td>
+                <td th:text="${r.patient != null ? r.patient.fullName : '—'}">Patient</td>
+                <td th:text="${r.doctor != null ? r.doctor.fullName : '—'}">Médecin</td>
+                <td th:text="${#temporals.format(r.requestedAt,'dd/MM/yyyy HH:mm')}">01/01 09:00</td>
+                <td><span class="badge" th:classappend="'badge-' + ${r.status}" th:text="${r.status}">EN_ATTENTE</span></td>
+                <td style="white-space:nowrap;">
+                    <a th:href="@{/radiology/requests/{id}(id=${r.id})}" class="btn btn-ghost btn-sm">Voir</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</th:block></body>
+</html>

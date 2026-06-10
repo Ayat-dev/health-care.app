@@ -1002,3 +1002,9 @@ body.login-page {
   text-overflow: ellipsis;
 }
 .week-appt:hover { filter: brightness(.95); text-decoration: none; }
+
+/* ── Radiology image gallery (module 9) ───────────────────────────────── */
+.radio-gallery { display: flex; flex-wrap: wrap; gap: 12px; }
+.radio-thumb { margin: 0; width: 160px; display: flex; flex-direction: column; gap: 4px; }
+.radio-thumb img { width: 160px; height: 120px; object-fit: cover; border: 1px solid var(--border, #e2e8f0); border-radius: 6px; background: #f8fafc; }
+.radio-thumb figcaption { font-size: 12px; color: var(--text-500, #64748b); }

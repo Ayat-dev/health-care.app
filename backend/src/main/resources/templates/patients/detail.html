@@ -45,6 +45,7 @@
     <button class="tab" onclick="showTab('medical')">Médical</button>
     <button class="tab" onclick="showTab('consultations')">Consultations</button>
     <button class="tab" onclick="showTab('lab')">Laboratoire</button>
+    <button class="tab" onclick="showTab('imaging')">Imagerie</button>
     <button class="tab" onclick="showTab('billing')">Facturation</button>
 </div>
 
@@ -142,6 +143,38 @@
                 </td>
                 <td><span class="badge" th:classappend="'badge-' + ${r.status}" th:text="${r.status}">EN_ATTENTE</span></td>
                 <td><a th:href="@{/lab/requests/{id}(id=${r.id})}" class="btn btn-ghost btn-sm">Voir</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Onglet Imagerie -->
+<div id="tab-imaging" class="tab-content panel" style="display:none">
+    <div class="panel-header" style="padding:0 0 12px;">
+        <span>Historique d'imagerie</span>
+        <a th:href="@{/radiology/requests/new(patientId=${patient.id})}" class="btn btn-primary btn-sm">+ Nouvelle demande</a>
+    </div>
+    <div th:if="${radiologyRequests == null or radiologyRequests.isEmpty()}" class="empty-state">
+        Aucune imagerie pour ce patient.
+    </div>
+    <div th:unless="${radiologyRequests == null or radiologyRequests.isEmpty()}" class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr><th>N°</th><th>Date</th><th>Examens</th><th>Statut</th><th></th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${radiologyRequests}">
+                <td><strong th:text="${r.requestNumber}">RAD-…</strong></td>
+                <td th:text="${#temporals.format(r.requestedAt,'dd/MM/yyyy')}">01/01</td>
+                <td>
+                    <span th:each="it,iter : ${r.items}"
+                          th:text="${it.examCode} + (${iter.last} ? '' : ', ')">RX_THORAX</span>
+                    <span th:if="${r.imageCount > 0}" class="badge badge-blue"
+                          th:text="${r.imageCount} + ' image(s)'">images</span>
+                </td>
+                <td><span class="badge" th:classappend="'badge-' + ${r.status}" th:text="${r.status}">EN_ATTENTE</span></td>
+                <td><a th:href="@{/radiology/requests/{id}(id=${r.id})}" class="btn btn-ghost btn-sm">Voir</a></td>
             </tr>
             </tbody>
         </table>

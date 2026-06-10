@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="'Compte-rendu ' + ${request.requestNumber}">Compte-rendu d'imagerie</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: "Segoe UI", Arial, sans-serif; color: #0f172a; margin: 0; padding: 24px; background: #f1f5f9; }
+        .sheet { max-width: 800px; margin: 0 auto; background: #fff; padding: 32px 40px; border: 1px solid #e2e8f0; }
+        .rad-header { display: flex; justify-content: space-between; align-items: flex-start;
+                      border-bottom: 2px solid #0f172a; padding-bottom: 12px; }
+        .clinic-name { font-size: 22px; font-weight: 700; }
+        .clinic-meta { font-size: 12px; color: #475569; line-height: 1.5; }
+        .logo { max-height: 64px; }
+        .rad-row { display: flex; justify-content: space-between; gap: 24px; margin-top: 16px; font-size: 14px; }
+        .rad-block { line-height: 1.6; }
+        .rad-label { color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+        .rad-title { font-size: 16px; font-weight: 700; margin: 24px 0 6px; color: #1e293b;
+                     border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+        .rad-body { font-size: 14px; line-height: 1.7; white-space: pre-line; }
+        .exam-list { font-size: 14px; margin: 4px 0 0; padding-left: 18px; }
+        .images { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+        .images figure { margin: 0; width: 180px; }
+        .images img { width: 100%; border: 1px solid #cbd5e1; border-radius: 4px; }
+        .images figcaption { font-size: 11px; color: #475569; text-align: center; }
+        .rad-footer { margin-top: 40px; display: flex; justify-content: space-between; align-items: flex-end;
+                      font-size: 12px; color: #475569; }
+        .signature .line { width: 220px; border-top: 1px solid #94a3b8; margin-top: 48px; padding-top: 4px; text-align: center; }
+        .toolbar { max-width: 800px; margin: 0 auto 16px; text-align: right; }
+        .btn { display: inline-block; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer;
+               font-size: 13px; text-decoration: none; }
+        .btn-print { background: #2563eb; color: #fff; }
+        .btn-back { background: #e2e8f0; color: #0f172a; margin-right: 8px; }
+        @media print {
+            body { background: #fff; padding: 0; }
+            .sheet { border: none; max-width: none; }
+            .toolbar { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <a href="javascript:history.back()" class="btn btn-back">← Retour</a>
+    <button onclick="window.print()" class="btn btn-print">Imprimer</button>
+</div>
+
+<div class="sheet">
+    <div class="rad-header">
+        <div>
+            <div class="clinic-name" th:text="'Imagerie médicale — ' + ${config.name}">Imagerie médicale</div>
+            <div class="clinic-meta">
+                <div th:if="${config.address}" th:text="${config.address}">Adresse</div>
+                <div>
+                    <span th:if="${config.phone}" th:text="'Tél : ' + ${config.phone}">Tél</span>
+                    <span th:if="${config.email}" th:text="' · ' + ${config.email}">Email</span>
+                </div>
+            </div>
+        </div>
+        <img th:if="${config.logoUrl}" th:src="${config.logoUrl}" class="logo" alt="Logo"/>
+    </div>
+
+    <div class="rad-row">
+        <div class="rad-block">
+            <div class="rad-label">Patient</div>
+            <div th:text="${request.patientName}">NOM Prénom</div>
+            <div class="clinic-meta" th:text="'N° dossier : ' + ${request.patientRecordNumber}">N° dossier</div>
+        </div>
+        <div class="rad-block" style="text-align:right;">
+            <div class="rad-label">N° / Date</div>
+            <div th:text="${request.requestNumber}">RAD-…</div>
+            <div class="clinic-meta" th:text="${#temporals.format(request.requestedAt,'dd/MM/yyyy')}">01/01/2026</div>
+            <div class="clinic-meta" th:text="${patientAge != null ? 'Âge : ' + patientAge + ' ans' : ''}"></div>
+        </div>
+    </div>
+
+    <div class="rad-row" style="border-top:1px solid #e2e8f0; padding-top:12px;">
+        <div class="rad-block">
+            <div class="rad-label">Prescripteur</div>
+            <div th:text="${request.doctorName ?: '—'}">Dr.</div>
+        </div>
+        <div class="rad-block" th:if="${request.clinicalInfo}">
+            <div class="rad-label">Renseignements cliniques</div>
+            <div th:text="${request.clinicalInfo}">—</div>
+        </div>
+    </div>
+
+    <div class="rad-title">Examens réalisés</div>
+    <ul class="exam-list">
+        <li th:each="it : ${request.items}" th:text="${it.examName}">Radiographie du thorax</li>
+    </ul>
+
+    <div class="rad-title">Résultats</div>
+    <div class="rad-body" th:text="${request.findings ?: '—'}">Description…</div>
+
+    <div class="rad-title">Conclusion</div>
+    <div class="rad-body" th:text="${request.conclusion ?: '—'}">Conclusion…</div>
+
+    <div th:unless="${request.images.isEmpty()}">
+        <div class="rad-title">Images</div>
+        <div class="images">
+            <figure th:each="img : ${request.images}">
+                <img th:src="${img.url}" alt="Image"/>
+                <figcaption th:text="${img.caption ?: ''}"></figcaption>
+            </figure>
+        </div>
+    </div>
+
+    <div class="rad-footer">
+        <div th:text="'Compte-rendu ' + ${request.requestNumber}">Compte-rendu</div>
+        <div class="signature">
+            <div class="line">
+                <span th:if="${request.validatedByName != null}"
+                      th:text="'Validé par ' + ${request.validatedByName}">Validé par</span>
+                <span th:unless="${request.validatedByName != null}">Signature / Cachet du radiologue</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
