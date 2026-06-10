@@ -2,49 +2,50 @@ package com.clinic.client.controller;
 
 import com.clinic.client.model.AuthState;
 import com.clinic.client.util.ApiClient;
-import com.clinic.client.util.SceneManager;
-import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
 
-public class DashboardController {
+import java.time.LocalDate;
+
+public class DashboardController extends BaseController {
 
     @FXML private Label welcomeLabel;
     @FXML private Label roleLabel;
-    @FXML private Label totalPatientsLabel;
-    @FXML private Label upcomingLabel;
-    @FXML private TextArea logArea;
+    @FXML private Label patientsValue;
+    @FXML private Label appointmentsValue;
+    @FXML private Label consultationsValue;
+    @FXML private Label statusLabel;
 
     @FXML
     public void initialize() {
         AuthState auth = AuthState.get();
         welcomeLabel.setText("Bonjour, " + auth.getFullName());
         roleLabel.setText(auth.getRole());
-
         loadStats();
     }
 
     private void loadStats() {
-        new Thread(() -> {
-            try {
-                var patients = ApiClient.get("/api/patients");
-                var appointments = ApiClient.get("/api/appointments");
-                Platform.runLater(() -> {
-                    // Les listes renvoient un array — on compte via _raw si besoin
-                    logArea.setText("Connecté en tant que : " + AuthState.get().getUsername()
-                        + "\nRôle : " + AuthState.get().getRole()
-                        + "\n\nNaviguer via le menu latéral.");
-                });
-            } catch (Exception e) {
-                Platform.runLater(() -> logArea.setText("Erreur lors du chargement des données."));
-            }
-        }).start();
-    }
+        statusLabel.setText("Chargement des indicateurs…");
+        async(() -> {
+            String today = LocalDate.now().toString();
 
-    @FXML public void goPatients()      throws java.io.IOException { SceneManager.navigateTo("patients.fxml"); }
-    @FXML public void goAppointments()  throws java.io.IOException { SceneManager.navigateTo("appointments.fxml"); }
-    @FXML public void logout() throws java.io.IOException {
-        AuthState.get().logout();
-        SceneManager.navigateTo("login.fxml");
+            ApiClient.Response patients = ApiClient.get("/api/patients?size=1");
+            ApiClient.Response appts    = ApiClient.get("/api/appointments?date=" + today);
+            ApiClient.Response consults = ApiClient.get("/api/consultations?status=EN_COURS");
+
+            Integer pTotal = patients.ok() ? patients.asObject().optInt("totalElements", 0) : null;
+            Integer aTotal = appts.ok()    ? appts.asArray().length()    : null;
+            Integer cTotal = consults.ok() ? consults.asArray().length() : null;
+
+            ui(() -> {
+                patientsValue.setText(pTotal != null ? String.valueOf(pTotal) : "—");
+                appointmentsValue.setText(aTotal != null ? String.valueOf(aTotal) : "—");
+                consultationsValue.setText(cTotal != null ? String.valueOf(cTotal) : "—");
+                boolean anyFail = pTotal == null || aTotal == null || cTotal == null;
+                statusLabel.setText(anyFail
+                        ? "Certains indicateurs n'ont pas pu être chargés (serveur injoignable ?)."
+                        : "Indicateurs à jour — " + AuthState.get().getUsername());
+            });
+        });
     }
 }

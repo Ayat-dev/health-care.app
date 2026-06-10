@@ -13,7 +13,11 @@ public class SceneManager {
 
     public static void setStage(Stage stage) { primaryStage = stage; }
 
-    public static void navigateTo(String fxml) throws IOException {
+    /**
+     * Charge un FXML, l'affiche, et renvoie son contrôleur pour permettre à
+     * l'appelant de lui passer des données (ex: un id) après navigation.
+     */
+    public static <T> T navigateTo(String fxml) throws IOException {
         URL url = SceneManager.class.getResource("/fxml/" + fxml);
         if (url == null) {
             throw new IOException("FXML introuvable dans le classpath : /fxml/" + fxml);
@@ -23,5 +27,6 @@ public class SceneManager {
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
         primaryStage.sizeToScene();
+        return loader.getController();
     }
 }

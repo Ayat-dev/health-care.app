@@ -33,35 +33,31 @@ public class LoginController {
         setLoading(true);
 
         new Thread(() -> {
-            try {
-                JSONObject body = new JSONObject();
-                body.put("username", user);
-                body.put("password", pass);
-                JSONObject resp = ApiClient.post("/api/auth/login", body);
+            JSONObject body = new JSONObject();
+            body.put("username", user);
+            body.put("password", pass);
+            ApiClient.Response resp = ApiClient.post("/api/auth/login", body, false);
 
-                Platform.runLater(() -> {
-                    setLoading(false);
-                    int status = resp.optInt("_status", 0);
-                    if (status == 200) {
-                        AuthState.get().login(
-                            resp.getString("token"),
-                            resp.getString("username"),
-                            resp.getString("role"),
-                            resp.getString("fullName")
-                        );
-                        try { SceneManager.navigateTo("dashboard.fxml"); } catch (java.io.IOException ex) { message.setText("Erreur navigation : " + ex.getMessage()); }
-                    } else if (status == 401 || status == 403) {
-                        message.setText("Identifiants incorrects.");
-                    } else {
-                        message.setText("Impossible de joindre le serveur (code " + status + ").");
-                    }
-                });
-            } catch (Exception ex) {
-                Platform.runLater(() -> {
-                    setLoading(false);
+            Platform.runLater(() -> {
+                setLoading(false);
+                int status = resp.status();
+                if (status == 200) {
+                    JSONObject o = resp.asObject();
+                    AuthState.get().login(
+                        o.getString("token"),
+                        o.getString("username"),
+                        o.getString("role"),
+                        o.getString("fullName")
+                    );
+                    try { SceneManager.navigateTo("dashboard.fxml"); } catch (java.io.IOException ex) { message.setText("Erreur navigation : " + ex.getMessage()); }
+                } else if (status == 401 || status == 403) {
+                    message.setText("Identifiants incorrects.");
+                } else if (status == -1) {
                     message.setText("Serveur inaccessible. Vérifiez la connexion.");
-                });
-            }
+                } else {
+                    message.setText("Impossible de joindre le serveur (code " + status + ").");
+                }
+            });
         }).start();
     }
 

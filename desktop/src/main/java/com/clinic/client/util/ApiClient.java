@@ -1,70 +1,74 @@
 package com.clinic.client.util;
 
 import com.clinic.client.model.AuthState;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.*;
-import java.net.*;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.util.Scanner;
+import java.time.Duration;
 
-/** Utilitaire HTTP léger pour appeler le backend REST. */
+/**
+ * Client HTTP léger pour le backend REST. Basé sur java.net.http.HttpClient
+ * (supporte GET/POST/PUT/PATCH proprement, contrairement à HttpURLConnection).
+ * Aucune exception checked n'est propagée : en cas d'échec réseau, le statut
+ * vaut -1 et le corps est null.
+ */
 public class ApiClient {
 
     private static String BASE_URL = "http://localhost:8080";
+    private static final HttpClient HTTP = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10))
+            .build();
 
     public static void setBaseUrl(String url) { BASE_URL = url; }
 
-    // GET avec JWT
-    public static JSONObject get(String path) throws IOException {
-        URL url = new URL(BASE_URL + path);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("Authorization", "Bearer " + AuthState.get().getToken());
-        conn.setRequestProperty("Accept", "application/json");
-        return readResponse(conn);
-    }
+    /** Réponse brute : statut HTTP + corps texte, avec accès pratique JSON. */
+    public record Response(int status, String body) {
+        public boolean ok() { return status >= 200 && status < 300; }
 
-    // POST avec corps JSON
-    public static JSONObject post(String path, JSONObject body) throws IOException {
-        return send("POST", path, body, false);
-    }
-
-    // POST authentifié
-    public static JSONObject postAuth(String path, JSONObject body) throws IOException {
-        return send("POST", path, body, true);
-    }
-
-    // PUT authentifié
-    public static JSONObject put(String path, JSONObject body) throws IOException {
-        return send("PUT", path, body, true);
-    }
-
-    private static JSONObject send(String method, String path, JSONObject body, boolean withAuth) throws IOException {
-        URL url = new URL(BASE_URL + path);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod(method);
-        conn.setRequestProperty("Content-Type", "application/json");
-        conn.setRequestProperty("Accept", "application/json");
-        if (withAuth) conn.setRequestProperty("Authorization", "Bearer " + AuthState.get().getToken());
-        conn.setDoOutput(true);
-        try (OutputStream os = conn.getOutputStream()) {
-            os.write(body.toString().getBytes(StandardCharsets.UTF_8));
+        public JSONObject asObject() {
+            return body != null && body.trim().startsWith("{") ? new JSONObject(body) : new JSONObject();
         }
-        return readResponse(conn);
+
+        public JSONArray asArray() {
+            return body != null && body.trim().startsWith("[") ? new JSONArray(body) : new JSONArray();
+        }
     }
 
-    private static JSONObject readResponse(HttpURLConnection conn) throws IOException {
-        int code = conn.getResponseCode();
-        InputStream is = code >= 400 ? conn.getErrorStream() : conn.getInputStream();
-        if (is == null) return new JSONObject().put("_status", code);
-        Scanner sc = new Scanner(is, StandardCharsets.UTF_8);
-        StringBuilder sb = new StringBuilder();
-        while (sc.hasNextLine()) sb.append(sc.nextLine());
-        sc.close();
-        String raw = sb.toString().trim();
-        JSONObject result = raw.startsWith("{") ? new JSONObject(raw) : new JSONObject().put("_raw", raw);
-        result.put("_status", code);
-        return result;
+    // ── Méthodes pratiques ────────────────────────────────────────────────
+    public static Response get(String path)                       { return send("GET", path, null, true); }
+    public static Response post(String path, JSONObject body, boolean auth) { return send("POST", path, body, auth); }
+    public static Response put(String path, JSONObject body)       { return send("PUT", path, body, true); }
+    public static Response patch(String path, JSONObject body)     { return send("PATCH", path, body, true); }
+
+    private static Response send(String method, String path, JSONObject body, boolean auth) {
+        try {
+            HttpRequest.Builder b = HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL + path))
+                    .timeout(Duration.ofSeconds(20))
+                    .header("Accept", "application/json");
+
+            if (auth && AuthState.get().getToken() != null) {
+                b.header("Authorization", "Bearer " + AuthState.get().getToken());
+            }
+
+            HttpRequest.BodyPublisher publisher;
+            if (body != null) {
+                publisher = HttpRequest.BodyPublishers.ofString(body.toString(), StandardCharsets.UTF_8);
+                b.header("Content-Type", "application/json");
+            } else {
+                publisher = HttpRequest.BodyPublishers.noBody();
+            }
+            b.method(method, publisher);
+
+            HttpResponse<String> r = HTTP.send(b.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            return new Response(r.statusCode(), r.body());
+        } catch (Exception e) {
+            return new Response(-1, null);
+        }
     }
 }

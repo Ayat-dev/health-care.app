@@ -3,16 +3,16 @@
 <?import javafx.scene.layout.*?>
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.clinic.client.controller.PatientsController"
-            prefWidth="960" prefHeight="600">
+            fx:controller="com.clinic.client.controller.ConsultationsController"
+            prefWidth="980" prefHeight="600">
 
     <left>
         <VBox spacing="4" style="-fx-padding:20 12; -fx-background-color:#0f172a; -fx-pref-width:210px;">
             <Label text="⚕ ClinicApp" style="-fx-font-size:18px; -fx-font-weight:bold; -fx-text-fill:white; -fx-padding:0 0 16 0;"/>
             <Button text="Tableau de bord" maxWidth="Infinity" onAction="#goDashboard" style="-fx-background-color:transparent; -fx-text-fill:#94a3b8; -fx-cursor:hand; -fx-background-radius:6;"/>
-            <Button text="Patients" maxWidth="Infinity" style="-fx-background-color:#2563eb; -fx-text-fill:white; -fx-background-radius:6;"/>
+            <Button text="Patients" maxWidth="Infinity" onAction="#goPatients" style="-fx-background-color:transparent; -fx-text-fill:#94a3b8; -fx-cursor:hand; -fx-background-radius:6;"/>
             <Button text="Rendez-vous" maxWidth="Infinity" onAction="#goAppointments" style="-fx-background-color:transparent; -fx-text-fill:#94a3b8; -fx-cursor:hand; -fx-background-radius:6;"/>
-            <Button text="Consultations" maxWidth="Infinity" onAction="#goConsultations" style="-fx-background-color:transparent; -fx-text-fill:#94a3b8; -fx-cursor:hand; -fx-background-radius:6;"/>
+            <Button text="Consultations" maxWidth="Infinity" style="-fx-background-color:#2563eb; -fx-text-fill:white; -fx-background-radius:6;"/>
             <Button text="Référentiel" maxWidth="Infinity" onAction="#goReference" style="-fx-background-color:transparent; -fx-text-fill:#94a3b8; -fx-cursor:hand; -fx-background-radius:6;"/>
             <Separator style="-fx-padding:8 0;"/>
             <Button text="Déconnexion" maxWidth="Infinity" onAction="#logout" style="-fx-background-color:#ef4444; -fx-text-fill:white; -fx-background-radius:6; -fx-cursor:hand;"/>
@@ -22,22 +22,28 @@
     <center>
         <VBox style="-fx-background-color:#f1f5f9;">
             <HBox spacing="8" alignment="CENTER_LEFT" style="-fx-padding:16; -fx-background-color:white; -fx-border-color:#e2e8f0; -fx-border-width:0 0 1 0;">
-                <Label text="Patients" style="-fx-font-size:16px; -fx-font-weight:bold;"/>
+                <Label text="Consultations" style="-fx-font-size:16px; -fx-font-weight:bold;"/>
                 <HBox HBox.hgrow="ALWAYS"/>
-                <TextField fx:id="searchField" promptText="Recherche (nom, n° dossier, téléphone)…" prefWidth="260"/>
-                <Button text="Rechercher" onAction="#search" style="-fx-background-color:#2563eb; -fx-text-fill:white; -fx-cursor:hand; -fx-background-radius:6;"/>
+                <Label text="Statut :" style="-fx-text-fill:#64748b;"/>
+                <ComboBox fx:id="statusFilter" onAction="#refresh"/>
+                <Button text="↻ Rafraîchir" onAction="#refresh" style="-fx-cursor:hand;"/>
             </HBox>
-            <VBox VBox.vgrow="ALWAYS" style="-fx-padding:16;">
+
+            <VBox VBox.vgrow="ALWAYS" style="-fx-padding:16;" spacing="10">
                 <TableView fx:id="table" VBox.vgrow="ALWAYS">
                     <columns>
-                        <TableColumn fx:id="colRecord" text="N° Dossier" prefWidth="120"/>
-                        <TableColumn fx:id="colName"   text="Nom complet" prefWidth="200"/>
-                        <TableColumn fx:id="colBirth"  text="Naissance"   prefWidth="110"/>
-                        <TableColumn fx:id="colPhone"  text="Téléphone"   prefWidth="150"/>
-                        <TableColumn fx:id="colCity"   text="Ville"       prefWidth="140"/>
+                        <TableColumn fx:id="colDate"    text="Date"       prefWidth="150"/>
+                        <TableColumn fx:id="colPatient" text="Patient"    prefWidth="180"/>
+                        <TableColumn fx:id="colDoctor"  text="Médecin"    prefWidth="160"/>
+                        <TableColumn fx:id="colReason"  text="Motif"      prefWidth="170"/>
+                        <TableColumn fx:id="colDiag"    text="Diagnostic" prefWidth="170"/>
+                        <TableColumn fx:id="colStatus"  text="Statut"     prefWidth="100"/>
                     </columns>
                 </TableView>
-                <Label fx:id="statusLabel" style="-fx-text-fill:#64748b; -fx-font-size:12px; -fx-padding:6 0 0 0;"/>
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <Button text="Ouvrir la fiche" onAction="#open" style="-fx-background-color:#2563eb; -fx-text-fill:white; -fx-cursor:hand; -fx-background-radius:6;"/>
+                    <Label fx:id="statusLabel" style="-fx-text-fill:#64748b; -fx-font-size:12px;"/>
+                </HBox>
             </VBox>
         </VBox>
     </center>

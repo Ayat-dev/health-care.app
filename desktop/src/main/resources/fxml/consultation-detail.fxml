@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.clinic.client.controller.ConsultationDetailController"
+            prefWidth="960" prefHeight="640">
+
+    <top>
+        <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding:14 16; -fx-background-color:white; -fx-border-color:#e2e8f0; -fx-border-width:0 0 1 0;">
+            <Button text="← Consultations" onAction="#goConsultations" style="-fx-cursor:hand;"/>
+            <Label fx:id="patientLabel" text="Consultation" style="-fx-font-size:16px; -fx-font-weight:bold;"/>
+            <Label fx:id="statusBadge" style="-fx-background-color:#dbeafe; -fx-text-fill:#1d4ed8; -fx-padding:3 10; -fx-background-radius:999; -fx-font-size:11px; -fx-font-weight:bold;"/>
+            <HBox HBox.hgrow="ALWAYS"/>
+            <Button fx:id="saveBtn" text="Enregistrer" onAction="#save" style="-fx-background-color:#2563eb; -fx-text-fill:white; -fx-cursor:hand; -fx-background-radius:6;"/>
+            <Button fx:id="completeBtn" text="Clôturer" onAction="#complete" style="-fx-background-color:#16a34a; -fx-text-fill:white; -fx-cursor:hand; -fx-background-radius:6;"/>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-background-color:#f1f5f9;">
+            <VBox spacing="16" style="-fx-padding:20;">
+
+                <VBox spacing="10" style="-fx-background-color:white; -fx-padding:18; -fx-background-radius:10;">
+                    <Label text="Constantes vitales" style="-fx-font-weight:bold; -fx-font-size:14px;"/>
+                    <GridPane hgap="12" vgap="10">
+                        <Label text="Poids (kg)"        GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                        <TextField fx:id="weightKg"      GridPane.rowIndex="0" GridPane.columnIndex="1" prefWidth="90"/>
+                        <Label text="Taille (cm)"       GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+                        <TextField fx:id="heightCm"      GridPane.rowIndex="0" GridPane.columnIndex="3" prefWidth="90"/>
+                        <Label text="Température (°C)"   GridPane.rowIndex="0" GridPane.columnIndex="4"/>
+                        <TextField fx:id="temperatureC"  GridPane.rowIndex="0" GridPane.columnIndex="5" prefWidth="90"/>
+
+                        <Label text="TA systolique"     GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                        <TextField fx:id="bpSystolic"    GridPane.rowIndex="1" GridPane.columnIndex="1" prefWidth="90"/>
+                        <Label text="TA diastolique"    GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+                        <TextField fx:id="bpDiastolic"   GridPane.rowIndex="1" GridPane.columnIndex="3" prefWidth="90"/>
+                        <Label text="Pouls (bpm)"       GridPane.rowIndex="1" GridPane.columnIndex="4"/>
+                        <TextField fx:id="pulseBpm"      GridPane.rowIndex="1" GridPane.columnIndex="5" prefWidth="90"/>
+
+                        <Label text="SpO₂ (%)"          GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                        <TextField fx:id="spo2Percent"   GridPane.rowIndex="2" GridPane.columnIndex="1" prefWidth="90"/>
+                        <Label text="Fréq. resp."       GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+                        <TextField fx:id="respiratoryRate" GridPane.rowIndex="2" GridPane.columnIndex="3" prefWidth="90"/>
+                    </GridPane>
+                </VBox>
+
+                <VBox spacing="10" style="-fx-background-color:white; -fx-padding:18; -fx-background-radius:10;">
+                    <Label text="Examen clinique" style="-fx-font-weight:bold; -fx-font-size:14px;"/>
+                    <Label text="Motif"/>
+                    <TextField fx:id="chiefComplaint"/>
+                    <Label text="Anamnèse"/>
+                    <TextArea fx:id="history" prefRowCount="2" wrapText="true"/>
+                    <Label text="Examen physique"/>
+                    <TextArea fx:id="physicalExam" prefRowCount="2" wrapText="true"/>
+                    <Label text="Diagnostic (obligatoire pour clôturer)"/>
+                    <TextArea fx:id="diagnosis" prefRowCount="2" wrapText="true"/>
+                    <Label text="Codes CIM-10"/>
+                    <TextField fx:id="icd10Codes" promptText="ex: J06.9, R50.9"/>
+                    <Label text="Plan de traitement"/>
+                    <TextArea fx:id="treatmentPlan" prefRowCount="2" wrapText="true"/>
+                </VBox>
+
+                <VBox spacing="10" style="-fx-background-color:white; -fx-padding:18; -fx-background-radius:10;">
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="Ordonnance" style="-fx-font-weight:bold; -fx-font-size:14px;"/>
+                        <Label fx:id="rxNumberLabel" style="-fx-text-fill:#16a34a; -fx-font-weight:bold;"/>
+                    </HBox>
+                    <TableView fx:id="rxTable" prefHeight="160">
+                        <columns>
+                            <TableColumn fx:id="rxDrug" text="Médicament" prefWidth="200"/>
+                            <TableColumn fx:id="rxDosage" text="Posologie" prefWidth="110"/>
+                            <TableColumn fx:id="rxFreq" text="Fréquence" prefWidth="120"/>
+                            <TableColumn fx:id="rxDuration" text="Durée" prefWidth="110"/>
+                            <TableColumn fx:id="rxQty" text="Qté" prefWidth="70"/>
+                        </columns>
+                    </TableView>
+                    <HBox spacing="8" alignment="CENTER_LEFT">
+                        <TextField fx:id="inDrug" promptText="Médicament" prefWidth="180"/>
+                        <TextField fx:id="inDosage" promptText="500mg" prefWidth="90"/>
+                        <TextField fx:id="inFreq" promptText="3x/jour" prefWidth="100"/>
+                        <TextField fx:id="inDuration" promptText="7 jours" prefWidth="90"/>
+                        <TextField fx:id="inQty" promptText="Qté" prefWidth="60"/>
+                        <Button text="+ Ajouter" onAction="#addRx" style="-fx-cursor:hand; -fx-background-radius:6;"/>
+                    </HBox>
+                    <HBox spacing="8" alignment="CENTER_LEFT">
+                        <Button fx:id="saveRxBtn" text="Enregistrer l'ordonnance" onAction="#saveRx" style="-fx-background-color:#2563eb; -fx-text-fill:white; -fx-cursor:hand; -fx-background-radius:6;"/>
+                        <Label fx:id="rxStatusLabel" style="-fx-text-fill:#64748b; -fx-font-size:12px;"/>
+                    </HBox>
+                </VBox>
+
+                <Label fx:id="statusLabel" style="-fx-text-fill:#64748b; -fx-font-size:12px;"/>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

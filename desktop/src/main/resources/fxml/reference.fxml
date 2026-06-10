@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.clinic.client.controller.ReferenceController"
+            prefWidth="960" prefHeight="600">
+
+    <left>
+        <VBox spacing="4" style="-fx-padding:20 12; -fx-background-color:#0f172a; -fx-pref-width:210px;">
+            <Label text="⚕ ClinicApp" style="-fx-font-size:18px; -fx-font-weight:bold; -fx-text-fill:white; -fx-padding:0 0 16 0;"/>
+            <Button text="Tableau de bord" maxWidth="Infinity" onAction="#goDashboard" style="-fx-background-color:transparent; -fx-text-fill:#94a3b8; -fx-cursor:hand; -fx-background-radius:6;"/>
+            <Button text="Patients" maxWidth="Infinity" onAction="#goPatients" style="-fx-background-color:transparent; -fx-text-fill:#94a3b8; -fx-cursor:hand; -fx-background-radius:6;"/>
+            <Button text="Rendez-vous" maxWidth="Infinity" onAction="#goAppointments" style="-fx-background-color:transparent; -fx-text-fill:#94a3b8; -fx-cursor:hand; -fx-background-radius:6;"/>
+            <Button text="Consultations" maxWidth="Infinity" onAction="#goConsultations" style="-fx-background-color:transparent; -fx-text-fill:#94a3b8; -fx-cursor:hand; -fx-background-radius:6;"/>
+            <Button text="Référentiel" maxWidth="Infinity" style="-fx-background-color:#2563eb; -fx-text-fill:white; -fx-background-radius:6;"/>
+            <Separator style="-fx-padding:8 0;"/>
+            <Button text="Déconnexion" maxWidth="Infinity" onAction="#logout" style="-fx-background-color:#ef4444; -fx-text-fill:white; -fx-background-radius:6; -fx-cursor:hand;"/>
+        </VBox>
+    </left>
+
+    <center>
+        <VBox style="-fx-background-color:#f1f5f9;">
+            <HBox spacing="8" alignment="CENTER_LEFT" style="-fx-padding:16; -fx-background-color:white; -fx-border-color:#e2e8f0; -fx-border-width:0 0 1 0;">
+                <Label text="Référentiel (lecture seule)" style="-fx-font-size:16px; -fx-font-weight:bold;"/>
+                <HBox HBox.hgrow="ALWAYS"/>
+                <Button text="↻ Rafraîchir" onAction="#refresh" style="-fx-cursor:hand;"/>
+            </HBox>
+
+            <TabPane VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE" style="-fx-padding:8;">
+                <tabs>
+                    <Tab text="Départements">
+                        <TableView fx:id="deptTable">
+                            <columns>
+                                <TableColumn fx:id="deptCode" text="Code" prefWidth="120"/>
+                                <TableColumn fx:id="deptName" text="Nom" prefWidth="220"/>
+                                <TableColumn fx:id="deptDesc" text="Description" prefWidth="320"/>
+                                <TableColumn fx:id="deptActive" text="Actif" prefWidth="80"/>
+                            </columns>
+                        </TableView>
+                    </Tab>
+                    <Tab text="Actes &amp; tarifs">
+                        <TableView fx:id="actTable">
+                            <columns>
+                                <TableColumn fx:id="actCode" text="Code" prefWidth="120"/>
+                                <TableColumn fx:id="actName" text="Acte" prefWidth="280"/>
+                                <TableColumn fx:id="actDept" text="Département" prefWidth="180"/>
+                                <TableColumn fx:id="actPrice" text="Tarif" prefWidth="110"/>
+                            </columns>
+                        </TableView>
+                    </Tab>
+                    <Tab text="Analyses">
+                        <TableView fx:id="labTable">
+                            <columns>
+                                <TableColumn fx:id="labCode" text="Code" prefWidth="120"/>
+                                <TableColumn fx:id="labName" text="Analyse" prefWidth="260"/>
+                                <TableColumn fx:id="labCategory" text="Catégorie" prefWidth="160"/>
+                                <TableColumn fx:id="labPrice" text="Tarif" prefWidth="110"/>
+                            </columns>
+                        </TableView>
+                    </Tab>
+                </tabs>
+            </TabPane>
+            <Label fx:id="statusLabel" style="-fx-text-fill:#64748b; -fx-font-size:12px; -fx-padding:8 16;"/>
+        </VBox>
+    </center>
+</BorderPane>

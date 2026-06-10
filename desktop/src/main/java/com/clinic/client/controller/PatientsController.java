@@ -1,15 +1,18 @@
 package com.clinic.client.controller;
 
 import com.clinic.client.util.ApiClient;
-import com.clinic.client.util.SceneManager;
-import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.*;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import org.json.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
-public class PatientsController {
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
+public class PatientsController extends BaseController {
 
     @FXML private TextField searchField;
     @FXML private TableView<JSONObject> table;
@@ -17,7 +20,7 @@ public class PatientsController {
     @FXML private TableColumn<JSONObject, String> colName;
     @FXML private TableColumn<JSONObject, String> colBirth;
     @FXML private TableColumn<JSONObject, String> colPhone;
-    @FXML private TableColumn<JSONObject, String> colDoctor;
+    @FXML private TableColumn<JSONObject, String> colCity;
     @FXML private Label statusLabel;
 
     private final ObservableList<JSONObject> data = FXCollections.observableArrayList();
@@ -26,10 +29,10 @@ public class PatientsController {
     public void initialize() {
         colRecord.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().optString("recordNumber")));
         colName.setCellValueFactory(c -> new SimpleStringProperty(
-            c.getValue().optString("lastName") + " " + c.getValue().optString("firstName")));
+                c.getValue().optString("lastName") + " " + c.getValue().optString("firstName")));
         colBirth.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().optString("birthDate")));
         colPhone.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().optString("phone")));
-        colDoctor.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().optString("assignedDoctorName")));
+        colCity.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().optString("city")));
         table.setItems(data);
         loadPatients("");
     }
@@ -39,26 +42,25 @@ public class PatientsController {
         loadPatients(searchField.getText().trim());
     }
 
-    @FXML
-    public void goBack() throws java.io.IOException { SceneManager.navigateTo("dashboard.fxml"); }
-
     private void loadPatients(String q) {
         statusLabel.setText("Chargement…");
-        new Thread(() -> {
-            try {
-                String path = "/api/patients" + (q.isEmpty() ? "" : "?q=" + q);
-                JSONObject resp = ApiClient.get(path);
-                // Si l'API renvoie un tableau JSON, il est dans _raw
-                String raw = resp.optString("_raw", "[]");
-                JSONArray arr = raw.startsWith("[") ? new JSONArray(raw) : new JSONArray();
-                Platform.runLater(() -> {
-                    data.clear();
+        async(() -> {
+            String path = "/api/patients?size=200";
+            if (!q.isEmpty()) path += "&q=" + URLEncoder.encode(q, StandardCharsets.UTF_8);
+            ApiClient.Response resp = ApiClient.get(path);
+            // /api/patients renvoie une Page : { content:[...], totalElements:N }
+            JSONObject page = resp.asObject();
+            JSONArray arr = page.optJSONArray("content");
+            int total = page.optInt("totalElements", arr != null ? arr.length() : 0);
+            ui(() -> {
+                data.clear();
+                if (resp.ok() && arr != null) {
                     for (int i = 0; i < arr.length(); i++) data.add(arr.getJSONObject(i));
-                    statusLabel.setText(arr.length() + " patient(s)");
-                });
-            } catch (Exception e) {
-                Platform.runLater(() -> statusLabel.setText("Erreur de chargement."));
-            }
-        }).start();
+                    statusLabel.setText(total + " patient(s)");
+                } else {
+                    statusLabel.setText("Erreur de chargement (serveur injoignable ?).");
+                }
+            });
+        });
     }
 }

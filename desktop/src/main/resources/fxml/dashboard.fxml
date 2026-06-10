@@ -4,32 +4,52 @@
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.clinic.client.controller.DashboardController"
-            prefWidth="900" prefHeight="580">
+            prefWidth="960" prefHeight="600">
 
-    <!-- Sidebar -->
     <left>
-        <VBox spacing="4" style="-fx-padding:20 12; -fx-background-color:#1e3a5f; -fx-pref-width:200px;">
-            <Label text="ClinicApp" style="-fx-font-size:18px; -fx-font-weight:bold; -fx-text-fill:white; -fx-padding:0 0 16 0;"/>
+        <VBox spacing="4" style="-fx-padding:20 12; -fx-background-color:#0f172a; -fx-pref-width:210px;">
+            <Label text="⚕ ClinicApp" style="-fx-font-size:18px; -fx-font-weight:bold; -fx-text-fill:white; -fx-padding:0 0 16 0;"/>
             <Button text="Tableau de bord" maxWidth="Infinity" style="-fx-background-color:#2563eb; -fx-text-fill:white; -fx-background-radius:6;"/>
-            <Button text="Patients" maxWidth="Infinity" onAction="#goPatients"
-                    style="-fx-background-color:transparent; -fx-text-fill:#94a3b8; -fx-cursor:hand; -fx-background-radius:6;"/>
-            <Button text="Rendez-vous" maxWidth="Infinity" onAction="#goAppointments"
-                    style="-fx-background-color:transparent; -fx-text-fill:#94a3b8; -fx-cursor:hand; -fx-background-radius:6;"/>
+            <Button text="Patients" maxWidth="Infinity" onAction="#goPatients" style="-fx-background-color:transparent; -fx-text-fill:#94a3b8; -fx-cursor:hand; -fx-background-radius:6;"/>
+            <Button text="Rendez-vous" maxWidth="Infinity" onAction="#goAppointments" style="-fx-background-color:transparent; -fx-text-fill:#94a3b8; -fx-cursor:hand; -fx-background-radius:6;"/>
+            <Button text="Consultations" maxWidth="Infinity" onAction="#goConsultations" style="-fx-background-color:transparent; -fx-text-fill:#94a3b8; -fx-cursor:hand; -fx-background-radius:6;"/>
+            <Button text="Référentiel" maxWidth="Infinity" onAction="#goReference" style="-fx-background-color:transparent; -fx-text-fill:#94a3b8; -fx-cursor:hand; -fx-background-radius:6;"/>
             <Separator style="-fx-padding:8 0;"/>
-            <Button text="Déconnexion" maxWidth="Infinity" onAction="#logout"
-                    style="-fx-background-color:#ef4444; -fx-text-fill:white; -fx-background-radius:6; -fx-cursor:hand;"/>
+            <Button text="Déconnexion" maxWidth="Infinity" onAction="#logout" style="-fx-background-color:#ef4444; -fx-text-fill:white; -fx-background-radius:6; -fx-cursor:hand;"/>
         </VBox>
     </left>
 
-    <!-- Contenu -->
     <center>
-        <VBox spacing="16" style="-fx-padding:24; -fx-background-color:#f1f5f9;">
+        <VBox spacing="20" style="-fx-padding:28; -fx-background-color:#f1f5f9;">
             <HBox spacing="12" alignment="CENTER_LEFT">
-                <Label fx:id="welcomeLabel" style="-fx-font-size:20px; -fx-font-weight:bold;"/>
-                <Label fx:id="roleLabel" style="-fx-background-color:#dbeafe; -fx-text-fill:#1d4ed8; -fx-padding:2 8; -fx-background-radius:999; -fx-font-size:11px; -fx-font-weight:bold;"/>
+                <Label fx:id="welcomeLabel" style="-fx-font-size:22px; -fx-font-weight:bold;"/>
+                <Label fx:id="roleLabel" style="-fx-background-color:#dbeafe; -fx-text-fill:#1d4ed8; -fx-padding:3 10; -fx-background-radius:999; -fx-font-size:11px; -fx-font-weight:bold;"/>
             </HBox>
-            <TextArea fx:id="logArea" prefHeight="200" editable="false"
-                      style="-fx-background-color:white; -fx-background-radius:8; -fx-font-size:13px;"/>
+
+            <HBox spacing="16">
+                <VBox spacing="6" HBox.hgrow="ALWAYS" style="-fx-background-color:white; -fx-padding:20; -fx-background-radius:10;">
+                    <Label fx:id="patientsValue" text="—" style="-fx-font-size:30px; -fx-font-weight:bold; -fx-text-fill:#2563eb;"/>
+                    <Label text="Patients enregistrés" style="-fx-text-fill:#64748b; -fx-font-size:12px;"/>
+                </VBox>
+                <VBox spacing="6" HBox.hgrow="ALWAYS" style="-fx-background-color:white; -fx-padding:20; -fx-background-radius:10;">
+                    <Label fx:id="appointmentsValue" text="—" style="-fx-font-size:30px; -fx-font-weight:bold; -fx-text-fill:#16a34a;"/>
+                    <Label text="Rendez-vous aujourd'hui" style="-fx-text-fill:#64748b; -fx-font-size:12px;"/>
+                </VBox>
+                <VBox spacing="6" HBox.hgrow="ALWAYS" style="-fx-background-color:white; -fx-padding:20; -fx-background-radius:10;">
+                    <Label fx:id="consultationsValue" text="—" style="-fx-font-size:30px; -fx-font-weight:bold; -fx-text-fill:#d97706;"/>
+                    <Label text="Consultations en cours" style="-fx-text-fill:#64748b; -fx-font-size:12px;"/>
+                </VBox>
+            </HBox>
+
+            <VBox spacing="8" style="-fx-background-color:white; -fx-padding:20; -fx-background-radius:10;">
+                <Label text="Accès rapide" style="-fx-font-weight:bold; -fx-font-size:14px;"/>
+                <HBox spacing="10">
+                    <Button text="Voir l'agenda du jour" onAction="#goAppointments" style="-fx-background-color:#2563eb; -fx-text-fill:white; -fx-background-radius:6; -fx-cursor:hand;"/>
+                    <Button text="Consultations en cours" onAction="#goConsultations" style="-fx-background-color:#e2e8f0; -fx-background-radius:6; -fx-cursor:hand;"/>
+                    <Button text="Liste des patients" onAction="#goPatients" style="-fx-background-color:#e2e8f0; -fx-background-radius:6; -fx-cursor:hand;"/>
+                </HBox>
+                <Label fx:id="statusLabel" style="-fx-text-fill:#64748b; -fx-font-size:12px; -fx-padding:6 0 0 0;"/>
+            </VBox>
         </VBox>
     </center>
 </BorderPane>
