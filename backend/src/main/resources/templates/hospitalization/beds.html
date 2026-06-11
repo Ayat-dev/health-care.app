@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Hospitalisation — Plan des lits', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="panel">
+    <div class="panel-header">
+        <span>Plan des lits — occupation en temps réel</span>
+        <div style="display:flex; gap:.5rem;">
+            <a th:href="@{/hospitalization/list}" class="btn btn-ghost btn-sm">Séjours</a>
+            <a th:href="@{/hospitalization/rooms}" class="btn btn-ghost btn-sm">Chambres</a>
+            <a th:href="@{/hospitalization/admit}" class="btn btn-primary btn-sm">+ Admettre un patient</a>
+        </div>
+    </div>
+
+    <div style="padding:12px 16px;">
+        <div th:if="${board.isEmpty()}" class="empty-state">
+            Aucune chambre active. Créez des chambres dans le référentiel.
+        </div>
+
+        <div th:each="dept : ${board}" style="margin-bottom:22px;">
+            <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:10px;">
+                <span style="display:inline-block; width:12px; height:12px; border-radius:3px;"
+                      th:style="'background:' + (${dept.color} ?: '#94a3b8')"></span>
+                <strong th:text="${dept.departmentName}">Service</strong>
+                <span class="badge" th:text="${dept.freeBeds} + ' / ' + ${dept.totalBeds} + ' lits libres'">0 / 0</span>
+            </div>
+
+            <div class="bed-grid">
+                <div th:each="room : ${dept.rooms}" class="bed-card"
+                     th:classappend="${room.full} ? 'bed-occupied' : 'bed-free'">
+                    <div class="bed-card-head">
+                        <strong th:text="'Ch. ' + ${room.roomNumber}">Ch. 101</strong>
+                        <span class="badge" th:text="${room.type}">STANDARD</span>
+                    </div>
+                    <div class="bed-card-status">
+                        <span th:if="${room.occupiedCount == 0}" class="badge badge-green">🟢 LIBRE</span>
+                        <span th:unless="${room.occupiedCount == 0}" class="badge badge-red"
+                              th:text="${room.occupiedCount} + '/' + ${room.capacity} + ' occupé'">occupé</span>
+                    </div>
+                    <ul class="bed-occupants">
+                        <li th:each="occ : ${room.occupants}">
+                            <a th:href="@{/hospitalization/{id}(id=${occ.id})}" th:text="${occ.patientName}">M. Diop</a>
+                            <span class="badge badge-blue" th:text="'J+' + ${occ.daysSinceAdmission}">J+0</span>
+                        </li>
+                    </ul>
+                    <a th:if="${!room.full}" th:href="@{/hospitalization/admit(roomId=${room.id})}"
+                       class="btn btn-ghost btn-sm" style="margin-top:6px;">+ Admettre</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</th:block></body>
+</html>

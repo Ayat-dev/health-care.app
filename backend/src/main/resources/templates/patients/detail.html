@@ -46,6 +46,7 @@
     <button class="tab" onclick="showTab('consultations')">Consultations</button>
     <button class="tab" onclick="showTab('lab')">Laboratoire</button>
     <button class="tab" onclick="showTab('imaging')">Imagerie</button>
+    <button class="tab" onclick="showTab('stays')">Séjours</button>
     <button class="tab" onclick="showTab('billing')">Facturation</button>
 </div>
 
@@ -175,6 +176,35 @@
                 </td>
                 <td><span class="badge" th:classappend="'badge-' + ${r.status}" th:text="${r.status}">EN_ATTENTE</span></td>
                 <td><a th:href="@{/radiology/requests/{id}(id=${r.id})}" class="btn btn-ghost btn-sm">Voir</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Onglet Séjours -->
+<div id="tab-stays" class="tab-content panel" style="display:none">
+    <div class="panel-header" style="padding:0 0 12px;">
+        <span>Historique des hospitalisations</span>
+        <a th:href="@{/hospitalization/admit(patientId=${patient.id})}" class="btn btn-primary btn-sm">+ Admettre</a>
+    </div>
+    <div th:if="${hospitalizations == null or hospitalizations.isEmpty()}" class="empty-state">
+        Aucun séjour hospitalier pour ce patient.
+    </div>
+    <div th:unless="${hospitalizations == null or hospitalizations.isEmpty()}" class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr><th>Chambre</th><th>Admis le</th><th>Sortie</th><th>Durée</th><th>Statut</th><th></th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="h : ${hospitalizations}">
+                <td><span th:text="'Ch. ' + ${h.roomNumber}">Ch. 101</span>
+                    <small th:text="${h.departmentName ?: ''}">Service</small></td>
+                <td th:text="${#temporals.format(h.admissionDate,'dd/MM/yyyy')}">01/01</td>
+                <td th:text="${h.dischargeDate != null ? #temporals.format(h.dischargeDate,'dd/MM/yyyy') : '—'}">—</td>
+                <td th:text="${h.nights} + ' nuit(s)'">1 nuit(s)</td>
+                <td><span class="badge" th:classappend="'badge-' + ${h.status}" th:text="${h.status}">ADMIS</span></td>
+                <td><a th:href="@{/hospitalization/{id}(id=${h.id})}" class="btn btn-ghost btn-sm">Voir</a></td>
             </tr>
             </tbody>
         </table>

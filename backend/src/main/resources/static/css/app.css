@@ -1008,3 +1008,21 @@ body.login-page {
 .radio-thumb { margin: 0; width: 160px; display: flex; flex-direction: column; gap: 4px; }
 .radio-thumb img { width: 160px; height: 120px; object-fit: cover; border: 1px solid var(--border, #e2e8f0); border-radius: 6px; background: #f8fafc; }
 .radio-thumb figcaption { font-size: 12px; color: var(--text-500, #64748b); }
+
+/* ── Hospitalisation : statuts de séjour (module 10) ──────────────────── */
+.badge-ADMIS     { background: var(--blue-mid, #dbeafe); color: #1d4ed8; }
+.badge-TRANSFERE { background: #ede9fe;                   color: #5b21b6; }
+.badge-SORTI     { background: #f1f5f9;                   color: var(--text-500, #64748b); }
+.badge-DECEDE    { background: var(--red-light, #fee2e2); color: #991b1b; }
+
+/* ── Hospitalisation : plan des lits (module 10) ──────────────────────── */
+.bed-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+.bed-card {
+  width: 200px; border: 1px solid var(--border, #e2e8f0); border-radius: 8px;
+  padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; background: #fff;
+}
+.bed-card.bed-free     { border-left: 4px solid #22c55e; }
+.bed-card.bed-occupied { border-left: 4px solid #ef4444; }
+.bed-card-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.bed-occupants { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.bed-occupants li { display: flex; align-items: center; justify-content: space-between; gap: 6px; }

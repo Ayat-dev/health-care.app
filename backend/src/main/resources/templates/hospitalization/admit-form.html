@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Admettre un patient', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<form method="post" th:action="@{/hospitalization/admit}" th:object="${stay}">
+    <div class="form-card">
+        <div class="panel-header"><span>Nouvelle admission</span></div>
+
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label class="form-label">Patient *</label>
+                <select th:field="*{patientId}" class="form-control" required>
+                    <option value="">— Choisir un patient —</option>
+                    <option th:each="p : ${patients}" th:value="${p.id}"
+                            th:text="${p.fullName} + ' (' + ${p.recordNumber} + ')'">Patient</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Médecin responsable *</label>
+                <select th:field="*{doctorId}" class="form-control" required>
+                    <option value="">— Choisir un médecin —</option>
+                    <option th:each="d : ${doctors}" th:value="${d.id}" th:text="${d.fullName}">Dr.</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Chambre *</label>
+                <select th:field="*{roomId}" class="form-control" required>
+                    <option value="">— Choisir une chambre —</option>
+                    <option th:each="r : ${rooms}" th:value="${r.id}" th:disabled="${r.full}"
+                            th:text="'Ch. ' + ${r.roomNumber} + ' — ' + ${r.departmentName ?: 'Sans service'}
+                                     + ' (' + ${r.availableCount} + ' libre, '
+                                     + ${#numbers.formatDecimal(r.dailyRate,1,'WHITESPACE',0,'POINT')} + ' F/nuit)'">Ch. 101</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Motif d'admission *</label>
+                <input type="text" th:field="*{admissionReason}" class="form-control"
+                       placeholder="Motif d'hospitalisation…" required/>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Notes</label>
+            <textarea th:field="*{notes}" class="form-control" rows="2" placeholder="Observations…"></textarea>
+        </div>
+
+        <div style="display:flex; gap:.5rem; margin-top:12px;">
+            <button type="submit" class="btn btn-primary">Admettre</button>
+            <a th:href="@{/hospitalization}" class="btn btn-ghost">Annuler</a>
+        </div>
+    </div>
+</form>
+
+</th:block></body>
+</html>

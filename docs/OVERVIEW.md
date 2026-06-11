@@ -82,7 +82,7 @@ ClinicApp est un système de gestion de clinique **complet, modulaire et adaptab
 | 05 | Pharmacie & Stock | `modules/05-PHARMACY.md` | ✅ Terminé — `drugs` + `stock_items` + `dispensations` + `dispensation_items` (V7), catalogue + réception de lots, alertes stock faible/péremption, dispensation FIFO (lot périmant en premier, périmés exclus) sur ordonnance ou vente libre, ordonnance dispensée une seule fois, tableau de bord (compteurs + top dispensés + valeur stock), job quotidien `StockAlertService` |
 | 06 | Maternité & Obstétrique | `modules/06-MATERNITY.md` | ⚪ Planifié |
 | 07 | Facturation & Paiements | `modules/07-BILLING.md` | ⚪ Planifié |
-| 08 | Hospitalisation & Lits | `modules/08-HOSPITALIZATION.md` | ⚪ Planifié |
+| 08 | Hospitalisation & Lits | `modules/08-HOSPITALIZATION.md` | ✅ Terminé — `rooms` (8 chambres seedées) + `hospitalizations` (V10), plan des lits temps réel groupé par service (occupation dérivée, pas stockée), admission/transfert/sortie (ADMIS→TRANSFERE/SORTI/DECEDE), garde « chambre complète » + « patient déjà hospitalisé », référentiel chambres (type/capacité/tarif), facturation prévisionnelle (nuits × tarif, facture finale différée au module Billing), onglet Séjours + historique par patient, raccourci admission depuis la consultation |
 | 09 | Laboratoire | `modules/09-LAB.md` | ✅ Terminé — `lab_requests` + `lab_request_items` + `lab_results` (V8), demande d'analyses depuis une consultation (catalogue `lab_test_catalog` V4), travail du jour laborantin (urgent en premier), saisie des résultats avec détection automatique des valeurs anormales (intervalles numériques + qualitatif « Négatif »), validation médecin/biologiste (EN_ATTENTE→EN_COURS→VALIDE→LIVRE), bulletin de résultats imprimable, historique par patient |
 | 10 | Imagerie médicale | `modules/10-RADIOLOGY.md` | ✅ Terminé — `radiology_exam_catalog` (8 examens seedés) + `radiology_requests` + `radiology_request_items` + `radiology_reports` + `radiology_images` (V9), demande d'imagerie depuis une consultation, travail du jour radiologue (urgent en premier), saisie du compte-rendu (résultats + conclusion) + attachement d'images (réutilise `FileStorageService`), validation (EN_ATTENTE→EN_COURS→VALIDE→LIVRE), compte-rendu imprimable, onglet Imagerie + historique par patient. Radiologue = un MEDECIN (pas de rôle dédié) |
 | 11 | Départements spécialisés | `modules/11-DEPARTMENTS.md` | 🟡 En cours — table de référence `departments` faite (socle) ; sous-modules cliniques (dentaire, pédiatrie…) à venir |
@@ -125,7 +125,7 @@ ClinicApp est un système de gestion de clinique **complet, modulaire et adaptab
 - [ ] Module Consultations (actes, diagnostics CIM-10, ordonnances)
 - [ ] Module Pharmacie (stock, dispensation, alertes péremption)
 - [ ] Module Facturation complet (Mobile Money, assurances, reçus PDF)
-- [ ] Module Hospitalisation (lits, admissions, transferts)
+- [x] Module Hospitalisation (lits, admissions, transferts)
 - [ ] Impression : ordonnances, reçus, certificats (PDF)
 - [ ] Notifications SMS (Twilio / Africa's Talking)
 

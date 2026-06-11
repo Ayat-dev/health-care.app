@@ -19,6 +19,10 @@ import com.clinic.backend.radiology.RadiologyReport;
 import com.clinic.backend.radiology.RadiologyRequest;
 import com.clinic.backend.radiology.RadiologyRequestItem;
 import com.clinic.backend.radiology.RadiologyRequestRepository;
+import com.clinic.backend.hospitalization.Hospitalization;
+import com.clinic.backend.hospitalization.HospitalizationRepository;
+import com.clinic.backend.hospitalization.Room;
+import com.clinic.backend.hospitalization.RoomRepository;
 import com.clinic.backend.model.User;
 import com.clinic.backend.patient.Patient;
 import com.clinic.backend.patient.PatientRepository;
@@ -50,6 +54,8 @@ public class DataInitializer {
                                LabRequestRepository labRequestRepository,
                                RadiologyExamCatalogRepository radiologyExamCatalogRepository,
                                RadiologyRequestRepository radiologyRequestRepository,
+                               RoomRepository roomRepository,
+                               HospitalizationRepository hospitalizationRepository,
                                PasswordEncoder passwordEncoder) {
         return args -> {
             if (userRepository.count() > 0) return;
@@ -243,6 +249,20 @@ public class DataInitializer {
             if (rxThorax != null) rr2.addItem(seedRadioItem(rxThorax));
             if (scanCrane != null) rr2.addItem(seedRadioItem(scanCrane));
             radiologyRequestRepository.save(rr2);
+
+            // ── Hospitalisation ─────────────────────────────────────────────────
+            // Un séjour en cours pour p3 (chambre 102) — apparaît sur le plan des lits.
+            Room room102 = roomRepository.findByRoomNumberIgnoreCase("102").orElse(null);
+            if (room102 != null) {
+                Hospitalization h1 = new Hospitalization();
+                h1.setPatient(p3);
+                h1.setRoom(room102);
+                h1.setDoctor(doctor);
+                h1.setAdmissionDate(today.minusDays(2).atTime(16, 0));
+                h1.setAdmissionReason("Déshydratation sévère — surveillance et réhydratation.");
+                h1.setStatus("ADMIS");
+                hospitalizationRepository.save(h1);
+            }
         };
     }
 

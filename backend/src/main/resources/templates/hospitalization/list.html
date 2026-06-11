@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Hospitalisation — Séjours', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="panel">
+    <div class="panel-header">
+        <span>Séjours hospitaliers</span>
+        <div style="display:flex; gap:.5rem;">
+            <a th:href="@{/hospitalization}" class="btn btn-ghost btn-sm">Plan des lits</a>
+            <a th:href="@{/hospitalization/admit}" class="btn btn-primary btn-sm">+ Admettre un patient</a>
+        </div>
+    </div>
+
+    <form method="get" th:action="@{/hospitalization/list}" class="search-bar" style="align-items:center;">
+        <select name="status" class="form-control" style="max-width:200px;">
+            <option value="">— Tous statuts —</option>
+            <option value="ADMIS" th:selected="${status == 'ADMIS'}">Admis</option>
+            <option value="TRANSFERE" th:selected="${status == 'TRANSFERE'}">Transféré</option>
+            <option value="SORTI" th:selected="${status == 'SORTI'}">Sorti</option>
+            <option value="DECEDE" th:selected="${status == 'DECEDE'}">Décédé</option>
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm">Filtrer</button>
+    </form>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Patient</th>
+                <th>Chambre</th>
+                <th>Médecin</th>
+                <th>Admis le</th>
+                <th>Sortie</th>
+                <th>Durée</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${stays.isEmpty()}">
+                <td colspan="8" class="empty-state">Aucun séjour.</td>
+            </tr>
+            <tr th:each="s : ${stays}">
+                <td>
+                    <span th:text="${s.patientName}">Patient</span>
+                    <span class="badge badge-blue" th:text="${s.patientRecordNumber}">PAT-…</span>
+                </td>
+                <td>
+                    <span th:text="'Ch. ' + ${s.roomNumber}">Ch. 101</span>
+                    <small th:text="${s.departmentName ?: ''}">Service</small>
+                </td>
+                <td th:text="${s.doctorName ?: '—'}">Médecin</td>
+                <td th:text="${#temporals.format(s.admissionDate,'dd/MM/yyyy HH:mm')}">01/01 09:00</td>
+                <td th:text="${s.dischargeDate != null ? #temporals.format(s.dischargeDate,'dd/MM/yyyy HH:mm') : '—'}">—</td>
+                <td th:text="${s.nights} + ' nuit(s)'">1 nuit(s)</td>
+                <td><span class="badge" th:classappend="'badge-' + ${s.status}" th:text="${s.status}">ADMIS</span></td>
+                <td><a th:href="@{/hospitalization/{id}(id=${s.id})}" class="btn btn-ghost btn-sm">Voir</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</th:block></body>
+</html>

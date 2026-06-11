@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Séjour hospitalier', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<!-- En-tête -->
+<div class="panel">
+    <div class="panel-header">
+        <span>
+            <strong th:text="${stay.patientName}">Patient</strong>
+            <span class="badge badge-blue" th:text="${stay.patientRecordNumber}">PAT-…</span>
+            <span class="badge" th:classappend="'badge-' + ${stay.status}" th:text="${stay.status}">ADMIS</span>
+        </span>
+        <a th:href="@{/hospitalization}" class="btn btn-ghost btn-sm">← Plan des lits</a>
+    </div>
+    <div class="form-grid-2" style="padding:12px 16px;">
+        <div><span class="detail-label">Chambre</span>
+             <span th:text="'Ch. ' + ${stay.roomNumber} + ' (' + ${stay.roomType} + ')'">Ch. 101</span></div>
+        <div><span class="detail-label">Service</span> <span th:text="${stay.departmentName ?: '—'}">—</span></div>
+        <div><span class="detail-label">Médecin responsable</span> <span th:text="${stay.doctorName ?: '—'}">—</span></div>
+        <div><span class="detail-label">Admis le</span>
+             <span th:text="${#temporals.format(stay.admissionDate,'dd/MM/yyyy HH:mm')}">—</span></div>
+        <div th:if="${stay.dischargeDate != null}"><span class="detail-label">Sortie le</span>
+             <span th:text="${#temporals.format(stay.dischargeDate,'dd/MM/yyyy HH:mm')}">—</span></div>
+        <div><span class="detail-label">Durée</span> <span th:text="${stay.nights} + ' nuit(s)'">1 nuit(s)</span></div>
+        <div><span class="detail-label">Motif d'admission</span> <span th:text="${stay.admissionReason ?: '—'}">—</span></div>
+        <div th:if="${stay.diagnosisOnDischarge != null}"><span class="detail-label">Diagnostic de sortie</span>
+             <span th:text="${stay.diagnosisOnDischarge}">—</span></div>
+    </div>
+</div>
+
+<!-- Facturation prévisionnelle -->
+<div class="panel" style="margin-top:16px;">
+    <div class="panel-header"><span>Facturation prévisionnelle (séjour)</span></div>
+    <div class="form-grid-2" style="padding:12px 16px;">
+        <div><span class="detail-label">Tarif journalier</span>
+             <span th:text="${stay.dailyRate != null ? #numbers.formatDecimal(stay.dailyRate,1,'WHITESPACE',0,'POINT') + ' F' : '—'}">—</span></div>
+        <div><span class="detail-label">Nuits</span> <span th:text="${stay.nights}">1</span></div>
+        <div><span class="detail-label">Total estimé (hors actes)</span>
+             <strong th:text="${stay.estimatedCost != null ? #numbers.formatDecimal(stay.estimatedCost,1,'WHITESPACE',0,'POINT') + ' F' : '—'}">—</strong></div>
+    </div>
+    <div style="padding:0 16px 12px;" class="empty-state">
+        La facture finale (séjour + actes) sera générée dans le module Facturation.
+    </div>
+</div>
+
+<!-- Actions (séjour en cours) -->
+<div th:if="${stay.status == 'ADMIS'}" class="panel" style="margin-top:16px;">
+    <div class="panel-header"><span>Actions</span></div>
+    <div class="form-grid-2" style="padding:12px 16px; align-items:start;">
+
+        <!-- Transfert -->
+        <form method="post" th:action="@{/hospitalization/{id}/transfer(id=${stay.id})}">
+            <div class="detail-label">Transférer vers une autre chambre</div>
+            <select name="newRoomId" class="form-control" required style="margin:6px 0;">
+                <option value="">— Choisir une chambre —</option>
+                <option th:each="r : ${rooms}" th:value="${r.id}"
+                        th:disabled="${r.full and r.id != stay.roomId}"
+                        th:text="'Ch. ' + ${r.roomNumber} + ' — ' + ${r.departmentName ?: 'Sans service'}
+                                 + ' (' + ${r.availableCount} + ' libre)'">Ch. 102</option>
+            </select>
+            <input type="text" name="reason" class="form-control" placeholder="Motif du transfert (facultatif)"
+                   style="margin-bottom:6px;"/>
+            <button class="btn btn-ghost btn-sm">Transférer</button>
+        </form>
+
+        <!-- Sortie -->
+        <form method="post" th:action="@{/hospitalization/{id}/discharge(id=${stay.id})}"
+              onsubmit="return confirm('Confirmer la sortie du patient ?');">
+            <div class="detail-label">Enregistrer la sortie</div>
+            <select name="status" class="form-control" style="margin:6px 0;">
+                <option value="SORTI">Sortie normale</option>
+                <option value="DECEDE">Décès</option>
+            </select>
+            <input type="text" name="diagnosis" class="form-control" placeholder="Diagnostic de sortie (facultatif)"
+                   style="margin-bottom:6px;"/>
+            <button class="btn btn-primary btn-sm">Enregistrer la sortie</button>
+        </form>
+    </div>
+</div>
+
+<div style="margin-top:16px;">
+    <a th:if="${stay.patientId != null}" th:href="@{/patients/{id}(id=${stay.patientId})}"
+       class="btn btn-ghost">Dossier patient</a>
+    <a th:href="@{/hospitalization/list}" class="btn btn-ghost">Liste des séjours</a>
+</div>
+
+</th:block></body>
+</html>

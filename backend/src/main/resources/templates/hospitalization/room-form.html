@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(${room.id == null ? 'Nouvelle chambre' : 'Modifier la chambre'}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="form-card">
+    <form method="post" th:object="${room}"
+          th:action="${room.id == null ? '/hospitalization/rooms/new' : '/hospitalization/rooms/' + room.id + '/edit'}">
+
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label class="form-label">Numéro de chambre *</label>
+                <input type="text" th:field="*{roomNumber}" class="form-control" placeholder="101" required/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Service</label>
+                <select th:field="*{departmentId}" class="form-control">
+                    <option value="">— Aucun —</option>
+                    <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.name}">Médecine générale</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Type *</label>
+                <select th:field="*{type}" class="form-control">
+                    <option value="STANDARD">Standard</option>
+                    <option value="PRIVE">Privée</option>
+                    <option value="SOINS_INTENSIFS">Soins intensifs</option>
+                    <option value="MATERNITE">Maternité</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Capacité (lits) *</label>
+                <input type="number" th:field="*{capacity}" class="form-control" min="1" value="1" required/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Tarif journalier (F) *</label>
+                <input type="number" th:field="*{dailyRate}" class="form-control" min="0" step="0.01" required/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Statut</label>
+                <select th:field="*{active}" class="form-control">
+                    <option value="true">Active</option>
+                    <option value="false">Désactivée</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Notes</label>
+            <textarea th:field="*{notes}" class="form-control" rows="2"></textarea>
+        </div>
+
+        <div class="form-actions">
+            <a th:href="@{/hospitalization/rooms}" class="btn btn-ghost">Annuler</a>
+            <button type="submit" class="btn btn-primary">
+                <span th:text="${room.id == null ? 'Créer la chambre' : 'Enregistrer'}">Créer</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+</th:block></body>
+</html>

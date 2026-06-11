@@ -47,7 +47,8 @@
             <a th:href="@{/billing}" class="nav-item">
                 <span>💳</span> Facturation
             </a>
-            <a th:href="@{/hospitalization}" class="nav-item">
+            <a th:href="@{/hospitalization}" class="nav-item"
+               th:classappend="${#strings.startsWith(currentUri,'/hospitalization')} ? 'active'">
                 <span>🏥</span> Hospitalisation
             </a>
             <th:block sec:authorize="hasRole('ADMIN')">
