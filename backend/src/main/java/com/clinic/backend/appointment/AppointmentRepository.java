@@ -76,4 +76,21 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
                        @Param("start") LocalDateTime start,
                        @Param("end") LocalDateTime end,
                        @Param("excludeId") Long excludeId);
+
+    /**
+     * Active appointments starting within a window that have NOT yet had a reminder sent.
+     * Patient/doctor fetched for the SMS template (OSIV off). Used by the J-1 reminder job.
+     */
+    @Query("""
+        SELECT a FROM Appointment a
+        LEFT JOIN FETCH a.patient
+        LEFT JOIN FETCH a.doctor
+        WHERE a.status NOT IN ('ANNULE', 'ABSENT', 'TERMINE')
+          AND a.reminderSent = false
+          AND a.startTime >= :from
+          AND a.startTime <  :to
+        ORDER BY a.startTime
+        """)
+    List<Appointment> findPendingReminders(@Param("from") LocalDateTime from,
+                                           @Param("to") LocalDateTime to);
 }

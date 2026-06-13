@@ -7,6 +7,7 @@ import com.clinic.backend.consultation.ConsultationRepository;
 import com.clinic.backend.dto.LabRequestDto;
 import com.clinic.backend.dto.LabRequestItemDto;
 import com.clinic.backend.model.User;
+import com.clinic.backend.notification.NotificationService;
 import com.clinic.backend.patient.Patient;
 import com.clinic.backend.patient.PatientRepository;
 import com.clinic.backend.repository.UserRepository;
@@ -34,6 +35,7 @@ public class LabService {
     private final UserRepository userRepository;
     private final LabTestCatalogRepository labTestCatalogRepository;
     private final ResultAbnormalityChecker abnormalityChecker;
+    private final NotificationService notificationService;
 
     // ── Listes / recherche ────────────────────────────────────────────────────
     @Transactional(readOnly = true)
@@ -185,7 +187,9 @@ public class LabService {
             }
         }
         r.setStatus("VALIDE");
-        return labRequestRepository.save(r);
+        LabRequest saved = labRequestRepository.save(r);
+        notificationService.notifyLabResultsValidated(saved); // SMS patient + in-app médecin
+        return saved;
     }
 
     /** VALIDE → LIVRE : le bulletin a été remis au médecin/patient. */

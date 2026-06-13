@@ -4,6 +4,7 @@ import com.clinic.backend.department.Department;
 import com.clinic.backend.department.DepartmentRepository;
 import com.clinic.backend.dto.AppointmentDto;
 import com.clinic.backend.model.User;
+import com.clinic.backend.notification.NotificationService;
 import com.clinic.backend.patient.Patient;
 import com.clinic.backend.patient.PatientRepository;
 import com.clinic.backend.repository.UserRepository;
@@ -32,6 +33,7 @@ public class AppointmentService {
     private final PatientRepository patientRepository;
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
+    private final NotificationService notificationService;
 
     // ── Listes / recherche ────────────────────────────────────────────────
     @Transactional(readOnly = true)
@@ -76,7 +78,9 @@ public class AppointmentService {
         a.setStatus(dto.getStatus() != null && !dto.getStatus().isBlank()
                 ? dto.getStatus() : "PLANIFIE");
         a.setCreatedBy(currentUser());
-        return appointmentRepository.save(a);
+        Appointment saved = appointmentRepository.save(a);
+        notificationService.notifyAppointmentCreated(saved); // SMS de confirmation au patient
+        return saved;
     }
 
     // ── Modification ──────────────────────────────────────────────────────

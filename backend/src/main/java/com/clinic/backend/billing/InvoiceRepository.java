@@ -77,4 +77,17 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     /** Encaissements d'une période (somme des paiements). */
     @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.paidAt >= :from AND p.paidAt < :to")
     BigDecimal collectedBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    /**
+     * Unpaid (EN_ATTENTE / PARTIEL) invoices created on or before a cutoff — the overdue set
+     * for the dunning job. Patient fetched for the SMS template (OSIV off).
+     */
+    @Query("""
+        SELECT inv FROM Invoice inv
+        LEFT JOIN FETCH inv.patient
+        WHERE inv.status IN ('EN_ATTENTE', 'PARTIEL')
+          AND inv.createdAt <= :cutoff
+        ORDER BY inv.createdAt ASC
+        """)
+    List<Invoice> findOverdueUnpaid(@Param("cutoff") LocalDateTime cutoff);
 }

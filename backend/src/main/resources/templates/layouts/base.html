@@ -27,6 +27,11 @@
             <a th:href="@{/appointments}" class="nav-item" th:classappend="${#strings.startsWith(currentUri,'/appointments')} ? 'active'">
                 <span>📅</span> Rendez-vous
             </a>
+            <a th:href="@{/notifications}" class="nav-item" th:classappend="${#strings.startsWith(currentUri,'/notifications')} ? 'active'">
+                <span>🔔</span> Notifications
+                <span th:if="${unreadNotifications > 0}" class="badge badge-red"
+                      style="margin-left:auto; font-size:.7rem; padding:.1rem .4rem;" th:text="${unreadNotifications}">0</span>
+            </a>
             <div class="nav-section">SOINS</div>
             <a th:href="@{/consultations}" class="nav-item">
                 <span>🩺</span> Consultations

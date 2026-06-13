@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Notifications', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
+
+<div class="panel">
+    <div class="panel-header">
+        <span>Boîte de réception</span>
+        <form th:if="${!notifications.isEmpty()}" method="post" th:action="@{/notifications/read-all}"
+              style="margin:0;">
+            <button type="submit" class="btn btn-ghost btn-sm">Tout marquer comme lu</button>
+        </form>
+    </div>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr>
+                <th></th>
+                <th>Type</th>
+                <th>Message</th>
+                <th>Patient</th>
+                <th>Reçue le</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${notifications.isEmpty()}">
+                <td colspan="6" class="empty-state">Aucune notification.</td>
+            </tr>
+            <tr th:each="n : ${notifications}"
+                th:style="${n.read} ? '' : 'font-weight:600; background:#f8fafc;'">
+                <td style="text-align:center;">
+                    <span th:if="${!n.read}" title="Non lue"
+                          style="display:inline-block; width:.55rem; height:.55rem; border-radius:50%; background:#2563eb;"></span>
+                </td>
+                <td><span class="badge badge-blue" th:text="${n.type}">TYPE</span></td>
+                <td>
+                    <div th:if="${n.subject}" th:text="${n.subject}">Sujet</div>
+                    <small style="white-space:pre-line;" th:text="${n.body}">Corps du message</small>
+                </td>
+                <td th:text="${n.patientName} ?: '—'">—</td>
+                <td th:text="${n.createdAt != null} ? ${#temporals.format(n.createdAt,'dd/MM/yyyy HH:mm')} : '—'">—</td>
+                <td style="white-space:nowrap;">
+                    <form th:if="${!n.read}" method="post" th:action="@{/notifications/{id}/read(id=${n.id})}"
+                          style="margin:0;">
+                        <button type="submit" class="btn btn-ghost btn-sm">Marquer lu</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</th:block></body>
+</html>

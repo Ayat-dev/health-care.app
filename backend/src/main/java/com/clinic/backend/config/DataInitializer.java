@@ -37,6 +37,8 @@ import com.clinic.backend.pharmacy.Drug;
 import com.clinic.backend.pharmacy.DrugRepository;
 import com.clinic.backend.pharmacy.StockItem;
 import com.clinic.backend.pharmacy.StockItemRepository;
+import com.clinic.backend.notification.Notification;
+import com.clinic.backend.notification.NotificationRepository;
 import com.clinic.backend.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -65,6 +67,7 @@ public class DataInitializer {
                                HospitalizationRepository hospitalizationRepository,
                                MaternityRecordRepository maternityRecordRepository,
                                InvoiceRepository invoiceRepository,
+                               NotificationRepository notificationRepository,
                                PasswordEncoder passwordEncoder) {
         return args -> {
             if (userRepository.count() > 0) return;
@@ -326,7 +329,45 @@ public class DataInitializer {
             inv2.setPaidAmount(new java.math.BigDecimal("5000.00"));
             inv2.setStatus("PAYE");
             invoiceRepository.save(inv2);
+
+            // ── Notifications ───────────────────────────────────────────────────
+            // Quelques entrées in-app pour le médecin (badge "non lues" sur la nav) + un SMS
+            // déjà envoyé et un en attente, pour illustrer la file et les trois canaux.
+            notificationRepository.save(seedNotification("RESULTAT_LABO", "IN_APP", doctor, p1,
+                    doctor.getUsername(), "Résultats de laboratoire",
+                    "Résultats validés pour Aminata Diallo — demande LAB-" + today.getYear() + "-00001.",
+                    "ENVOYE", null, today.minusDays(6).atTime(9, 35)));
+            notificationRepository.save(seedNotification("STOCK_ALERTE", "IN_APP", doctor, null,
+                    doctor.getUsername(), "Alerte stock pharmacie",
+                    "Contrôle stock du jour : 1 lot en stock faible, 1 lot périmant prochainement.",
+                    "ENVOYE", today.minusDays(1).atTime(8, 0), null));
+            notificationRepository.save(seedNotification("RAPPEL_RDV", "SMS", null, p2,
+                    p2.getPhone(), "Rendez-vous confirmé",
+                    "[ClinicApp] RDV enregistré avec Dr. Martin. Info: +221 33 800 00 00.",
+                    "ENVOYE", today.minusDays(3).atTime(14, 2), null));
+            notificationRepository.save(seedNotification("FACTURE_IMPAYEE", "SMS", null, p1,
+                    p1.getPhone(), "Facture en attente",
+                    "[ClinicApp] Facture FAC-" + today.getYear() + "-00001 en attente de règlement (12000 XOF).",
+                    "EN_ATTENTE", null, null));
         };
+    }
+
+    /** Build a pre-stamped notification for seeding (status/sent_at/read_at set directly). */
+    private Notification seedNotification(String type, String channel, User user, Patient patient,
+                                          String recipient, String subject, String body,
+                                          String status, LocalDateTime readAt, LocalDateTime sentAt) {
+        Notification n = new Notification();
+        n.setType(type);
+        n.setChannel(channel);
+        n.setUser(user);
+        n.setPatient(patient);
+        n.setRecipient(recipient);
+        n.setSubject(subject);
+        n.setBody(body);
+        n.setStatus(status);
+        n.setReadAt(readAt);
+        n.setSentAt(sentAt);
+        return n;
     }
 
     private InvoiceItem seedInvoiceItem(String description, int qty, String unitPrice) {
