@@ -97,7 +97,9 @@
         </nav>
         <div class="sidebar-footer">
             <span sec:authentication="name">Utilisateur</span>
-            <a th:href="@{/logout}" class="btn btn-ghost btn-sm">Déconnexion</a>
+            <form th:action="@{/logout}" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-ghost btn-sm">Déconnexion</button>
+            </form>
         </div>
     </aside>
 

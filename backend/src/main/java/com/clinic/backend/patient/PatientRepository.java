@@ -10,8 +10,9 @@ import java.util.Optional;
 
 public interface PatientRepository extends JpaRepository<Patient, Long> {
 
-    @Query("""
+    @Query(value = """
         SELECT p FROM Patient p
+        LEFT JOIN FETCH p.assignedDoctor
         WHERE p.deletedAt IS NULL
         AND (:q IS NULL OR :q = '' OR
              LOWER(p.firstName) LIKE LOWER(CONCAT('%',:q,'%')) OR
@@ -20,6 +21,16 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
              p.phone LIKE CONCAT('%',:q,'%') OR
              p.nationalId LIKE CONCAT('%',:q,'%'))
         ORDER BY p.lastName, p.firstName
+        """,
+        countQuery = """
+        SELECT COUNT(p) FROM Patient p
+        WHERE p.deletedAt IS NULL
+        AND (:q IS NULL OR :q = '' OR
+             LOWER(p.firstName) LIKE LOWER(CONCAT('%',:q,'%')) OR
+             LOWER(p.lastName)  LIKE LOWER(CONCAT('%',:q,'%')) OR
+             LOWER(p.recordNumber) LIKE LOWER(CONCAT('%',:q,'%')) OR
+             p.phone LIKE CONCAT('%',:q,'%') OR
+             p.nationalId LIKE CONCAT('%',:q,'%'))
         """)
     Page<Patient> search(@Param("q") String q, Pageable pageable);
 

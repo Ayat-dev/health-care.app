@@ -4,19 +4,19 @@
 <div class="stats-grid">
     <div class="stat-card">
         <div class="stat-card-label">Patients</div>
-        <div class="stat-card-value">—</div>
+        <div class="stat-card-value" th:text="${patientsCount}">—</div>
     </div>
     <div class="stat-card">
         <div class="stat-card-label">Rendez-vous aujourd'hui</div>
-        <div class="stat-card-value">—</div>
+        <div class="stat-card-value" th:text="${appointmentsToday}">—</div>
     </div>
     <div class="stat-card">
-        <div class="stat-card-label">Consultations</div>
-        <div class="stat-card-value">—</div>
+        <div class="stat-card-label">Consultations aujourd'hui</div>
+        <div class="stat-card-value" th:text="${consultationsToday}">—</div>
     </div>
     <div class="stat-card">
         <div class="stat-card-label">Factures en attente</div>
-        <div class="stat-card-value">—</div>
+        <div class="stat-card-value" th:text="${pendingInvoices}">—</div>
     </div>
 </div>
 
