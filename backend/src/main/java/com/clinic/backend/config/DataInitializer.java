@@ -23,6 +23,9 @@ import com.clinic.backend.hospitalization.Hospitalization;
 import com.clinic.backend.hospitalization.HospitalizationRepository;
 import com.clinic.backend.hospitalization.Room;
 import com.clinic.backend.hospitalization.RoomRepository;
+import com.clinic.backend.maternity.MaternityRecord;
+import com.clinic.backend.maternity.MaternityRecordRepository;
+import com.clinic.backend.maternity.PrenatalVisit;
 import com.clinic.backend.model.User;
 import com.clinic.backend.patient.Patient;
 import com.clinic.backend.patient.PatientRepository;
@@ -56,6 +59,7 @@ public class DataInitializer {
                                RadiologyRequestRepository radiologyRequestRepository,
                                RoomRepository roomRepository,
                                HospitalizationRepository hospitalizationRepository,
+                               MaternityRecordRepository maternityRecordRepository,
                                PasswordEncoder passwordEncoder) {
         return args -> {
             if (userRepository.count() > 0) return;
@@ -263,7 +267,50 @@ public class DataInitializer {
                 h1.setStatus("ADMIS");
                 hospitalizationRepository.save(h1);
             }
+
+            // ── Maternité ───────────────────────────────────────────────────────
+            // Dossier de grossesse en cours pour p1 (~28 SA) avec 2 CPN. La CPN2 présente
+            // une tension élevée + protéinurie → déclenche les alertes "grossesse à risque".
+            MaternityRecord mat = new MaternityRecord();
+            mat.setPatient(p1);
+            mat.setDoctor(doctor);
+            mat.setGravidity(2);
+            mat.setParity(1);
+            LocalDate lmp = today.minusWeeks(28);
+            mat.setLastPeriodDate(lmp);
+            mat.setExpectedDueDate(lmp.plusDays(280));
+            mat.setStatus("EN_COURS");
+            mat.setNotes("Antécédent de césarienne en 2022.");
+            mat.addVisit(seedVisit(doctor, lmp.plusWeeks(12), 1, 12,
+                    new java.math.BigDecimal("64.0"), 110, 70, 152,
+                    new java.math.BigDecimal("13.0"), false, false, lmp.plusWeeks(20)));
+            mat.addVisit(seedVisit(doctor, lmp.plusWeeks(24), 2, 24,
+                    new java.math.BigDecimal("69.5"), 150, 95, 144,
+                    new java.math.BigDecimal("24.0"), false, true, lmp.plusWeeks(30)));
+            maternityRecordRepository.save(mat);
         };
+    }
+
+    private PrenatalVisit seedVisit(User doctor, LocalDate date, int number, int gestWeeks,
+                                    java.math.BigDecimal weight, int bpSys, int bpDia, int fhr,
+                                    java.math.BigDecimal uterineHeight, boolean edema,
+                                    boolean proteinuria, LocalDate nextVisit) {
+        PrenatalVisit v = new PrenatalVisit();
+        v.setDoctor(doctor);
+        v.setVisitDate(date);
+        v.setVisitNumber(number);
+        v.setGestationalAgeWeeks(gestWeeks);
+        v.setWeightKg(weight);
+        v.setBpSystolic(bpSys);
+        v.setBpDiastolic(bpDia);
+        v.setFetalHeartRate(fhr);
+        v.setUterineHeightCm(uterineHeight);
+        v.setEdema(edema);
+        v.setProteinuria(proteinuria);
+        v.setIronSupplemented(true);
+        v.setTtvVaccine(number == 1);
+        v.setNextVisitDate(nextVisit);
+        return v;
     }
 
     private RadiologyRequestItem seedRadioItem(RadiologyExamCatalog exam) {

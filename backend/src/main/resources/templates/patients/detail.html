@@ -47,6 +47,7 @@
     <button class="tab" onclick="showTab('lab')">Laboratoire</button>
     <button class="tab" onclick="showTab('imaging')">Imagerie</button>
     <button class="tab" onclick="showTab('stays')">Séjours</button>
+    <button th:if="${patient.gender == 'F'}" class="tab" onclick="showTab('maternity')">Maternité</button>
     <button class="tab" onclick="showTab('billing')">Facturation</button>
 </div>
 
@@ -208,6 +209,34 @@
             </tr>
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- Onglet Maternité (patientes uniquement) -->
+<div th:if="${patient.gender == 'F'}" id="tab-maternity" class="tab-content panel" style="display:none">
+    <div class="panel-header" style="padding:0 0 12px;">
+        <span>Suivi de grossesse</span>
+        <a th:if="${maternityRecord == null}" th:href="@{/maternity/new(patientId=${patient.id})}"
+           class="btn btn-primary btn-sm">+ Ouvrir un dossier maternité</a>
+        <a th:if="${maternityRecord != null}" th:href="@{/maternity/{id}(id=${maternityRecord.id})}"
+           class="btn btn-ghost btn-sm">Ouvrir le dossier</a>
+    </div>
+    <div th:if="${maternityRecord == null}" class="empty-state">
+        Aucun dossier maternité pour cette patiente.
+    </div>
+    <div th:if="${maternityRecord != null}" class="form-grid-2">
+        <div><span class="detail-label">Statut</span>
+             <span class="badge" th:classappend="'badge-' + ${maternityRecord.status}"
+                   th:text="${maternityRecord.status}">EN_COURS</span></div>
+        <div><span class="detail-label">DPA</span>
+             <span th:text="${maternityRecord.expectedDueDate != null ? #temporals.format(maternityRecord.expectedDueDate,'dd/MM/yyyy') : '—'}">—</span></div>
+        <div><span class="detail-label">Âge gestationnel</span>
+             <span th:text="${maternityRecord.currentGestationalAgeWeeks != null ? maternityRecord.currentGestationalAgeWeeks + ' SA' : '—'}">—</span></div>
+        <div><span class="detail-label">CPN réalisées</span>
+             <span th:text="${maternityRecord.completedVisits}">0</span></div>
+        <div th:if="${!maternityRecord.alerts.isEmpty()}" style="grid-column:1 / -1;">
+            <span class="badge badge-red" th:text="${maternityRecord.alerts.size()} + ' alerte(s) grossesse à risque'">alertes</span>
+        </div>
     </div>
 </div>
 

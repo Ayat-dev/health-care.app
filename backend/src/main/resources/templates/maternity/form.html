@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(${record.id == null ? 'Ouvrir un dossier maternité' : 'Modifier le dossier'}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<form method="post"
+      th:action="${record.id == null} ? @{/maternity/new} : @{/maternity/{id}/edit(id=${record.id})}"
+      th:object="${record}">
+    <div class="form-card">
+        <div class="panel-header"><span>Dossier de grossesse</span></div>
+
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label class="form-label">Patiente *</label>
+                <select th:if="${record.id == null}" th:field="*{patientId}" class="form-control" required>
+                    <option value="">— Choisir une patiente —</option>
+                    <option th:each="p : ${patients}" th:value="${p.id}"
+                            th:text="${p.fullName} + ' (' + ${p.recordNumber} + ')'">Patiente</option>
+                </select>
+                <!-- patiente non modifiable en édition -->
+                <div th:if="${record.id != null}">
+                    <input type="text" class="form-control" th:value="${record.patientName}" disabled/>
+                    <input type="hidden" th:field="*{patientId}"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Médecin / sage-femme</label>
+                <select th:field="*{doctorId}" class="form-control">
+                    <option value="">— Aucun —</option>
+                    <option th:each="d : ${doctors}" th:value="${d.id}" th:text="${d.fullName}">Dr.</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Gravidité (nb grossesses)</label>
+                <input type="number" min="0" th:field="*{gravidity}" class="form-control" placeholder="ex: 2"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Parité (nb accouchements)</label>
+                <input type="number" min="0" th:field="*{parity}" class="form-control" placeholder="ex: 1"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Date des dernières règles (DDR)</label>
+                <input type="date" th:field="*{lastPeriodDate}" class="form-control"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Date probable d'accouchement (DPA)</label>
+                <input type="date" th:field="*{expectedDueDate}" class="form-control"/>
+                <small style="color:#94a3b8;">Calculée à DDR + 280 jours si laissée vide.</small>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Notes</label>
+            <textarea th:field="*{notes}" class="form-control" rows="2"
+                      placeholder="Antécédents obstétricaux, facteurs de risque…"></textarea>
+        </div>
+
+        <div style="display:flex; gap:.5rem; margin-top:12px;">
+            <button type="submit" class="btn btn-primary"
+                    th:text="${record.id == null ? 'Ouvrir le dossier' : 'Enregistrer'}">Ouvrir le dossier</button>
+            <a th:href="${record.id == null} ? @{/maternity} : @{/maternity/{id}(id=${record.id})}"
+               class="btn btn-ghost">Annuler</a>
+        </div>
+    </div>
+</form>
+
+</th:block></body>
+</html>

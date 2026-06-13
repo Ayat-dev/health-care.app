@@ -501,6 +501,10 @@ a:hover { text-decoration: underline; }
 .badge-LIVRE      { background: #f1f5f9;            color: var(--text-500); }
 .badge-SAISI      { background: var(--blue-mid);    color: #1d4ed8; }
 
+/* Statuts maternité */
+.badge-ACCOUCHEE { background: #dcfce7;            color: #166534; }
+.badge-CLOTURE   { background: #f1f5f9;            color: var(--text-500); }
+
 /* Ligne de résultat anormal (table laboratoire) */
 .row-abnormal td  { background: #fef2f2; }
 

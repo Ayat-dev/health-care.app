@@ -80,7 +80,7 @@ ClinicApp est un système de gestion de clinique **complet, modulaire et adaptab
 | 03 | Rendez-vous & Agenda | `modules/03-APPOINTMENTS.md` | ✅ Terminé |
 | 04 | Consultations & Ordonnances | `modules/04-CONSULTATIONS.md` | ✅ Terminé — `consultations` + `prescriptions` + `prescription_items` (V6), constantes/diagnostic/CIM-10, ordonnances ORD-YYYY-NNNNN, clôture diagnostic-obligatoire, impression HTML (PDF binaire différé), onglet dossier patient câblé |
 | 05 | Pharmacie & Stock | `modules/05-PHARMACY.md` | ✅ Terminé — `drugs` + `stock_items` + `dispensations` + `dispensation_items` (V7), catalogue + réception de lots, alertes stock faible/péremption, dispensation FIFO (lot périmant en premier, périmés exclus) sur ordonnance ou vente libre, ordonnance dispensée une seule fois, tableau de bord (compteurs + top dispensés + valeur stock), job quotidien `StockAlertService` |
-| 06 | Maternité & Obstétrique | `modules/06-MATERNITY.md` | ⚪ Planifié |
+| 06 | Maternité & Obstétrique | `modules/06-MATERNITY.md` | ✅ Terminé — `maternity_records` (1 dossier/patiente, UNIQUE) + `prenatal_visits` (V11), carnet de grossesse (gravidité/parité, DDR/DPA auto = DDR+280j), consultations prénatales CPN (poids, tension, RCF, hauteur utérine, présentation, œdème/protéinurie/fer/VAT, âge gestationnel auto depuis DDR), accouchement (type/issue + nouveau-né Apgar/sexe/poids), cycle EN_COURS→ACCOUCHEE→CLOTURE, alertes grossesse à risque automatiques (TA>140 / protéinurie → rouge ; prise de poids rapide / <4 CPN à 36 SA → orange), onglet Maternité dans le dossier patiente (femmes uniquement) |
 | 07 | Facturation & Paiements | `modules/07-BILLING.md` | ⚪ Planifié |
 | 08 | Hospitalisation & Lits | `modules/08-HOSPITALIZATION.md` | ✅ Terminé — `rooms` (8 chambres seedées) + `hospitalizations` (V10), plan des lits temps réel groupé par service (occupation dérivée, pas stockée), admission/transfert/sortie (ADMIS→TRANSFERE/SORTI/DECEDE), garde « chambre complète » + « patient déjà hospitalisé », référentiel chambres (type/capacité/tarif), facturation prévisionnelle (nuits × tarif, facture finale différée au module Billing), onglet Séjours + historique par patient, raccourci admission depuis la consultation |
 | 09 | Laboratoire | `modules/09-LAB.md` | ✅ Terminé — `lab_requests` + `lab_request_items` + `lab_results` (V8), demande d'analyses depuis une consultation (catalogue `lab_test_catalog` V4), travail du jour laborantin (urgent en premier), saisie des résultats avec détection automatique des valeurs anormales (intervalles numériques + qualitatif « Négatif »), validation médecin/biologiste (EN_ATTENTE→EN_COURS→VALIDE→LIVRE), bulletin de résultats imprimable, historique par patient |
@@ -130,7 +130,7 @@ ClinicApp est un système de gestion de clinique **complet, modulaire et adaptab
 - [ ] Notifications SMS (Twilio / Africa's Talking)
 
 ### Phase 3 — Spécialités (Mois 3–4)
-- [ ] Module Maternité (suivi grossesse, CPN, accouchements)
+- [x] Module Maternité (suivi grossesse, CPN, accouchements)
 - [x] Module Laboratoire (demandes d'analyses, saisie résultats, validation, bulletin)
 - [x] Module Imagerie médicale (demandes d'imagerie, compte-rendu, images, validation, bulletin)
 - [ ] Module Dentisterie (schéma dentaire, devis, actes)
