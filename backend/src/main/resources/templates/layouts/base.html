@@ -48,7 +48,8 @@
                 <span>🤰</span> Maternité
             </a>
             <div class="nav-section">GESTION</div>
-            <a th:href="@{/billing}" class="nav-item">
+            <a th:href="@{/billing}" class="nav-item"
+               th:classappend="${#strings.startsWith(currentUri,'/billing')} ? 'active'">
                 <span>💳</span> Facturation
             </a>
             <a th:href="@{/hospitalization}" class="nav-item"

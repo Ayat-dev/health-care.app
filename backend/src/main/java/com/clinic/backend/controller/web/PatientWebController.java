@@ -24,6 +24,7 @@ public class PatientWebController {
     private final com.clinic.backend.radiology.RadiologyService radiologyService;
     private final com.clinic.backend.hospitalization.HospitalizationService hospitalizationService;
     private final com.clinic.backend.maternity.MaternityService maternityService;
+    private final com.clinic.backend.billing.BillingService billingService;
 
     @GetMapping
     public String list(@RequestParam(defaultValue = "") String q,
@@ -44,6 +45,7 @@ public class PatientWebController {
         model.addAttribute("labRequests", labService.findForPatient(id));
         model.addAttribute("radiologyRequests", radiologyService.findForPatient(id));
         model.addAttribute("hospitalizations", hospitalizationService.findForPatient(id));
+        model.addAttribute("invoices", billingService.findForPatient(id));
         // Dossier maternité — pertinent uniquement pour les patientes.
         if ("F".equalsIgnoreCase(patient.getGender())) {
             model.addAttribute("maternityRecord", maternityService.findForPatient(id));

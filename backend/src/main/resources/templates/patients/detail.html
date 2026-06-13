@@ -240,9 +240,32 @@
     </div>
 </div>
 
-<!-- Onglet Facturation (placeholder) -->
+<!-- Onglet Facturation -->
 <div id="tab-billing" class="tab-content panel" style="display:none">
-    <div class="empty-state">La facturation sera disponible dans le module Billing.</div>
+    <div class="panel-header" style="padding:0 0 12px;">
+        <span>Factures</span>
+        <a th:href="@{/billing/invoices/new(patientId=${patient.id})}" class="btn btn-primary btn-sm">+ Nouvelle facture</a>
+    </div>
+    <div th:if="${invoices == null or invoices.isEmpty()}" class="empty-state">
+        Aucune facture pour ce patient.
+    </div>
+    <div th:unless="${invoices == null or invoices.isEmpty()}" class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr><th>N°</th><th>Date</th><th style="text-align:right;">Part patient</th><th style="text-align:right;">Reste</th><th>Statut</th><th></th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="inv : ${invoices}">
+                <td><strong th:text="${inv.invoiceNumber}">FAC-…</strong></td>
+                <td th:text="${#temporals.format(inv.createdAt,'dd/MM/yyyy')}">01/01</td>
+                <td style="text-align:right;" th:text="${#numbers.formatDecimal(inv.patientAmount,1,'WHITESPACE',0,'POINT')}">0</td>
+                <td style="text-align:right;" th:text="${#numbers.formatDecimal(inv.balanceDue,1,'WHITESPACE',0,'POINT')}">0</td>
+                <td><span class="badge" th:classappend="'badge-' + ${inv.status}" th:text="${inv.status}">EN_ATTENTE</span></td>
+                <td><a th:href="@{/billing/invoices/{id}(id=${inv.id})}" class="btn btn-ghost btn-sm">Voir</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>

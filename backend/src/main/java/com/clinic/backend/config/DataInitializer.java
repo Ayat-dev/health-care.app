@@ -7,6 +7,10 @@ import com.clinic.backend.consultation.ConsultationRepository;
 import com.clinic.backend.consultation.Prescription;
 import com.clinic.backend.consultation.PrescriptionItem;
 import com.clinic.backend.consultation.PrescriptionRepository;
+import com.clinic.backend.billing.Invoice;
+import com.clinic.backend.billing.InvoiceItem;
+import com.clinic.backend.billing.InvoiceRepository;
+import com.clinic.backend.billing.Payment;
 import com.clinic.backend.catalog.LabTestCatalog;
 import com.clinic.backend.catalog.LabTestCatalogRepository;
 import com.clinic.backend.lab.LabRequest;
@@ -60,6 +64,7 @@ public class DataInitializer {
                                RoomRepository roomRepository,
                                HospitalizationRepository hospitalizationRepository,
                                MaternityRecordRepository maternityRecordRepository,
+                               InvoiceRepository invoiceRepository,
                                PasswordEncoder passwordEncoder) {
         return args -> {
             if (userRepository.count() > 0) return;
@@ -77,6 +82,8 @@ public class DataInitializer {
                     passwordEncoder.encode("laborantin123"), "Laborantin", "LABORANTIN"));
             User radiologue = userRepository.save(new User("radiologue",
                     passwordEncoder.encode("radiologue123"), "Dr. Sow (Radiologie)", "MEDECIN"));
+            User caissier = userRepository.save(new User("caissier",
+                    passwordEncoder.encode("caissier123"), "Caissier", "CAISSIER"));
 
             // Patients de test
             Patient p1 = new Patient();
@@ -288,7 +295,73 @@ public class DataInitializer {
                     new java.math.BigDecimal("69.5"), 150, 95, 144,
                     new java.math.BigDecimal("24.0"), false, true, lmp.plusWeeks(30)));
             maternityRecordRepository.save(mat);
+
+            // ── Facturation ───────────────────────────────────────────────────
+            // Facture partielle pour p1 (issue de c1) : consultation + analyses, 5 000 encaissés.
+            Invoice inv1 = new Invoice();
+            inv1.setInvoiceNumber("FAC-" + today.getYear() + "-00001");
+            inv1.setPatient(p1);
+            inv1.setConsultation(c1);
+            inv1.setCreatedBy(caissier);
+            inv1.setCreatedAt(today.minusDays(7).atTime(10, 30));
+            inv1.addItem(seedInvoiceItem("Consultation médecine générale", 1, "5000.00"));
+            inv1.addItem(seedInvoiceItem("Numération Formule Sanguine", 1, "4000.00"));
+            inv1.addItem(seedInvoiceItem("Glycémie à jeun", 1, "2000.00"));
+            finalizeInvoice(inv1, "0");
+            inv1.addPayment(seedPayment("5000.00", "ESPECES", null, caissier,
+                    today.minusDays(7).atTime(10, 45)));
+            inv1.setPaidAmount(new java.math.BigDecimal("5000.00"));
+            inv1.setStatus("PARTIEL");
+            invoiceRepository.save(inv1);
+
+            // Facture soldée pour p2 : consultation réglée en Orange Money.
+            Invoice inv2 = new Invoice();
+            inv2.setInvoiceNumber("FAC-" + today.getYear() + "-00002");
+            inv2.setPatient(p2);
+            inv2.setCreatedBy(caissier);
+            inv2.addItem(seedInvoiceItem("Consultation médecine générale", 1, "5000.00"));
+            finalizeInvoice(inv2, "0");
+            inv2.addPayment(seedPayment("5000.00", "ORANGE_MONEY", "OM-26-558712", caissier,
+                    today.atTime(11, 15)));
+            inv2.setPaidAmount(new java.math.BigDecimal("5000.00"));
+            inv2.setStatus("PAYE");
+            invoiceRepository.save(inv2);
         };
+    }
+
+    private InvoiceItem seedInvoiceItem(String description, int qty, String unitPrice) {
+        InvoiceItem it = new InvoiceItem();
+        it.setDescription(description);
+        it.setQuantity(qty);
+        java.math.BigDecimal unit = new java.math.BigDecimal(unitPrice);
+        it.setUnitPrice(unit);
+        it.setTotalPrice(unit.multiply(java.math.BigDecimal.valueOf(qty)));
+        return it;
+    }
+
+    /** Compute subtotal/insurance/patient amounts from the seeded lines + coverage %. */
+    private void finalizeInvoice(Invoice inv, String coveragePercent) {
+        java.math.BigDecimal subtotal = inv.getItems().stream()
+                .map(InvoiceItem::getTotalPrice)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+        java.math.BigDecimal coverage = new java.math.BigDecimal(coveragePercent);
+        java.math.BigDecimal insuranceAmount = subtotal.multiply(coverage)
+                .divide(java.math.BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
+        inv.setInsuranceCoveragePercent(coverage);
+        inv.setSubtotal(subtotal);
+        inv.setInsuranceAmount(insuranceAmount);
+        inv.setPatientAmount(subtotal.subtract(insuranceAmount));
+    }
+
+    private Payment seedPayment(String amount, String method, String reference,
+                                User cashier, LocalDateTime paidAt) {
+        Payment p = new Payment();
+        p.setAmount(new java.math.BigDecimal(amount));
+        p.setMethod(method);
+        p.setReference(reference);
+        p.setCashier(cashier);
+        p.setPaidAt(paidAt);
+        return p;
     }
 
     private PrenatalVisit seedVisit(User doctor, LocalDate date, int number, int gestWeeks,

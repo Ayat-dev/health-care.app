@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Encaissement', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="form-card" style="max-width:560px;">
+    <div class="panel-header" style="padding:0 0 12px;">
+        <span>
+            Encaisser — <strong th:text="${invoice.invoiceNumber}">FAC-…</strong>
+            <span class="badge" th:classappend="'badge-' + ${invoice.status}" th:text="${invoice.status}">EN_ATTENTE</span>
+        </span>
+    </div>
+
+    <div class="form-grid-2" style="margin-bottom:12px;">
+        <div><span class="detail-label">Patient</span> <span th:text="${invoice.patientName}">—</span></div>
+        <div><span class="detail-label">Part patient</span>
+             <span th:text="${#numbers.formatDecimal(invoice.patientAmount,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</span></div>
+        <div><span class="detail-label">Déjà encaissé</span>
+             <span th:text="${#numbers.formatDecimal(invoice.paidAmount,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</span></div>
+        <div><span class="detail-label">Reste à payer</span>
+             <strong style="color:#b91c1c;"
+                     th:text="${#numbers.formatDecimal(invoice.balanceDue,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</strong></div>
+    </div>
+
+    <form th:action="@{/billing/invoices/{id}/pay(id=${invoice.id})}" method="post">
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label class="form-label">Montant *</label>
+                <input type="number" step="0.01" min="0" name="amount" class="form-control" required
+                       th:value="${invoice.balanceDue}"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Mode de paiement *</label>
+                <select name="method" class="form-control" required>
+                    <option value="ESPECES">Espèces</option>
+                    <option value="ORANGE_MONEY">Orange Money</option>
+                    <option value="WAVE">Wave</option>
+                    <option value="MTN_MOMO">MTN MoMo</option>
+                    <option value="CARTE">Carte bancaire</option>
+                    <option value="VIREMENT">Virement</option>
+                    <option value="ASSURANCE">Assurance / Tiers payant</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Référence (transaction)</label>
+                <input type="text" name="reference" class="form-control" th:value="${payment.reference}"
+                       placeholder="N° de transaction Mobile Money…"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Notes</label>
+                <input type="text" name="notes" class="form-control" th:value="${payment.notes}"/>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a th:href="@{/billing/invoices/{id}(id=${invoice.id})}" class="btn btn-ghost">Annuler</a>
+            <button type="submit" class="btn btn-primary">Enregistrer le paiement</button>
+        </div>
+    </form>
+</div>
+
+</th:block></body>
+</html>

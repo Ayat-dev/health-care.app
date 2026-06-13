@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Facture', ~{::content})}"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body><th:block th:fragment="content">
+
+<div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<!-- En-tête -->
+<div class="panel">
+    <div class="panel-header">
+        <span>
+            <strong th:text="${invoice.invoiceNumber}">FAC-…</strong>
+            <span class="badge badge-blue" th:text="${invoice.patientRecordNumber}">PAT-…</span>
+            <span class="badge" th:classappend="'badge-' + ${invoice.status}" th:text="${invoice.status}">EN_ATTENTE</span>
+        </span>
+        <div style="display:flex; gap:.5rem;">
+            <a th:if="${invoice.status == 'EN_ATTENTE' or invoice.status == 'PARTIEL'}"
+               th:href="@{/billing/invoices/{id}/pay(id=${invoice.id})}" class="btn btn-primary btn-sm">Encaisser</a>
+            <a th:if="${invoice.status == 'EN_ATTENTE'}"
+               th:href="@{/billing/invoices/{id}/edit(id=${invoice.id})}" class="btn btn-ghost btn-sm">Modifier</a>
+            <a th:href="@{/billing/invoices/{id}/receipt(id=${invoice.id})}" target="_blank"
+               class="btn btn-ghost btn-sm">Imprimer le reçu</a>
+            <th:block sec:authorize="hasRole('ADMIN')">
+                <form th:if="${invoice.status != 'PAYE' and invoice.status != 'ANNULE'}" method="post"
+                      th:action="@{/billing/invoices/{id}/cancel(id=${invoice.id})}" style="display:inline;"
+                      onsubmit="this.reason.value = prompt('Motif d’annulation :','') || ''; return confirm('Annuler cette facture ?');">
+                    <input type="hidden" name="reason"/>
+                    <button class="btn btn-ghost btn-sm">Annuler</button>
+                </form>
+            </th:block>
+        </div>
+    </div>
+    <div class="form-grid-2" style="padding:12px 16px;">
+        <div><span class="detail-label">Patient</span> <span th:text="${invoice.patientName}">—</span></div>
+        <div><span class="detail-label">Émise le</span>
+             <span th:text="${#temporals.format(invoice.createdAt,'dd/MM/yyyy HH:mm')}">—</span></div>
+        <div><span class="detail-label">Assurance</span>
+             <span th:if="${invoice.insuranceName != null}"
+                   th:text="${invoice.insuranceName} + ' (' + ${#numbers.formatDecimal(invoice.insuranceCoveragePercent,1,0)} + '%)'">—</span>
+             <span th:unless="${invoice.insuranceName != null}">Aucune (payant comptant)</span></div>
+        <div><span class="detail-label">Échéance</span>
+             <span th:text="${invoice.dueDate != null ? #temporals.format(invoice.dueDate,'dd/MM/yyyy') : '—'}">—</span></div>
+        <div th:if="${invoice.createdByName != null}"><span class="detail-label">Créée par</span>
+             <span th:text="${invoice.createdByName}">—</span></div>
+        <div th:if="${invoice.notes != null and !invoice.notes.isBlank()}" style="grid-column:1 / -1;">
+             <span class="detail-label">Notes</span>
+             <span style="white-space:pre-line;" th:text="${invoice.notes}">—</span></div>
+    </div>
+</div>
+
+<!-- Lignes -->
+<div class="panel" style="margin-top:16px;">
+    <div class="panel-header"><span>Désignation</span></div>
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Désignation</th>
+                <th style="text-align:right; width:80px;">Qté</th>
+                <th style="text-align:right; width:140px;">P.U.</th>
+                <th style="text-align:right; width:160px;">Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="it : ${invoice.items}">
+                <td th:text="${it.description}">Consultation</td>
+                <td style="text-align:right;" th:text="${it.quantity}">1</td>
+                <td style="text-align:right;" th:text="${#numbers.formatDecimal(it.unitPrice,1,'WHITESPACE',0,'POINT')}">0</td>
+                <td style="text-align:right;" th:text="${#numbers.formatDecimal(it.totalPrice,1,'WHITESPACE',0,'POINT')}">0</td>
+            </tr>
+            </tbody>
+            <tfoot>
+            <tr>
+                <td colspan="3" style="text-align:right;"><strong>Total</strong></td>
+                <td style="text-align:right;"><strong th:text="${#numbers.formatDecimal(invoice.subtotal,1,'WHITESPACE',0,'POINT')}">0</strong></td>
+            </tr>
+            <tr th:if="${invoice.insuranceAmount.signum() > 0}">
+                <td colspan="3" style="text-align:right;">Part assurance</td>
+                <td style="text-align:right;" th:text="'− ' + ${#numbers.formatDecimal(invoice.insuranceAmount,1,'WHITESPACE',0,'POINT')}">0</td>
+            </tr>
+            <tr>
+                <td colspan="3" style="text-align:right;"><strong>Reste à charge patient</strong></td>
+                <td style="text-align:right;"><strong th:text="${#numbers.formatDecimal(invoice.patientAmount,1,'WHITESPACE',0,'POINT')}">0</strong></td>
+            </tr>
+            <tr>
+                <td colspan="3" style="text-align:right;">Encaissé</td>
+                <td style="text-align:right;" th:text="${#numbers.formatDecimal(invoice.paidAmount,1,'WHITESPACE',0,'POINT')}">0</td>
+            </tr>
+            <tr>
+                <td colspan="3" style="text-align:right;"><strong>Reste à payer</strong></td>
+                <td style="text-align:right;">
+                    <strong th:style="${invoice.balanceDue.signum() > 0} ? 'color:#b91c1c'"
+                            th:text="${#numbers.formatDecimal(invoice.balanceDue,1,'WHITESPACE',0,'POINT')}">0</strong>
+                </td>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<!-- Paiements -->
+<div class="panel" style="margin-top:16px;">
+    <div class="panel-header"><span>Encaissements</span></div>
+    <div th:if="${invoice.payments.isEmpty()}" class="empty-state">Aucun paiement enregistré.</div>
+    <div th:unless="${invoice.payments.isEmpty()}" class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr><th>Date</th><th>Mode</th><th>Référence</th><th>Caissier</th><th style="text-align:right;">Montant</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="p : ${invoice.payments}">
+                <td th:text="${#temporals.format(p.paidAt,'dd/MM/yyyy HH:mm')}">01/01 09:00</td>
+                <td><span class="badge" th:text="${p.method}">ESPECES</span></td>
+                <td th:text="${p.reference ?: '—'}">—</td>
+                <td th:text="${p.cashierName ?: '—'}">—</td>
+                <td style="text-align:right;" th:text="${#numbers.formatDecimal(p.amount,1,'WHITESPACE',0,'POINT')}">0</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div style="margin-top:16px;">
+    <a th:href="@{/billing/invoices}" class="btn btn-ghost">← Liste des factures</a>
+    <a th:if="${invoice.patientId != null}" th:href="@{/patients/{id}(id=${invoice.patientId})}"
+       class="btn btn-ghost">Dossier patient</a>
+</div>
+
+</th:block></body>
+</html>

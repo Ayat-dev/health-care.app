@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="'Facture ' + ${invoice.invoiceNumber}">Facture</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: "Segoe UI", Arial, sans-serif; color: #0f172a; margin: 0; padding: 24px; background: #f1f5f9; }
+        .sheet { max-width: 800px; margin: 0 auto; background: #fff; padding: 32px 40px; border: 1px solid #e2e8f0; }
+        .inv-header { display: flex; justify-content: space-between; align-items: flex-start;
+                      border-bottom: 2px solid #0f172a; padding-bottom: 12px; }
+        .clinic-name { font-size: 22px; font-weight: 700; }
+        .clinic-meta { font-size: 12px; color: #475569; line-height: 1.5; }
+        .logo { max-height: 64px; }
+        .inv-row { display: flex; justify-content: space-between; gap: 24px; margin-top: 16px; font-size: 14px; }
+        .inv-block { line-height: 1.6; }
+        .inv-label { color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+        .inv-title { font-size: 16px; font-weight: 700; margin: 24px 0 6px; color: #1e293b;
+                     border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { text-align: left; color: #64748b; font-size: 11px; text-transform: uppercase; padding: 6px 8px; }
+        td { padding: 6px 8px; border-top: 1px solid #f1f5f9; }
+        .num { text-align: right; }
+        .totals { margin-top: 8px; margin-left: auto; width: 320px; font-size: 14px; }
+        .totals td { border: none; padding: 4px 8px; }
+        .totals .grand { font-weight: 700; font-size: 16px; border-top: 2px solid #0f172a; }
+        .paid-stamp { margin-top: 16px; font-weight: 700; }
+        .paid-PAYE { color: #15803d; }
+        .paid-PARTIEL { color: #b45309; }
+        .paid-EN_ATTENTE { color: #b91c1c; }
+        .paid-ANNULE { color: #6b7280; }
+        .inv-footer { margin-top: 40px; font-size: 12px; color: #475569; }
+        .toolbar { max-width: 800px; margin: 0 auto 16px; text-align: right; }
+        .btn { display: inline-block; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer;
+               font-size: 13px; text-decoration: none; }
+        .btn-print { background: #2563eb; color: #fff; }
+        .btn-back { background: #e2e8f0; color: #0f172a; margin-right: 8px; }
+        @media print {
+            body { background: #fff; padding: 0; }
+            .sheet { border: none; max-width: none; }
+            .toolbar { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <a href="javascript:history.back()" class="btn btn-back">← Retour</a>
+    <button onclick="window.print()" class="btn btn-print">Imprimer</button>
+</div>
+
+<div class="sheet">
+    <div class="inv-header">
+        <div>
+            <div class="clinic-name" th:text="${config.name}">Clinique</div>
+            <div class="clinic-meta">
+                <div th:if="${config.slogan}" th:text="${config.slogan}">Slogan</div>
+                <div th:if="${config.address}" th:text="${config.address}">Adresse</div>
+                <div>
+                    <span th:if="${config.phone}" th:text="'Tél : ' + ${config.phone}">Tél</span>
+                    <span th:if="${config.email}" th:text="' · ' + ${config.email}">Email</span>
+                </div>
+            </div>
+        </div>
+        <img th:if="${config.logoUrl}" th:src="${config.logoUrl}" class="logo" alt="Logo"/>
+    </div>
+
+    <div class="inv-row">
+        <div class="inv-block">
+            <div class="inv-label">Facturé à</div>
+            <div th:text="${invoice.patientName}">NOM Prénom</div>
+            <div class="clinic-meta" th:text="'N° dossier : ' + ${invoice.patientRecordNumber}">N° dossier</div>
+            <div class="clinic-meta" th:text="${patientAge != null ? 'Âge : ' + patientAge + ' ans' : ''}"></div>
+            <div class="clinic-meta" th:if="${invoice.insuranceName != null}"
+                 th:text="'Assurance : ' + ${invoice.insuranceName} + ' (' + ${#numbers.formatDecimal(invoice.insuranceCoveragePercent,1,0)} + '%)'">Assurance</div>
+        </div>
+        <div class="inv-block" style="text-align:right;">
+            <div class="inv-label">Facture N°</div>
+            <div th:text="${invoice.invoiceNumber}">FAC-…</div>
+            <div class="clinic-meta" th:text="'Date : ' + ${#temporals.format(invoice.createdAt,'dd/MM/yyyy')}">Date</div>
+            <div class="clinic-meta" th:if="${invoice.dueDate != null}"
+                 th:text="'Échéance : ' + ${#temporals.format(invoice.dueDate,'dd/MM/yyyy')}">Échéance</div>
+        </div>
+    </div>
+
+    <div class="inv-title">Détail</div>
+    <table>
+        <thead>
+        <tr><th>Désignation</th><th class="num">Qté</th><th class="num">P.U.</th><th class="num">Total</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="it : ${invoice.items}">
+            <td th:text="${it.description}">Consultation</td>
+            <td class="num" th:text="${it.quantity}">1</td>
+            <td class="num" th:text="${#numbers.formatDecimal(it.unitPrice,1,'WHITESPACE',0,'POINT')}">0</td>
+            <td class="num" th:text="${#numbers.formatDecimal(it.totalPrice,1,'WHITESPACE',0,'POINT')}">0</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <table class="totals">
+        <tr>
+            <td>Total</td>
+            <td class="num" th:text="${#numbers.formatDecimal(invoice.subtotal,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</td>
+        </tr>
+        <tr th:if="${invoice.insuranceAmount.signum() > 0}">
+            <td th:text="'Part assurance (' + ${#numbers.formatDecimal(invoice.insuranceCoveragePercent,1,0)} + '%)'">Part assurance</td>
+            <td class="num" th:text="'− ' + ${#numbers.formatDecimal(invoice.insuranceAmount,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</td>
+        </tr>
+        <tr class="grand">
+            <td>Reste à payer (patient)</td>
+            <td class="num" th:text="${#numbers.formatDecimal(invoice.patientAmount,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</td>
+        </tr>
+        <tr>
+            <td>Encaissé</td>
+            <td class="num" th:text="${#numbers.formatDecimal(invoice.paidAmount,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</td>
+        </tr>
+        <tr>
+            <td>Solde</td>
+            <td class="num" th:text="${#numbers.formatDecimal(invoice.balanceDue,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</td>
+        </tr>
+    </table>
+
+    <div class="paid-stamp" th:classappend="'paid-' + ${invoice.status}">
+        <span th:if="${invoice.status == 'PAYE'}">✅ FACTURE SOLDÉE</span>
+        <span th:if="${invoice.status == 'PARTIEL'}">⏳ PAIEMENT PARTIEL</span>
+        <span th:if="${invoice.status == 'EN_ATTENTE'}">⚠ EN ATTENTE DE PAIEMENT</span>
+        <span th:if="${invoice.status == 'ANNULE'}">⛔ FACTURE ANNULÉE</span>
+    </div>
+
+    <div th:if="${!invoice.payments.isEmpty()}" class="inv-title">Encaissements</div>
+    <table th:if="${!invoice.payments.isEmpty()}">
+        <thead>
+        <tr><th>Date</th><th>Mode</th><th>Référence</th><th class="num">Montant</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="p : ${invoice.payments}">
+            <td th:text="${#temporals.format(p.paidAt,'dd/MM/yyyy HH:mm')}">01/01</td>
+            <td th:text="${p.method}">ESPECES</td>
+            <td th:text="${p.reference ?: '—'}">—</td>
+            <td class="num" th:text="${#numbers.formatDecimal(p.amount,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="inv-footer" th:text="'Facture ' + ${invoice.invoiceNumber} + ' — ' + ${config.name}">Facture</div>
+</div>
+
+</body>
+</html>

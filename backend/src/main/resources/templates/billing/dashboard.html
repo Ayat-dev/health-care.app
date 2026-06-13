@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Facturation — Tableau de bord', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
+
+<div class="panel-header" style="padding:0 0 12px;">
+    <span>Tableau de bord financier</span>
+    <a th:href="@{/billing/invoices}" class="btn btn-primary btn-sm">Toutes les factures</a>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-card-label">Encaissé aujourd'hui</div>
+        <div class="stat-card-value" th:text="${#numbers.formatDecimal(dashboard.todayCollected,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-label">Reste à recouvrer</div>
+        <div class="stat-card-value" th:text="${#numbers.formatDecimal(dashboard.totalOutstanding,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-label">Total facturé (part patient)</div>
+        <div class="stat-card-value" th:text="${#numbers.formatDecimal(dashboard.totalInvoiced,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-label">Total encaissé</div>
+        <div class="stat-card-value" th:text="${#numbers.formatDecimal(dashboard.totalCollected,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</div>
+    </div>
+</div>
+
+<div class="stats-grid" style="margin-top:12px;">
+    <div class="stat-card">
+        <div class="stat-card-label">Factures en attente</div>
+        <div class="stat-card-value" th:text="${dashboard.pendingCount}">0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-label">Paiements partiels</div>
+        <div class="stat-card-value" th:text="${dashboard.partialCount}">0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-label">Factures soldées</div>
+        <div class="stat-card-value" th:text="${dashboard.paidCount}">0</div>
+    </div>
+</div>
+
+<!-- Rapport de caisse du jour -->
+<div class="panel" style="margin-top:16px;">
+    <div class="panel-header">
+        <span th:text="'Caisse du ' + ${#temporals.format(report.day,'dd/MM/yyyy')}">Caisse du jour</span>
+        <strong th:text="${#numbers.formatDecimal(report.total,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</strong>
+    </div>
+
+    <div th:if="${!report.totalByMethod.isEmpty()}" style="padding:8px 16px; display:flex; gap:1.5rem; flex-wrap:wrap;">
+        <div th:each="m : ${report.totalByMethod}">
+            <span class="badge" th:text="${m.key}">ESPECES</span>
+            <strong th:text="${#numbers.formatDecimal(m.value,1,'WHITESPACE',0,'POINT')}">0</strong>
+        </div>
+    </div>
+
+    <div th:if="${report.payments.isEmpty()}" class="empty-state">Aucun encaissement aujourd'hui.</div>
+    <div th:unless="${report.payments.isEmpty()}" class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr><th>Heure</th><th>Facture</th><th>Patient</th><th>Mode</th><th>Caissier</th><th style="text-align:right;">Montant</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="p : ${report.payments}">
+                <td th:text="${#temporals.format(p.paidAt,'HH:mm')}">09:00</td>
+                <td><a th:href="@{/billing/invoices/{id}(id=${p.invoiceId})}" th:text="${p.invoiceNumber}">FAC-…</a></td>
+                <td th:text="${p.patientName ?: '—'}">Patient</td>
+                <td><span class="badge" th:text="${p.method}">ESPECES</span></td>
+                <td th:text="${p.cashierName ?: '—'}">—</td>
+                <td style="text-align:right;" th:text="${#numbers.formatDecimal(p.amount,1,'WHITESPACE',0,'POINT')}">0</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</th:block></body>
+</html>
