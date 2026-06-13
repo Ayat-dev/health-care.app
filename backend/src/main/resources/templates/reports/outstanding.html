@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Liste des impayés', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div class="panel-header" style="padding:0 0 12px;">
+    <span>Liste des impayés</span>
+    <button onclick="window.print()" class="btn btn-ghost btn-sm">🖨 Imprimer</button>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-card-label">Factures impayées</div>
+        <div class="stat-card-value" th:text="${report.invoiceCount}">0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-label">Total à recouvrer</div>
+        <div class="stat-card-value" th:text="${#numbers.formatDecimal(report.totalOutstanding,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</div>
+    </div>
+</div>
+
+<div class="panel" style="margin-top:16px;">
+    <div class="panel-header"><span>Détail</span></div>
+    <div th:if="${report.invoices.isEmpty()}" class="empty-state">Aucune facture impayée. 🎉</div>
+    <div th:unless="${report.invoices.isEmpty()}" class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr><th>Facture</th><th>Date</th><th>Patient</th><th>Statut</th>
+                <th style="text-align:right;">Part patient</th>
+                <th style="text-align:right;">Encaissé</th>
+                <th style="text-align:right;">Reste dû</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="inv : ${report.invoices}">
+                <td><a th:href="@{/billing/invoices/{id}(id=${inv.id})}" th:text="${inv.invoiceNumber}">FAC-…</a></td>
+                <td th:text="${inv.createdAt != null ? #temporals.format(inv.createdAt,'dd/MM/yyyy') : '—'}">—</td>
+                <td th:text="${inv.patientName ?: '—'}">Patient</td>
+                <td><span class="badge" th:classappend="'badge-' + ${inv.status}" th:text="${inv.status}">EN_ATTENTE</span></td>
+                <td style="text-align:right;" th:text="${#numbers.formatDecimal(inv.patientAmount,1,'WHITESPACE',0,'POINT')}">0</td>
+                <td style="text-align:right;" th:text="${#numbers.formatDecimal(inv.paidAmount,1,'WHITESPACE',0,'POINT')}">0</td>
+                <td style="text-align:right;"><strong th:text="${#numbers.formatDecimal(inv.balanceDue,1,'WHITESPACE',0,'POINT')}">0</strong></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</th:block></body>
+</html>

@@ -55,4 +55,14 @@ public interface HospitalizationRepository extends JpaRepository<Hospitalization
     long countByRoomIdAndStatus(Long roomId, String status);
 
     boolean existsByPatientIdAndStatus(Long patientId, String status);
+
+    // ── Agrégats reporting (module 14) ─────────────────────────────────────────
+
+    /** Lits occupés (séjours en cours) — sert au taux d'occupation global. */
+    long countByStatus(String status);
+
+    @Query("SELECT COUNT(h) FROM Hospitalization h " +
+           "WHERE h.admissionDate >= :from AND h.admissionDate < :to")
+    long countAdmissionsBetween(@Param("from") java.time.LocalDateTime from,
+                                @Param("to") java.time.LocalDateTime to);
 }

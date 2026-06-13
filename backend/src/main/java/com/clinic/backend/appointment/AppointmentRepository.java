@@ -93,4 +93,14 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
         """)
     List<Appointment> findPendingReminders(@Param("from") LocalDateTime from,
                                            @Param("to") LocalDateTime to);
+
+    // ── Agrégats reporting (module 14) ─────────────────────────────────────────
+
+    /** Rendez-vous actifs (hors annulés/absents) sur une période [from, to). */
+    @Query("""
+        SELECT COUNT(a) FROM Appointment a
+        WHERE a.startTime >= :from AND a.startTime < :to
+          AND a.status NOT IN ('ANNULE', 'ABSENT')
+        """)
+    long countBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 }

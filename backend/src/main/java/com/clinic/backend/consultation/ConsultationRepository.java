@@ -54,4 +54,66 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Long
     List<Consultation> findByPatient(@Param("patientId") Long patientId);
 
     boolean existsByAppointmentId(Long appointmentId);
+
+    // ── Agrégats reporting (module 14) ─────────────────────────────────────────
+
+    /** Nombre de consultations non annulées sur une période [from, to). */
+    @Query("SELECT COUNT(c) FROM Consultation c " +
+           "WHERE c.consultationDate >= :from AND c.consultationDate < :to AND c.status <> 'ANNULE'")
+    long countBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    /** Top diagnostics (pathologies) des consultations clôturées sur la période — [label, count]. */
+    @Query("""
+        SELECT c.diagnosis, COUNT(c) FROM Consultation c
+        WHERE c.status = 'TERMINE'
+          AND c.diagnosis IS NOT NULL AND c.diagnosis <> ''
+          AND c.consultationDate >= :from AND c.consultationDate < :to
+        GROUP BY c.diagnosis
+        ORDER BY COUNT(c) DESC
+        """)
+    List<Object[]> findTopDiagnoses(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    /** Consultations par département sur la période — [departmentName, count]. */
+    @Query("""
+        SELECT d.name, COUNT(c) FROM Consultation c
+        LEFT JOIN c.department d
+        WHERE c.consultationDate >= :from AND c.consultationDate < :to AND c.status <> 'ANNULE'
+        GROUP BY d.name
+        ORDER BY COUNT(c) DESC
+        """)
+    List<Object[]> countByDepartmentBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    /** Sexe des patients consultés sur la période — [gender, count]. */
+    @Query("""
+        SELECT p.gender, COUNT(c) FROM Consultation c
+        JOIN c.patient p
+        WHERE c.consultationDate >= :from AND c.consultationDate < :to AND c.status <> 'ANNULE'
+        GROUP BY p.gender
+        """)
+    List<Object[]> countBySexBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    /**
+     * Dates de naissance des patients consultés sur la période — le découpage en tranches
+     * d'âge est fait côté service (évite l'arithmétique de dates spécifique au SGBD H2/PostgreSQL).
+     */
+    @Query("""
+        SELECT p.birthDate FROM Consultation c
+        JOIN c.patient p
+        WHERE c.consultationDate >= :from AND c.consultationDate < :to AND c.status <> 'ANNULE'
+        """)
+    List<java.time.LocalDate> findConsultationPatientBirthDates(
+            @Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    /** Mes consultations du jour (patient chargé pour le DTO, OSIV off). */
+    @Query("""
+        SELECT c FROM Consultation c
+        LEFT JOIN FETCH c.patient
+        LEFT JOIN FETCH c.department
+        WHERE c.doctor.id = :doctorId
+          AND c.consultationDate >= :from AND c.consultationDate < :to
+        ORDER BY c.consultationDate
+        """)
+    List<Consultation> findForDoctorBetween(@Param("doctorId") Long doctorId,
+                                            @Param("from") LocalDateTime from,
+                                            @Param("to") LocalDateTime to);
 }

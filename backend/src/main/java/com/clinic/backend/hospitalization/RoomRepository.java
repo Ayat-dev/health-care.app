@@ -20,4 +20,8 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     boolean existsByRoomNumberIgnoreCase(String roomNumber);
 
     Optional<Room> findByRoomNumberIgnoreCase(String roomNumber);
+
+    /** Capacité totale en lits des chambres actives — dénominateur du taux d'occupation. */
+    @Query("SELECT COALESCE(SUM(r.capacity), 0) FROM Room r WHERE r.active = true")
+    long totalActiveBeds();
 }

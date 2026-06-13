@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Rapports — Tableau de bord', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div class="panel-header" style="padding:0 0 12px;">
+    <span>Indicateurs de pilotage</span>
+    <div style="display:flex; gap:.5rem;">
+        <a th:href="@{/reports/activity}" class="btn btn-ghost btn-sm">Activité</a>
+        <a th:href="@{/reports/epidemiology}" class="btn btn-ghost btn-sm">Épidémiologie</a>
+        <a th:href="@{/reports/financial}" class="btn btn-ghost btn-sm">Bilan financier</a>
+        <a th:href="@{/reports/outstanding}" class="btn btn-ghost btn-sm">Impayés</a>
+    </div>
+</div>
+
+<!-- Revenus -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-card-label">Encaissé aujourd'hui</div>
+        <div class="stat-card-value" th:text="${#numbers.formatDecimal(dashboard.revenueToday,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-label">Encaissé ce mois</div>
+        <div class="stat-card-value" th:text="${#numbers.formatDecimal(dashboard.revenueMonth,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</div>
+        <div th:if="${dashboard.revenueMonthVariationPercent != null}" style="font-size:.8rem; margin-top:4px;"
+             th:classappend="${dashboard.revenueMonthVariationPercent.signum() >= 0} ? 'badge-green' : 'badge-red'"
+             class="badge"
+             th:text="(${dashboard.revenueMonthVariationPercent.signum() >= 0} ? '▲ +' : '▼ ') + ${dashboard.revenueMonthVariationPercent} + ' % vs mois préc.'">+0 %</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-label">Consultations (mois)</div>
+        <div class="stat-card-value" th:text="${dashboard.consultationsMonth}">0</div>
+        <div style="font-size:.8rem; color:#64748b; margin-top:4px;"
+             th:text="'Aujourd’hui : ' + ${dashboard.consultationsToday} + ' · 7 j : ' + ${dashboard.consultationsWeek}">—</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-label">Patients (dossiers actifs)</div>
+        <div class="stat-card-value" th:text="${dashboard.patientsTotal}">0</div>
+    </div>
+</div>
+
+<div class="stats-grid" style="margin-top:12px;">
+    <div class="stat-card">
+        <div class="stat-card-label">Taux d'occupation des lits</div>
+        <div class="stat-card-value" th:text="${dashboard.bedOccupancyRate} + ' %'">0 %</div>
+        <div style="font-size:.8rem; color:#64748b; margin-top:4px;"
+             th:text="${dashboard.occupiedBeds} + ' / ' + ${dashboard.totalBeds} + ' lits occupés'">—</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-label">Stock sous seuil d'alerte</div>
+        <div class="stat-card-value" th:text="${dashboard.lowStockCount}">0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-label">Lots expirant (≤ 30 j)</div>
+        <div class="stat-card-value" th:text="${dashboard.expiringCount}">0</div>
+    </div>
+</div>
+
+<div class="form-grid-2" style="margin-top:16px; align-items:start;">
+    <!-- Top pathologies -->
+    <div class="panel">
+        <div class="panel-header"><span>Top pathologies (ce mois)</span></div>
+        <div th:if="${dashboard.topPathologies.isEmpty()}" class="empty-state">Aucune consultation clôturée ce mois.</div>
+        <div th:unless="${dashboard.topPathologies.isEmpty()}" class="table-wrap">
+            <table class="table">
+                <thead><tr><th>Diagnostic</th><th style="text-align:right;">Cas</th></tr></thead>
+                <tbody>
+                <tr th:each="p : ${dashboard.topPathologies}">
+                    <td th:text="${p.label}">Paludisme</td>
+                    <td style="text-align:right;" th:text="${p.count}">0</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Répartition paiements -->
+    <div class="panel">
+        <div class="panel-header"><span>Modes de paiement (ce mois)</span></div>
+        <div th:if="${dashboard.paymentMethodBreakdown.isEmpty()}" class="empty-state">Aucun encaissement ce mois.</div>
+        <div th:unless="${dashboard.paymentMethodBreakdown.isEmpty()}" class="table-wrap">
+            <table class="table">
+                <thead><tr><th>Mode</th><th style="text-align:right;">Montant</th></tr></thead>
+                <tbody>
+                <tr th:each="m : ${dashboard.paymentMethodBreakdown}">
+                    <td><span class="badge" th:text="${m.key}">ESPECES</span></td>
+                    <td style="text-align:right;"
+                        th:text="${#numbers.formatDecimal(m.value,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+</th:block></body>
+</html>

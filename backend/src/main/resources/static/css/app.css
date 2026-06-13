@@ -1030,3 +1030,10 @@ body.login-page {
 .bed-card-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
 .bed-occupants { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
 .bed-occupants li { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+
+/* ── Reports / impression (module 14) ───────────────────────────────────── */
+@media print {
+    .sidebar, .topbar, .no-print { display: none !important; }
+    .main, .page-content { margin: 0 !important; padding: 0 !important; }
+    .panel, .stat-card { box-shadow: none; border: 1px solid #e2e8f0; }
+}

@@ -77,4 +77,18 @@ public interface LabRequestRepository extends JpaRepository<LabRequest, Long> {
     @Query("SELECT COALESCE(MAX(CAST(SUBSTRING(r.requestNumber, 10) AS int)), 0) " +
            "FROM LabRequest r WHERE r.requestNumber LIKE :prefix%")
     int findMaxSequence(@Param("prefix") String prefix);
+
+    // ── Agrégats reporting (module 14) ─────────────────────────────────────────
+
+    long countByStatus(String status);
+
+    /** Demandes du médecin dont les résultats sont saisis et attendent sa validation (EN_COURS). */
+    @Query("""
+        SELECT DISTINCT r FROM LabRequest r
+        LEFT JOIN FETCH r.patient
+        LEFT JOIN FETCH r.doctor
+        WHERE r.status = 'EN_COURS' AND r.doctor.id = :doctorId
+        ORDER BY r.requestedAt ASC
+        """)
+    List<LabRequest> findPendingValidationForDoctor(@Param("doctorId") Long doctorId);
 }

@@ -61,6 +61,12 @@
                th:classappend="${#strings.startsWith(currentUri,'/hospitalization')} ? 'active'">
                 <span>🏥</span> Hospitalisation
             </a>
+            <th:block sec:authorize="hasAnyRole('ADMIN','MEDECIN')">
+            <a th:href="@{/reports}" class="nav-item"
+               th:classappend="${#strings.startsWith(currentUri,'/reports')} ? 'active'">
+                <span>📊</span> Rapports
+            </a>
+            </th:block>
             <th:block sec:authorize="hasRole('ADMIN')">
             <div class="nav-section">ADMIN</div>
             <a th:href="@{/admin/users}" class="nav-item"

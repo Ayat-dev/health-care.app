@@ -33,4 +33,14 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
 
     @Query("SELECT COALESCE(MAX(CAST(SUBSTRING(p.recordNumber, 10) AS int)), 0) FROM Patient p WHERE p.recordNumber LIKE :prefix%")
     int findMaxSequence(@Param("prefix") String prefix);
+
+    // ── Agrégats reporting (module 14) ─────────────────────────────────────────
+
+    @Query("SELECT COUNT(p) FROM Patient p WHERE p.deletedAt IS NULL")
+    long countActive();
+
+    @Query("SELECT COUNT(p) FROM Patient p WHERE p.deletedAt IS NULL " +
+           "AND p.createdAt >= :from AND p.createdAt < :to")
+    long countNewBetween(@Param("from") java.time.LocalDateTime from,
+                         @Param("to") java.time.LocalDateTime to);
 }
