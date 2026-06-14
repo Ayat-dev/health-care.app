@@ -47,17 +47,20 @@ public class PatientApiController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','INFIRMIER')")
     public PatientDto update(@PathVariable Long id, @RequestBody PatientDto dto) {
         return patientService.toDto(patientService.update(id, dto));
     }
 
     @PostMapping(value = "/{id}/photo", consumes = "multipart/form-data")
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','INFIRMIER')")
     public PatientDto uploadPhoto(@PathVariable Long id,
                                   @RequestParam("file") MultipartFile file) {
         return patientService.toDto(patientService.uploadPhoto(id, file));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         patientService.delete(id);
         return ResponseEntity.noContent().build();
