@@ -1,5 +1,6 @@
 package com.clinic.backend.patient;
 
+import com.clinic.backend.config.ResourceNotFoundException;
 import com.clinic.backend.dto.PatientDto;
 import com.clinic.backend.model.User;
 import com.clinic.backend.repository.UserRepository;
@@ -33,14 +34,14 @@ public class PatientService {
     @Transactional(readOnly = true)
     public Patient getById(Long id) {
         return patientRepository.findByIdAndDeletedAtIsNull(id)
-                .orElseThrow(() -> new RuntimeException("Patient introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Patient", id));
     }
 
     /** Dossier view: patient with assignedDoctor initialized (OSIV is off). */
     @Transactional(readOnly = true)
     public Patient getByIdWithDoctor(Long id) {
         return patientRepository.findWithDoctorById(id)
-                .orElseThrow(() -> new RuntimeException("Patient introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Patient", id));
     }
 
     // ── Création ──────────────────────────────────────────────────────────

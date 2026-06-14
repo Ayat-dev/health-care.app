@@ -6,12 +6,21 @@ import com.clinic.backend.patient.PatientService;
 import com.clinic.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/**
+ * Interface web Thymeleaf pour la gestion des patients.
+ *
+ * Règles d'accès :
+ *  - Lecture (liste, détail) : tous les rôles cliniques sauf PATIENT
+ *  - Création / modification  : ADMIN, MEDECIN, SECRETAIRE, INFIRMIER
+ *  - Suppression              : ADMIN uniquement (soft delete)
+ */
 @Controller
 @RequestMapping("/patients")
 @RequiredArgsConstructor
@@ -27,6 +36,7 @@ public class PatientWebController {
     private final com.clinic.backend.billing.BillingService billingService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','INFIRMIER','SECRETAIRE','PHARMACIEN','LABORANTIN','CAISSIER')")
     public String list(@RequestParam(defaultValue = "") String q,
                        @RequestParam(defaultValue = "0") int page,
                        Model model) {
@@ -38,6 +48,7 @@ public class PatientWebController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','INFIRMIER','SECRETAIRE','PHARMACIEN','LABORANTIN','CAISSIER')")
     public String detail(@PathVariable Long id, Model model) {
         Patient patient = patientService.getByIdWithDoctor(id);
         model.addAttribute("patient", patient);
@@ -54,6 +65,7 @@ public class PatientWebController {
     }
 
     @GetMapping("/new")
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','INFIRMIER')")
     public String newForm(Model model) {
         model.addAttribute("patient", new PatientDto());
         model.addAttribute("doctors", userRepository.findAll());
@@ -61,12 +73,14 @@ public class PatientWebController {
     }
 
     @PostMapping("/new")
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','INFIRMIER')")
     public String create(@ModelAttribute PatientDto dto) {
         Patient created = patientService.create(dto);
         return "redirect:/patients/" + created.getId();
     }
 
     @GetMapping("/{id}/edit")
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','INFIRMIER')")
     public String editForm(@PathVariable Long id, Model model) {
         model.addAttribute("patient", patientService.toDto(patientService.getById(id)));
         model.addAttribute("doctors", userRepository.findAll());
@@ -74,12 +88,14 @@ public class PatientWebController {
     }
 
     @PostMapping("/{id}/edit")
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','INFIRMIER')")
     public String update(@PathVariable Long id, @ModelAttribute PatientDto dto) {
         patientService.update(id, dto);
         return "redirect:/patients/" + id;
     }
 
     @PostMapping("/{id}/photo")
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','INFIRMIER')")
     public String uploadPhoto(@PathVariable Long id,
                               @RequestParam("file") MultipartFile file,
                               RedirectAttributes ra) {

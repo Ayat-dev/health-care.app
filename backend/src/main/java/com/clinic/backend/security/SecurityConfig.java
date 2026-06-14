@@ -12,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
 
 @Configuration
@@ -32,6 +33,11 @@ public class SecurityConfig {
             .securityMatcher("/api/**")
             .csrf(csrf -> csrf.disable())
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .headers(headers -> headers
+                .addHeaderWriter(new StaticHeadersWriter("X-Content-Type-Options", "nosniff"))
+                .addHeaderWriter(new StaticHeadersWriter("X-Frame-Options", "DENY"))
+                .addHeaderWriter(new StaticHeadersWriter("Referrer-Policy", "strict-origin-when-cross-origin"))
+            )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/login").permitAll()
                 .anyRequest().authenticated()
@@ -50,15 +56,28 @@ public class SecurityConfig {
                 .ignoringRequestMatchers("/h2-console/**")
             )
             .headers(headers -> headers
+                // Autorise les iframes H2 console (SAMEORIGIN) et bloque les autres
                 .addHeaderWriter(new XFrameOptionsHeaderWriter(
                     XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN))
+                .addHeaderWriter(new StaticHeadersWriter("X-Content-Type-Options", "nosniff"))
+                .addHeaderWriter(new StaticHeadersWriter("Referrer-Policy", "strict-origin-when-cross-origin"))
+                // CSP : autorise uniquement les ressources du même domaine
+                .addHeaderWriter(new StaticHeadersWriter(
+                    "Content-Security-Policy",
+                    "default-src 'self'; " +
+                    "script-src 'self' 'unsafe-inline'; " +
+                    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+                    "font-src 'self' https://fonts.gstatic.com; " +
+                    "img-src 'self' data: blob:; " +
+                    "connect-src 'self';"
+                ))
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/login", "/auth/**",
                     "/error",
                     "/h2-console/**",
-                    "/css/**", "/js/**", "/images/**", "/favicon.ico"
+                    "/css/**", "/js/**", "/images/**", "/uploads/**", "/favicon.ico"
                 ).permitAll()
                 .anyRequest().authenticated()
             )

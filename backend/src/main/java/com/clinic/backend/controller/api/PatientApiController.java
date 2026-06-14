@@ -6,9 +6,17 @@ import com.clinic.backend.patient.PatientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * API REST patients.
+ *
+ * Lecture  : tous les rôles cliniques (hors PATIENT)
+ * Écriture : ADMIN, MEDECIN, SECRETAIRE, INFIRMIER
+ * Suppression : ADMIN uniquement
+ */
 @RestController
 @RequestMapping("/api/patients")
 @RequiredArgsConstructor
@@ -17,6 +25,7 @@ public class PatientApiController {
     private final PatientService patientService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','INFIRMIER','SECRETAIRE','PHARMACIEN','LABORANTIN','CAISSIER')")
     public Page<PatientDto> list(
             @RequestParam(defaultValue = "") String q,
             @RequestParam(defaultValue = "0") int page,
@@ -25,11 +34,13 @@ public class PatientApiController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','INFIRMIER','SECRETAIRE','PHARMACIEN','LABORANTIN','CAISSIER')")
     public PatientDto get(@PathVariable Long id) {
         return patientService.toDto(patientService.getById(id));
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','INFIRMIER')")
     public ResponseEntity<PatientDto> create(@RequestBody PatientDto dto) {
         Patient created = patientService.create(dto);
         return ResponseEntity.ok(patientService.toDto(created));
