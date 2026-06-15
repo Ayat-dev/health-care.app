@@ -5,6 +5,7 @@ import com.clinic.backend.dto.AppointmentDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -15,6 +16,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/appointments")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','INFIRMIER')")
 public class AppointmentApiController {
 
     private final AppointmentService appointmentService;

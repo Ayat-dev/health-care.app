@@ -16,9 +16,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.clinic.backend.config.RoleProfile;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Central queue façade. Upstream modules call the {@code notify*} helpers to enqueue messages
@@ -177,17 +179,29 @@ public class NotificationService {
     }
 
     // ── In-app (lecture, badge, marquage) ────────────────────────────────────────
+
+    /**
+     * Inbox filtrée par les types pertinents du rôle courant.
+     * Un pharmacien ne voit que STOCK_ALERTE, un médecin RAPPEL_RDV + RESULTAT_LABO, etc.
+     */
     @Transactional(readOnly = true)
     public List<NotificationDto> inboxForCurrentUser() {
         User user = currentUser();
         if (user == null) return List.of();
-        return notificationRepository.findInboxForUser(user.getId()).stream().map(this::toDto).toList();
+        Set<String> types = RoleProfile.fromRole(user.getRole()).notificationTypes;
+        if (types.isEmpty()) return List.of();
+        return notificationRepository.findInboxForUserAndTypes(user.getId(), types)
+                .stream().map(this::toDto).toList();
     }
 
+    /** Badge count filtré par types pertinents (délégué à {@code GlobalModelAdvice}). */
     @Transactional(readOnly = true)
     public long unreadCountForCurrentUser() {
         User user = currentUser();
-        return user != null ? notificationRepository.countUnreadForUser(user.getId()) : 0;
+        if (user == null) return 0;
+        Set<String> types = RoleProfile.fromRole(user.getRole()).notificationTypes;
+        if (types.isEmpty()) return 0;
+        return notificationRepository.countUnreadForUserAndTypes(user.getId(), types);
     }
 
     /** Mark one of the current user's in-app notifications read (no-op if not theirs). */

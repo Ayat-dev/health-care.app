@@ -7,6 +7,7 @@ import com.clinic.backend.dto.PrescriptionDto;
 import com.clinic.backend.patient.Patient;
 import com.clinic.backend.patient.PatientService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +20,7 @@ import java.time.Period;
 @Controller
 @RequestMapping("/prescriptions")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('ADMIN','MEDECIN','PHARMACIEN')")
 public class PrescriptionWebController {
 
     private final PrescriptionService prescriptionService;

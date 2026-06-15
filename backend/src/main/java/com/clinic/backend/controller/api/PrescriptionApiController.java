@@ -3,11 +3,13 @@ package com.clinic.backend.controller.api;
 import com.clinic.backend.consultation.PrescriptionService;
 import com.clinic.backend.dto.PrescriptionDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/prescriptions")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('ADMIN','MEDECIN','PHARMACIEN')")
 public class PrescriptionApiController {
 
     private final PrescriptionService prescriptionService;

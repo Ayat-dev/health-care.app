@@ -11,6 +11,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.DayOfWeek;
@@ -25,6 +26,7 @@ import java.util.Map;
 @Controller
 @RequestMapping("/appointments")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','INFIRMIER')")
 public class AppointmentWebController {
 
     private final AppointmentService appointmentService;

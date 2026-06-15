@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -61,4 +62,26 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     @Query("SELECT COUNT(n) FROM Notification n " +
            "WHERE n.user.id = :userId AND n.channel = 'IN_APP' AND n.readAt IS NULL")
     long countUnreadForUser(@Param("userId") Long userId);
+
+    /**
+     * In-app inbox filtrée par types pertinents pour le rôle.
+     * Utilisée quand {@code types} n'est pas vide (ex. pharmacien → uniquement STOCK_ALERTE).
+     */
+    @Query("""
+        SELECT n FROM Notification n
+        LEFT JOIN FETCH n.patient
+        WHERE n.user.id = :userId AND n.channel = 'IN_APP' AND n.type IN :types
+        ORDER BY n.createdAt DESC
+        """)
+    List<Notification> findInboxForUserAndTypes(@Param("userId") Long userId,
+                                                @Param("types") Collection<String> types);
+
+    /** Unread count filtré par types pertinents pour le rôle (badge nav). */
+    @Query("""
+        SELECT COUNT(n) FROM Notification n
+        WHERE n.user.id = :userId AND n.channel = 'IN_APP'
+          AND n.readAt IS NULL AND n.type IN :types
+        """)
+    long countUnreadForUserAndTypes(@Param("userId") Long userId,
+                                   @Param("types") Collection<String> types);
 }

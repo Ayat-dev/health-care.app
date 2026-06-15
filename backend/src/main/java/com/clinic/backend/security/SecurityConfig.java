@@ -20,9 +20,11 @@ import org.springframework.security.web.header.writers.frameoptions.XFrameOption
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
+    private final RoleAuthenticationSuccessHandler successHandler;
 
-    public SecurityConfig(JwtFilter jwtFilter) {
-        this.jwtFilter = jwtFilter;
+    public SecurityConfig(JwtFilter jwtFilter, RoleAuthenticationSuccessHandler successHandler) {
+        this.jwtFilter      = jwtFilter;
+        this.successHandler = successHandler;
     }
 
     // ─── Chaîne 1 : API REST — stateless, JWT ───────────────────────────────
@@ -83,7 +85,7 @@ public class SecurityConfig {
             )
             .formLogin(form -> form
                 .loginPage("/login")
-                .defaultSuccessUrl("/dashboard", true)
+                .successHandler(successHandler)
                 .failureUrl("/login?error=true")
                 .permitAll()
             )
@@ -91,6 +93,9 @@ public class SecurityConfig {
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout=true")
                 .permitAll()
+            )
+            .exceptionHandling(ex -> ex
+                .accessDeniedPage("/error")
             );
 
         return http.build();

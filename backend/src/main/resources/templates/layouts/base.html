@@ -17,83 +17,73 @@
             <span class="brand-name">ClinicApp</span>
         </div>
         <nav class="sidebar-nav">
-            <div class="nav-section">PRINCIPAL</div>
-            <a th:href="@{/dashboard}" class="nav-item" th:classappend="${#strings.startsWith(currentUri,'/dashboard')} ? 'active'">
-                <span>⊞</span> Tableau de bord
-            </a>
-            <a th:href="@{/patients}" class="nav-item" th:classappend="${#strings.startsWith(currentUri,'/patients')} ? 'active'">
-                <span>👤</span> Patients
-            </a>
-            <a th:href="@{/appointments}" class="nav-item" th:classappend="${#strings.startsWith(currentUri,'/appointments')} ? 'active'">
-                <span>📅</span> Rendez-vous
-            </a>
-            <a th:href="@{/notifications}" class="nav-item" th:classappend="${#strings.startsWith(currentUri,'/notifications')} ? 'active'">
-                <span>🔔</span> Notifications
-                <span th:if="${unreadNotifications > 0}" class="badge badge-red"
-                      style="margin-left:auto; font-size:.7rem; padding:.1rem .4rem;" th:text="${unreadNotifications}">0</span>
-            </a>
-            <div class="nav-section">SOINS</div>
-            <a th:href="@{/consultations}" class="nav-item">
-                <span>🩺</span> Consultations
-            </a>
-            <a th:href="@{/pharmacy}" class="nav-item"
-               th:classappend="${#strings.startsWith(currentUri,'/pharmacy')} ? 'active'">
-                <span>💊</span> Pharmacie
-            </a>
-            <a th:href="@{/lab}" class="nav-item"
-               th:classappend="${#strings.startsWith(currentUri,'/lab')} ? 'active'">
-                <span>🔬</span> Laboratoire
-            </a>
-            <a th:href="@{/radiology}" class="nav-item"
-               th:classappend="${#strings.startsWith(currentUri,'/radiology')} ? 'active'">
-                <span>🩻</span> Imagerie
-            </a>
-            <a th:href="@{/maternity}" class="nav-item"
-               th:classappend="${#strings.startsWith(currentUri,'/maternity')} ? 'active'">
-                <span>🤰</span> Maternité
-            </a>
-            <div class="nav-section">GESTION</div>
-            <a th:href="@{/billing}" class="nav-item"
-               th:classappend="${#strings.startsWith(currentUri,'/billing')} ? 'active'">
-                <span>💳</span> Facturation
-            </a>
-            <a th:href="@{/hospitalization}" class="nav-item"
-               th:classappend="${#strings.startsWith(currentUri,'/hospitalization')} ? 'active'">
-                <span>🏥</span> Hospitalisation
-            </a>
-            <th:block sec:authorize="hasAnyRole('ADMIN','MEDECIN')">
-            <a th:href="@{/reports}" class="nav-item"
-               th:classappend="${#strings.startsWith(currentUri,'/reports')} ? 'active'">
-                <span>📊</span> Rapports
-            </a>
+
+            <!-- ── PRINCIPAL ─────────────────────────────────────── -->
+            <th:block th:if="${!principalModules.isEmpty()}">
+                <div class="nav-section">PRINCIPAL</div>
+                <th:block th:each="mod : ${principalModules}">
+
+                    <!-- Notifications : traitement spécial pour le badge -->
+                    <th:block th:if="${mod.name() == 'NOTIFICATIONS'}">
+                        <a th:href="${mod.urlPrefix}" class="nav-item"
+                           th:classappend="${#strings.startsWith(currentUri, mod.urlPrefix)} ? 'active'">
+                            <span th:text="${mod.icon}">🔔</span>
+                            <span th:text="${mod.label}">Notifications</span>
+                            <span th:if="${unreadNotifications > 0}"
+                                  class="badge badge-red"
+                                  style="margin-left:auto; font-size:.7rem; padding:.1rem .4rem;"
+                                  th:text="${unreadNotifications}">0</span>
+                        </a>
+                    </th:block>
+
+                    <!-- Tous les autres modules PRINCIPAL -->
+                    <th:block th:unless="${mod.name() == 'NOTIFICATIONS'}">
+                        <a th:href="${mod.urlPrefix}" class="nav-item"
+                           th:classappend="${#strings.startsWith(currentUri, mod.urlPrefix)} ? 'active'">
+                            <span th:text="${mod.icon}"></span>
+                            <span th:text="${mod.label}"></span>
+                        </a>
+                    </th:block>
+
+                </th:block>
             </th:block>
-            <th:block sec:authorize="hasRole('ADMIN')">
-            <div class="nav-section">ADMIN</div>
-            <a th:href="@{/admin/users}" class="nav-item"
-               th:classappend="${#strings.startsWith(currentUri,'/admin/users')} ? 'active'">
-                <span>⚙</span> Utilisateurs
-            </a>
-            <a th:href="@{/admin/departments}" class="nav-item"
-               th:classappend="${#strings.startsWith(currentUri,'/admin/departments')} ? 'active'">
-                <span>🏢</span> Départements
-            </a>
-            <a th:href="@{/admin/insurance}" class="nav-item"
-               th:classappend="${#strings.startsWith(currentUri,'/admin/insurance')} ? 'active'">
-                <span>🛡️</span> Assureurs
-            </a>
-            <a th:href="@{/admin/acts}" class="nav-item"
-               th:classappend="${#strings.startsWith(currentUri,'/admin/acts')} ? 'active'">
-                <span>🧾</span> Actes &amp; tarifs
-            </a>
-            <a th:href="@{/admin/lab-tests}" class="nav-item"
-               th:classappend="${#strings.startsWith(currentUri,'/admin/lab-tests')} ? 'active'">
-                <span>🔬</span> Analyses
-            </a>
-            <a th:href="@{/admin/config}" class="nav-item"
-               th:classappend="${#strings.startsWith(currentUri,'/admin/config')} ? 'active'">
-                <span>⚙️</span> Configuration
-            </a>
+
+            <!-- ── SOINS ──────────────────────────────────────────── -->
+            <th:block th:if="${!soinsModules.isEmpty()}">
+                <div class="nav-section">SOINS</div>
+                <th:block th:each="mod : ${soinsModules}">
+                    <a th:href="${mod.urlPrefix}" class="nav-item"
+                       th:classappend="${#strings.startsWith(currentUri, mod.urlPrefix)} ? 'active'">
+                        <span th:text="${mod.icon}"></span>
+                        <span th:text="${mod.label}"></span>
+                    </a>
+                </th:block>
             </th:block>
+
+            <!-- ── GESTION ────────────────────────────────────────── -->
+            <th:block th:if="${!gestionModules.isEmpty()}">
+                <div class="nav-section">GESTION</div>
+                <th:block th:each="mod : ${gestionModules}">
+                    <a th:href="${mod.urlPrefix}" class="nav-item"
+                       th:classappend="${#strings.startsWith(currentUri, mod.urlPrefix)} ? 'active'">
+                        <span th:text="${mod.icon}"></span>
+                        <span th:text="${mod.label}"></span>
+                    </a>
+                </th:block>
+            </th:block>
+
+            <!-- ── ADMIN ──────────────────────────────────────────── -->
+            <th:block th:if="${!adminModules.isEmpty()}">
+                <div class="nav-section">ADMIN</div>
+                <th:block th:each="mod : ${adminModules}">
+                    <a th:href="${mod.urlPrefix}" class="nav-item"
+                       th:classappend="${#strings.startsWith(currentUri, mod.urlPrefix)} ? 'active'">
+                        <span th:text="${mod.icon}"></span>
+                        <span th:text="${mod.label}"></span>
+                    </a>
+                </th:block>
+            </th:block>
+
         </nav>
         <div class="sidebar-footer">
             <span sec:authentication="name">Utilisateur</span>
