@@ -19,6 +19,7 @@ import java.time.LocalDate;
 @Controller
 @RequestMapping("/pharmacy")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('PHARMACIEN','ADMIN')")
 public class PharmacyWebController {
 
     private final PharmacyService pharmacyService;
