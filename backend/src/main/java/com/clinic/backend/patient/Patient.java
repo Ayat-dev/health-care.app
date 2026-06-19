@@ -79,6 +79,11 @@ public class Patient {
     @JoinColumn(name = "assigned_doctor_id")
     private User assignedDoctor;
 
+    /** Compte portail (rôle PATIENT) lié à ce dossier — null si le patient n'a pas d'accès en ligne. */
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User portalUser;
+
     @Column(name = "insurance_number", length = 50)
     private String insuranceNumber;
 

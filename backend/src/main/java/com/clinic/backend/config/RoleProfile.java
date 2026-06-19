@@ -72,6 +72,16 @@ public enum RoleProfile {
         "/billing",
         EnumSet.of(BILLING, REPORTS, NOTIFICATIONS),
         Set.of("FACTURE_IMPAYEE")
+    ),
+
+    /**
+     * Patient (portail). Aucun module de la sidebar staff : le portail {@code /portal/**}
+     * a sa propre mise en page. Atterrit sur {@code /portal} après login.
+     */
+    PATIENT(
+        "/portal",
+        EnumSet.noneOf(Module.class),
+        Set.of()
     );
 
     // ─────────────────────────────────────────────────────────────────────────────

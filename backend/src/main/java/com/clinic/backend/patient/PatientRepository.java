@@ -42,6 +42,9 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
     @Query("SELECT p FROM Patient p LEFT JOIN FETCH p.assignedDoctor WHERE p.id = :id AND p.deletedAt IS NULL")
     Optional<Patient> findWithDoctorById(@Param("id") Long id);
 
+    /** Dossier patient lié à un compte portail (rôle PATIENT) — pour {@code /portal/**}. */
+    Optional<Patient> findByPortalUserIdAndDeletedAtIsNull(Long userId);
+
     @Query("SELECT COALESCE(MAX(CAST(SUBSTRING(p.recordNumber, 10) AS int)), 0) FROM Patient p WHERE p.recordNumber LIKE :prefix%")
     int findMaxSequence(@Param("prefix") String prefix);
 

@@ -1,0 +1,58 @@
+<html th:replace="~{portal/layout :: layout('Accueil', ~{::content})}">
+<body><th:block th:fragment="content">
+
+    <div th:if="${success}" class="alert alert-info" th:text="${success}"></div>
+
+    <section class="portal-hero">
+        <h1 th:text="'Bonjour ' + ${patient.firstName} + ' 👋'">Bonjour</h1>
+        <p>Bienvenue sur votre espace patient. Consultez vos rendez-vous, votre dossier médical et vos factures.</p>
+    </section>
+
+    <div class="portal-cards">
+        <a th:href="@{/portal/appointments/request}" class="portal-card">
+            <div class="pc-icon">📅</div>
+            <div class="pc-title">Demander un rendez-vous</div>
+            <div class="pc-sub">Choisissez un médecin et un créneau.</div>
+        </a>
+        <a th:href="@{/portal/record}" class="portal-card">
+            <div class="pc-icon">🩺</div>
+            <div class="pc-title">Mon dossier médical</div>
+            <div class="pc-sub">Consultations, analyses, imagerie.</div>
+        </a>
+        <a th:href="@{/portal/appointments}" class="portal-card">
+            <div class="pc-icon">🗓️</div>
+            <div class="pc-title">Mes rendez-vous</div>
+            <div class="pc-sub">Historique et rendez-vous à venir.</div>
+        </a>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <h2>Prochains rendez-vous</h2>
+            <a th:href="@{/portal/appointments}" class="btn btn-ghost btn-sm">Tout voir</a>
+        </div>
+
+        <div th:if="${upcoming.isEmpty()}" class="empty-state">
+            Aucun rendez-vous à venir.
+            <a th:href="@{/portal/appointments/request}">En demander un</a>.
+        </div>
+
+        <div th:unless="${upcoming.isEmpty()}" class="table-wrap">
+            <table class="table">
+                <thead>
+                <tr><th>Date</th><th>Médecin</th><th>Motif</th><th>Statut</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="a : ${upcoming}">
+                    <td th:text="${#temporals.format(a.startTime, 'dd/MM/yyyy HH:mm')}">—</td>
+                    <td th:text="${a.doctorName}">—</td>
+                    <td th:text="${a.reason}">—</td>
+                    <td><span class="badge" th:classappend="'badge-' + ${a.status}" th:text="${a.status}">—</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</th:block></body>
+</html>

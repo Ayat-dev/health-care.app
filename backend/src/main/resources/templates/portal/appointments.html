@@ -1,0 +1,36 @@
+<html th:replace="~{portal/layout :: layout('Mes rendez-vous', ~{::content})}">
+<body><th:block th:fragment="content">
+
+    <div th:if="${success}" class="alert alert-info" th:text="${success}"></div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <h2>Mes rendez-vous</h2>
+            <a th:href="@{/portal/appointments/request}" class="btn btn-primary btn-sm">+ Demander un rendez-vous</a>
+        </div>
+
+        <div th:if="${appointments.isEmpty()}" class="empty-state">
+            Vous n'avez aucun rendez-vous.
+            <a th:href="@{/portal/appointments/request}">En demander un</a>.
+        </div>
+
+        <div th:unless="${appointments.isEmpty()}" class="table-wrap">
+            <table class="table">
+                <thead>
+                <tr><th>Date</th><th>Médecin</th><th>Type</th><th>Motif</th><th>Statut</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="a : ${appointments}">
+                    <td th:text="${a.startTime != null ? #temporals.format(a.startTime, 'dd/MM/yyyy HH:mm') : '—'}">—</td>
+                    <td th:text="${a.doctorName}">—</td>
+                    <td th:text="${a.type}">—</td>
+                    <td th:text="${a.reason}">—</td>
+                    <td><span class="badge" th:classappend="'badge-' + ${a.status}" th:text="${a.status}">—</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</th:block></body>
+</html>

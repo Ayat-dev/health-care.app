@@ -1066,3 +1066,55 @@ body.login-page {
 .icd10-suggestion:hover { background: #f1f5f9; }
 .icd10-suggestion strong { color: #2563eb; flex: 0 0 auto; font-family: ui-monospace, monospace; }
 .icd10-suggestion span { color: #334155; }
+
+/* ── Portail patient (P2.4) ──────────────────────────────────────────────── */
+.portal-shell { min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); }
+.portal-header {
+    background: var(--sidebar-bg);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 0 24px;
+    height: 60px;
+}
+.portal-header .brand-icon { font-size: 1.4rem; }
+.portal-header .brand-name { font-weight: 700; font-size: 1.05rem; letter-spacing: .2px; }
+.portal-nav { display: flex; gap: 4px; margin-left: 16px; }
+.portal-nav a {
+    color: var(--sidebar-text);
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: var(--radius);
+    font-size: .9rem;
+    transition: var(--transition);
+}
+.portal-nav a:hover { background: var(--sidebar-hover); color: #fff; }
+.portal-nav a.active { background: var(--blue); color: #fff; }
+.portal-header .portal-user { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: .85rem; }
+.portal-main { flex: 1; max-width: 980px; width: 100%; margin: 0 auto; padding: 28px 24px 48px; }
+.portal-hero {
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    color: #fff;
+    border-radius: var(--radius-xl);
+    padding: 28px 32px;
+    margin-bottom: 24px;
+}
+.portal-hero h1 { font-size: 1.5rem; margin-bottom: 6px; }
+.portal-hero p { opacity: .9; font-size: .95rem; }
+.portal-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.portal-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    text-decoration: none;
+    color: var(--text-900);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    display: block;
+}
+.portal-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); border-color: var(--blue); }
+.portal-card .pc-icon { font-size: 1.6rem; }
+.portal-card .pc-title { font-weight: 600; margin: 8px 0 4px; }
+.portal-card .pc-sub { color: var(--text-500); font-size: .85rem; }

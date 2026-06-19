@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:fragment="layout(title, content)">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${title} + ' — Portail patient'">ClinicApp</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}"/>
+</head>
+<body>
+<div class="portal-shell">
+    <header class="portal-header">
+        <span class="brand-icon">⚕</span>
+        <span class="brand-name">ClinicApp</span>
+        <nav class="portal-nav">
+            <a th:href="@{/portal}"
+               th:classappend="${currentUri == '/portal'} ? 'active'">Accueil</a>
+            <a th:href="@{/portal/appointments}"
+               th:classappend="${#strings.startsWith(currentUri, '/portal/appointments')} ? 'active'">Mes rendez-vous</a>
+            <a th:href="@{/portal/record}"
+               th:classappend="${#strings.startsWith(currentUri, '/portal/record')} ? 'active'">Mon dossier</a>
+        </nav>
+        <div class="portal-user">
+            <span sec:authentication="name">Patient</span>
+            <form th:action="@{/logout}" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-ghost btn-sm">Déconnexion</button>
+            </form>
+        </div>
+    </header>
+
+    <main class="portal-main">
+        <th:block th:replace="${content}"/>
+    </main>
+</div>
+</body>
+</html>

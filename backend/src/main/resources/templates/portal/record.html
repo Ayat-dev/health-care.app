@@ -1,0 +1,106 @@
+<html th:replace="~{portal/layout :: layout('Mon dossier', ~{::content})}">
+<body><th:block th:fragment="content">
+
+    <h1 style="margin-bottom:4px;" th:text="${patient.fullName}">Patient</h1>
+    <p style="color:var(--text-500); margin-bottom:24px;">
+        Dossier <span th:text="${patient.recordNumber}">—</span>
+    </p>
+
+    <!-- ── Consultations ──────────────────────────────────────────────────── -->
+    <div class="panel" style="margin-bottom:20px;">
+        <div class="panel-header"><h2>Consultations</h2></div>
+        <div th:if="${consultations.isEmpty()}" class="empty-state">Aucune consultation enregistrée.</div>
+        <div th:unless="${consultations.isEmpty()}" class="table-wrap">
+            <table class="table">
+                <thead>
+                <tr><th>Date</th><th>Médecin</th><th>Motif</th><th>Diagnostic</th><th>Statut</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${consultations}">
+                    <td th:text="${#temporals.format(c.consultationDate, 'dd/MM/yyyy')}">—</td>
+                    <td th:text="${c.doctor != null ? c.doctor.fullName : '—'}">—</td>
+                    <td th:text="${c.chiefComplaint}">—</td>
+                    <td th:text="${c.diagnosis != null ? c.diagnosis : '—'}">—</td>
+                    <td><span class="badge" th:classappend="'badge-' + ${c.status}" th:text="${c.status}">—</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ── Analyses de laboratoire (résultats validés) ─────────────────────── -->
+    <div class="panel" style="margin-bottom:20px;">
+        <div class="panel-header"><h2>Résultats d'analyses</h2></div>
+        <th:block th:with="validated=${labRequests.?[status == 'VALIDE' or status == 'LIVRE']}">
+            <div th:if="${validated.isEmpty()}" class="empty-state">Aucun résultat d'analyse disponible.</div>
+            <div th:unless="${validated.isEmpty()}" th:each="lr : ${validated}" style="margin:0 16px 16px;">
+                <div style="font-weight:600; margin:12px 0 6px;">
+                    <span th:text="${lr.requestNumber}">LAB-…</span>
+                    <span style="color:var(--text-500); font-weight:400;"
+                          th:text="${lr.requestedAt != null ? ' — ' + #temporals.format(lr.requestedAt, 'dd/MM/yyyy') : ''}"></span>
+                </div>
+                <div class="table-wrap">
+                    <table class="table">
+                        <thead>
+                        <tr><th>Analyse</th><th>Résultat</th><th>Valeurs de référence</th></tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="it : ${lr.items}" th:classappend="${it.abnormal} ? 'row-abnormal'">
+                            <td th:text="${it.testName}">—</td>
+                            <td>
+                                <span th:text="${it.resultValue}">—</span>
+                                <span th:text="${it.unit}"></span>
+                                <span th:if="${it.abnormal}" class="badge badge-red" style="margin-left:6px;">⚠ Anormal</span>
+                            </td>
+                            <td th:text="${it.referenceRange != null ? it.referenceRange : it.catalogReferenceRange}">—</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </th:block>
+    </div>
+
+    <!-- ── Imagerie (comptes-rendus validés) ───────────────────────────────── -->
+    <div class="panel" style="margin-bottom:20px;">
+        <div class="panel-header"><h2>Imagerie</h2></div>
+        <th:block th:with="validatedRad=${radiologyRequests.?[status == 'VALIDE' or status == 'LIVRE']}">
+            <div th:if="${validatedRad.isEmpty()}" class="empty-state">Aucun compte-rendu d'imagerie disponible.</div>
+            <div th:unless="${validatedRad.isEmpty()}" th:each="rr : ${validatedRad}" style="margin:0 16px 16px;">
+                <div style="font-weight:600; margin:12px 0 6px;">
+                    <span th:text="${rr.requestNumber}">RAD-…</span>
+                    <span style="color:var(--text-500); font-weight:400;"
+                          th:text="${rr.requestedAt != null ? ' — ' + #temporals.format(rr.requestedAt, 'dd/MM/yyyy') : ''}"></span>
+                </div>
+                <p th:if="${rr.conclusion}" style="margin-bottom:4px;">
+                    <strong>Conclusion :</strong> <span th:text="${rr.conclusion}">—</span>
+                </p>
+            </div>
+        </th:block>
+    </div>
+
+    <!-- ── Factures ────────────────────────────────────────────────────────── -->
+    <div class="panel">
+        <div class="panel-header"><h2>Mes factures</h2></div>
+        <div th:if="${invoices.isEmpty()}" class="empty-state">Aucune facture.</div>
+        <div th:unless="${invoices.isEmpty()}" class="table-wrap">
+            <table class="table">
+                <thead>
+                <tr><th>N°</th><th>Date</th><th>Montant patient</th><th>Réglé</th><th>Reste dû</th><th>Statut</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="inv : ${invoices}">
+                    <td th:text="${inv.invoiceNumber}">—</td>
+                    <td th:text="${inv.createdAt != null ? #temporals.format(inv.createdAt, 'dd/MM/yyyy') : '—'}">—</td>
+                    <td th:text="${#numbers.formatDecimal(inv.patientAmount, 1, 'WHITESPACE', 2, 'POINT')} + ' XOF'">—</td>
+                    <td th:text="${#numbers.formatDecimal(inv.paidAmount, 1, 'WHITESPACE', 2, 'POINT')} + ' XOF'">—</td>
+                    <td th:text="${#numbers.formatDecimal(inv.balanceDue, 1, 'WHITESPACE', 2, 'POINT')} + ' XOF'">—</td>
+                    <td><span class="badge" th:classappend="'badge-' + ${inv.status}" th:text="${inv.status}">—</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</th:block></body>
+</html>

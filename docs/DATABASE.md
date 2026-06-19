@@ -179,6 +179,7 @@ CREATE TABLE patients (
     chronic_conditions TEXT,
     medical_history TEXT,
     assigned_doctor_id BIGINT REFERENCES users(id),
+    user_id         BIGINT UNIQUE REFERENCES users(id), -- compte portail patient (P2.4), nullable
     insurance_id    BIGINT REFERENCES insurance_providers(id),
     insurance_number VARCHAR(50),
     photo_url       VARCHAR(255),

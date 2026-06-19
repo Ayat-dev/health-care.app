@@ -1,0 +1,10 @@
+<html th:replace="~{portal/layout :: layout('Espace patient', ~{::content})}">
+<body><th:block th:fragment="content">
+
+    <div class="empty-state" style="margin-top:40px;">
+        <div style="font-size:2rem; margin-bottom:8px;">🔒</div>
+        <p th:text="${message}">Aucun dossier patient n'est rattaché à votre compte.</p>
+    </div>
+
+</th:block></body>
+</html>

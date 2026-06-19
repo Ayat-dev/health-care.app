@@ -80,6 +80,14 @@ class SecurityMatrixTest {
         mvc.perform(get("/reports/financial")).andExpect(status().isForbidden());
     }
 
+    // ── /portal : PATIENT uniquement ─────────────────────────────────────────
+
+    @Test
+    @WithMockUser(username = "doc", roles = "MEDECIN")
+    void medecin_refuse_sur_portail() throws Exception {
+        mvc.perform(get("/portal")).andExpect(status().isForbidden());
+    }
+
     // ── La page de login reste publique ──────────────────────────────────────
 
     @Test

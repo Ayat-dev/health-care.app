@@ -95,6 +95,9 @@ public class DataInitializer {
                     passwordEncoder.encode("radiologue123"), "Dr. Sow (Radiologie)", "MEDECIN"));
             User caissier = userRepository.save(new User("caissier",
                     passwordEncoder.encode("caissier123"), "Caissier", "CAISSIER"));
+            // Compte portail patient (P2.4) — rattaché ci-dessous au dossier de p1.
+            User patientUser = userRepository.save(new User("patient",
+                    passwordEncoder.encode("patient123"), "Aminata Diallo", "PATIENT"));
 
             // Patients de test
             Patient p1 = new Patient();
@@ -104,6 +107,7 @@ public class DataInitializer {
             p1.setGender("F"); p1.setPhone("+221 77 123 45 67");
             p1.setCity("Dakar"); p1.setBloodType("O+");
             p1.setAssignedDoctor(doctor);
+            p1.setPortalUser(patientUser); // accès au portail patient
             patientRepository.save(p1);
 
             Patient p2 = new Patient();

@@ -1,0 +1,53 @@
+<html th:replace="~{portal/layout :: layout('Demander un rendez-vous', ~{::content})}">
+<body><th:block th:fragment="content">
+
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <div class="form-card">
+        <h2 style="margin-bottom:16px;">Demander un rendez-vous</h2>
+        <p class="form-hint" style="margin-bottom:20px; color:var(--text-500);">
+            Choisissez un médecin et un créneau. Votre demande sera confirmée par l'accueil de la clinique.
+        </p>
+
+        <form th:action="@{/portal/appointments/request}" method="post">
+            <div class="form-group">
+                <label class="form-label">Médecin *</label>
+                <select name="doctorId" class="form-control" required>
+                    <option value="">— Sélectionner —</option>
+                    <option th:each="d : ${doctors}" th:value="${d.id}" th:text="${d.fullName}"
+                            th:selected="${appointment.doctorId == d.id}">Dr.</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Date et heure souhaitées *</label>
+                <input type="datetime-local" name="startTime" class="form-control" required
+                       th:value="${appointment.startTime != null ? #temporals.format(appointment.startTime,'yyyy-MM-dd''T''HH:mm') : ''}"/>
+                <small style="color:var(--text-500);">Horaires de la clinique : 07h00 – 20h00.</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Type</label>
+                <select name="type" class="form-control">
+                    <option value="CONSULTATION" th:selected="${appointment.type == 'CONSULTATION'}">Consultation</option>
+                    <option value="SUIVI" th:selected="${appointment.type == 'SUIVI'}">Suivi</option>
+                    <option value="TELECONSULTATION" th:selected="${appointment.type == 'TELECONSULTATION'}">Téléconsultation</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Motif</label>
+                <textarea name="reason" class="form-control" rows="3"
+                          placeholder="Décrivez brièvement la raison de votre visite"
+                          th:text="${appointment.reason}"></textarea>
+            </div>
+
+            <div class="form-actions" style="margin-top:16px; display:flex; gap:8px;">
+                <button type="submit" class="btn btn-primary">Envoyer la demande</button>
+                <a th:href="@{/portal/appointments}" class="btn btn-ghost">Annuler</a>
+            </div>
+        </form>
+    </div>
+
+</th:block></body>
+</html>
