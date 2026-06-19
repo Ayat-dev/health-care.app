@@ -1,5 +1,6 @@
 package com.clinic.backend.hospitalization;
 
+import com.clinic.backend.config.ResourceNotFoundException;
 import com.clinic.backend.department.Department;
 import com.clinic.backend.department.DepartmentRepository;
 import com.clinic.backend.dto.RoomDto;
@@ -33,13 +34,13 @@ public class RoomService {
     @Transactional(readOnly = true)
     public Room getById(Long id) {
         return roomRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Chambre introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Chambre introuvable : " + id));
     }
 
     @Transactional(readOnly = true)
     public RoomDto getDtoById(Long id) {
         return toDto(roomRepository.findWithDepartmentById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Chambre introuvable : " + id)));
+                .orElseThrow(() -> new ResourceNotFoundException("Chambre introuvable : " + id)));
     }
 
     // ── Création ──────────────────────────────────────────────────────────

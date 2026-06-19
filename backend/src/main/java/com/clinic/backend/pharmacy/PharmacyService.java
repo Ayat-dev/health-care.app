@@ -1,5 +1,6 @@
 package com.clinic.backend.pharmacy;
 
+import com.clinic.backend.config.ResourceNotFoundException;
 import com.clinic.backend.audit.Audited;
 import com.clinic.backend.consultation.Prescription;
 import com.clinic.backend.consultation.PrescriptionItem;
@@ -61,7 +62,7 @@ public class PharmacyService {
     @Transactional(readOnly = true)
     public Drug getDrug(Long id) {
         return drugRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Médicament introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Médicament introuvable : " + id));
     }
 
     @Transactional(readOnly = true)
@@ -183,7 +184,7 @@ public class PharmacyService {
     @Transactional(readOnly = true)
     public DispensationDto getDispensationDto(Long id) {
         Dispensation d = dispensationRepository.findWithRefsById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Dispensation introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Dispensation introuvable : " + id));
         return toDispensationDto(d);
     }
 
@@ -191,7 +192,7 @@ public class PharmacyService {
     @Transactional(readOnly = true)
     public DispensationDto prefillFromPrescription(Long prescriptionId) {
         Prescription p = prescriptionRepository.findWithRefsById(prescriptionId)
-                .orElseThrow(() -> new IllegalArgumentException("Ordonnance introuvable : " + prescriptionId));
+                .orElseThrow(() -> new ResourceNotFoundException("Ordonnance introuvable : " + prescriptionId));
         if (p.isDispensed()) {
             throw new IllegalStateException("Cette ordonnance a déjà été dispensée");
         }
@@ -245,7 +246,7 @@ public class PharmacyService {
         }
         Long resolvedPatientId = patientId;
         Patient patient = patientRepository.findByIdAndDeletedAtIsNull(resolvedPatientId)
-                .orElseThrow(() -> new IllegalArgumentException("Patient introuvable : " + resolvedPatientId));
+                .orElseThrow(() -> new ResourceNotFoundException("Patient introuvable : " + resolvedPatientId));
         d.setPatient(patient);
 
         LocalDate today = LocalDate.now();

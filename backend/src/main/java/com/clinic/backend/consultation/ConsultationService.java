@@ -1,5 +1,6 @@
 package com.clinic.backend.consultation;
 
+import com.clinic.backend.config.ResourceNotFoundException;
 import com.clinic.backend.audit.Audited;
 import com.clinic.backend.appointment.Appointment;
 import com.clinic.backend.appointment.AppointmentRepository;
@@ -49,14 +50,14 @@ public class ConsultationService {
     @Transactional(readOnly = true)
     public Consultation getById(Long id) {
         return consultationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Consultation introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Consultation introuvable : " + id));
     }
 
     /** Fetch + map in one transaction so lazy patient/doctor/department are available. */
     @Transactional(readOnly = true)
     public ConsultationDto getDtoById(Long id) {
         Consultation c = consultationRepository.findWithRefsById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Consultation introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Consultation introuvable : " + id));
         return toDto(c);
     }
 
@@ -68,7 +69,7 @@ public class ConsultationService {
         dto.setConsultationDate(LocalDateTime.now());
         if (appointmentId != null) {
             Appointment a = appointmentRepository.findWithRefsById(appointmentId)
-                    .orElseThrow(() -> new IllegalArgumentException("Rendez-vous introuvable : " + appointmentId));
+                    .orElseThrow(() -> new ResourceNotFoundException("Rendez-vous introuvable : " + appointmentId));
             dto.setAppointmentId(a.getId());
             dto.setPatientId(a.getPatient() != null ? a.getPatient().getId() : null);
             dto.setDoctorId(a.getDoctor() != null ? a.getDoctor().getId() : null);

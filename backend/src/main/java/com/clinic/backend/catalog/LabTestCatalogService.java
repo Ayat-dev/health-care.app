@@ -1,5 +1,6 @@
 package com.clinic.backend.catalog;
 
+import com.clinic.backend.config.ResourceNotFoundException;
 import com.clinic.backend.dto.LabTestCatalogDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,7 @@ public class LabTestCatalogService {
     @Transactional(readOnly = true)
     public LabTestCatalog getById(Long id) {
         return labTestCatalogRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Analyse introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Analyse introuvable : " + id));
     }
 
     public LabTestCatalog create(LabTestCatalogDto dto) {

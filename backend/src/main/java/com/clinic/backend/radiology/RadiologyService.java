@@ -1,5 +1,6 @@
 package com.clinic.backend.radiology;
 
+import com.clinic.backend.config.ResourceNotFoundException;
 import com.clinic.backend.consultation.Consultation;
 import com.clinic.backend.consultation.ConsultationRepository;
 import com.clinic.backend.dto.RadiologyImageDto;
@@ -73,13 +74,13 @@ public class RadiologyService {
     @Transactional(readOnly = true)
     public RadiologyRequest getById(Long id) {
         return requestRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Demande d'imagerie introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Demande d'imagerie introuvable : " + id));
     }
 
     @Transactional(readOnly = true)
     public RadiologyRequestDto getDtoById(Long id) {
         RadiologyRequest r = requestRepository.findWithRefsById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Demande d'imagerie introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Demande d'imagerie introuvable : " + id));
         return toDto(r);
     }
 
@@ -90,7 +91,7 @@ public class RadiologyService {
         dto.setPriority("NORMAL");
         if (consultationId != null) {
             Consultation c = consultationRepository.findWithRefsById(consultationId)
-                    .orElseThrow(() -> new IllegalArgumentException("Consultation introuvable : " + consultationId));
+                    .orElseThrow(() -> new ResourceNotFoundException("Consultation introuvable : " + consultationId));
             dto.setConsultationId(c.getId());
             dto.setPatientId(c.getPatient() != null ? c.getPatient().getId() : null);
             dto.setDoctorId(c.getDoctor() != null ? c.getDoctor().getId() : null);
@@ -136,7 +137,7 @@ public class RadiologyService {
         for (Long examId : examIds) {
             if (examId == null) continue;
             RadiologyExamCatalog exam = examCatalogRepository.findById(examId)
-                    .orElseThrow(() -> new IllegalArgumentException("Examen introuvable : " + examId));
+                    .orElseThrow(() -> new ResourceNotFoundException("Examen introuvable : " + examId));
             RadiologyRequestItem item = new RadiologyRequestItem();
             item.setExam(exam);
             r.addItem(item);
@@ -148,7 +149,7 @@ public class RadiologyService {
     /** Save/update the radiology report. Moves a pending order to EN_COURS. */
     public RadiologyRequest saveReport(Long requestId, String findings, String conclusion) {
         RadiologyRequest r = requestRepository.findWithRefsById(requestId)
-                .orElseThrow(() -> new IllegalArgumentException("Demande d'imagerie introuvable : " + requestId));
+                .orElseThrow(() -> new ResourceNotFoundException("Demande d'imagerie introuvable : " + requestId));
         if ("VALIDE".equals(r.getStatus()) || "LIVRE".equals(r.getStatus())) {
             throw new IllegalStateException("Ce compte-rendu est déjà validé et ne peut plus être modifié");
         }
@@ -170,7 +171,7 @@ public class RadiologyService {
     // ── Images ──────────────────────────────────────────────────────────────────────────
     public RadiologyRequest addImage(Long requestId, MultipartFile file, String caption) {
         RadiologyRequest r = requestRepository.findWithRefsById(requestId)
-                .orElseThrow(() -> new IllegalArgumentException("Demande d'imagerie introuvable : " + requestId));
+                .orElseThrow(() -> new ResourceNotFoundException("Demande d'imagerie introuvable : " + requestId));
         if ("LIVRE".equals(r.getStatus()) || "ANNULE".equals(r.getStatus())) {
             throw new IllegalStateException("Impossible d'ajouter une image à une demande livrée ou annulée");
         }
@@ -185,7 +186,7 @@ public class RadiologyService {
 
     public RadiologyRequest deleteImage(Long requestId, Long imageId) {
         RadiologyRequest r = requestRepository.findWithRefsById(requestId)
-                .orElseThrow(() -> new IllegalArgumentException("Demande d'imagerie introuvable : " + requestId));
+                .orElseThrow(() -> new ResourceNotFoundException("Demande d'imagerie introuvable : " + requestId));
         if ("VALIDE".equals(r.getStatus()) || "LIVRE".equals(r.getStatus())) {
             throw new IllegalStateException("Les images d'un compte-rendu validé ne peuvent pas être supprimées");
         }
@@ -196,7 +197,7 @@ public class RadiologyService {
     // ── Validation (radiologue) ───────────────────────────────────────────────────────────
     public RadiologyRequest validate(Long requestId) {
         RadiologyRequest r = requestRepository.findWithRefsById(requestId)
-                .orElseThrow(() -> new IllegalArgumentException("Demande d'imagerie introuvable : " + requestId));
+                .orElseThrow(() -> new ResourceNotFoundException("Demande d'imagerie introuvable : " + requestId));
         RadiologyReport rep = r.getReport();
         if (rep == null || rep.getFindings() == null || rep.getFindings().isBlank()) {
             throw new IllegalStateException("Le compte-rendu doit être saisi avant validation");

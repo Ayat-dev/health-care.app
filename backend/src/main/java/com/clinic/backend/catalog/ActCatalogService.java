@@ -1,5 +1,6 @@
 package com.clinic.backend.catalog;
 
+import com.clinic.backend.config.ResourceNotFoundException;
 import com.clinic.backend.department.Department;
 import com.clinic.backend.department.DepartmentRepository;
 import com.clinic.backend.dto.ActCatalogDto;
@@ -42,7 +43,7 @@ public class ActCatalogService {
     @Transactional(readOnly = true)
     public ActCatalog getById(Long id) {
         return actCatalogRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Acte introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Acte introuvable : " + id));
     }
 
     @Transactional(readOnly = true)
@@ -98,7 +99,7 @@ public class ActCatalogService {
             return null;
         }
         return departmentRepository.findById(departmentId)
-                .orElseThrow(() -> new IllegalArgumentException("Département introuvable : " + departmentId));
+                .orElseThrow(() -> new ResourceNotFoundException("Département introuvable : " + departmentId));
     }
 
     private String normalizeCode(String code) {

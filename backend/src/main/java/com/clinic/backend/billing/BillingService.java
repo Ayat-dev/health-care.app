@@ -1,5 +1,6 @@
 package com.clinic.backend.billing;
 
+import com.clinic.backend.config.ResourceNotFoundException;
 import com.clinic.backend.audit.Audited;
 import com.clinic.backend.catalog.ActCatalog;
 import com.clinic.backend.catalog.ActCatalogRepository;
@@ -66,13 +67,13 @@ public class BillingService {
     @Transactional(readOnly = true)
     public Invoice getById(Long id) {
         return invoiceRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Facture introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Facture introuvable : " + id));
     }
 
     @Transactional(readOnly = true)
     public InvoiceDto getDtoById(Long id) {
         Invoice inv = invoiceRepository.findWithRefsById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Facture introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Facture introuvable : " + id));
         return toDto(inv);
     }
 
@@ -84,7 +85,7 @@ public class BillingService {
         Patient patient = null;
         if (consultationId != null) {
             Consultation c = consultationRepository.findWithRefsById(consultationId)
-                    .orElseThrow(() -> new IllegalArgumentException("Consultation introuvable : " + consultationId));
+                    .orElseThrow(() -> new ResourceNotFoundException("Consultation introuvable : " + consultationId));
             dto.setConsultationId(c.getId());
             patient = c.getPatient();
             dto.getItems().add(consultationLine());
@@ -106,7 +107,7 @@ public class BillingService {
     public InvoiceDto prefillFromHospitalization(Long hospitalizationId) {
         InvoiceDto dto = new InvoiceDto();
         Hospitalization h = hospitalizationRepository.findWithRefsById(hospitalizationId)
-                .orElseThrow(() -> new IllegalArgumentException("Séjour introuvable : " + hospitalizationId));
+                .orElseThrow(() -> new ResourceNotFoundException("Séjour introuvable : " + hospitalizationId));
         dto.setHospitalizationId(h.getId());
         Patient patient = h.getPatient();
         if (patient != null) {
@@ -171,7 +172,7 @@ public class BillingService {
     // ── Modification (uniquement EN_ATTENTE) ─────────────────────────────────────
     public Invoice update(Long id, InvoiceDto dto) {
         Invoice inv = invoiceRepository.findWithRefsById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Facture introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Facture introuvable : " + id));
         if (!"EN_ATTENTE".equals(inv.getStatus())) {
             throw new IllegalStateException("Seule une facture en attente (sans paiement) peut être modifiée");
         }
@@ -268,7 +269,7 @@ public class BillingService {
     @Audited(action = "PAYMENT", entity = "Invoice")
     public Invoice recordPayment(Long id, PaymentDto dto) {
         Invoice inv = invoiceRepository.findWithRefsById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Facture introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Facture introuvable : " + id));
         if ("ANNULE".equals(inv.getStatus())) {
             throw new IllegalStateException("Une facture annulée ne peut pas être encaissée");
         }

@@ -1,5 +1,6 @@
 package com.clinic.backend.lab;
 
+import com.clinic.backend.config.ResourceNotFoundException;
 import com.clinic.backend.audit.Audited;
 import com.clinic.backend.catalog.LabTestCatalog;
 import com.clinic.backend.catalog.LabTestCatalogRepository;
@@ -61,13 +62,13 @@ public class LabService {
     @Transactional(readOnly = true)
     public LabRequest getById(Long id) {
         return labRequestRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Demande d'analyses introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Demande d'analyses introuvable : " + id));
     }
 
     @Transactional(readOnly = true)
     public LabRequestDto getDtoById(Long id) {
         LabRequest r = labRequestRepository.findWithRefsById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Demande d'analyses introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Demande d'analyses introuvable : " + id));
         return toDto(r);
     }
 
@@ -78,7 +79,7 @@ public class LabService {
         dto.setPriority("NORMAL");
         if (consultationId != null) {
             Consultation c = consultationRepository.findWithRefsById(consultationId)
-                    .orElseThrow(() -> new IllegalArgumentException("Consultation introuvable : " + consultationId));
+                    .orElseThrow(() -> new ResourceNotFoundException("Consultation introuvable : " + consultationId));
             dto.setConsultationId(c.getId());
             dto.setPatientId(c.getPatient() != null ? c.getPatient().getId() : null);
             dto.setDoctorId(c.getDoctor() != null ? c.getDoctor().getId() : null);
@@ -125,7 +126,7 @@ public class LabService {
         for (Long testId : testIds) {
             if (testId == null) continue;
             LabTestCatalog test = labTestCatalogRepository.findById(testId)
-                    .orElseThrow(() -> new IllegalArgumentException("Analyse introuvable : " + testId));
+                    .orElseThrow(() -> new ResourceNotFoundException("Analyse introuvable : " + testId));
             LabRequestItem item = new LabRequestItem();
             item.setTest(test);
             item.setStatus("EN_ATTENTE");
@@ -138,7 +139,7 @@ public class LabService {
     /** Enter/update result values for the items of a request. Moves the order to EN_COURS. */
     public LabRequest enterResults(Long requestId, List<LabRequestItemDto> itemInputs) {
         LabRequest r = labRequestRepository.findWithRefsById(requestId)
-                .orElseThrow(() -> new IllegalArgumentException("Demande d'analyses introuvable : " + requestId));
+                .orElseThrow(() -> new ResourceNotFoundException("Demande d'analyses introuvable : " + requestId));
         if ("VALIDE".equals(r.getStatus()) || "LIVRE".equals(r.getStatus())) {
             throw new IllegalStateException("Cette demande est déjà validée et ne peut plus être modifiée");
         }
@@ -176,7 +177,7 @@ public class LabService {
     @Audited(action = "VALIDATE", entity = "LabRequest")
     public LabRequest validate(Long requestId) {
         LabRequest r = labRequestRepository.findWithRefsById(requestId)
-                .orElseThrow(() -> new IllegalArgumentException("Demande d'analyses introuvable : " + requestId));
+                .orElseThrow(() -> new ResourceNotFoundException("Demande d'analyses introuvable : " + requestId));
         if (r.getItems().stream().anyMatch(i -> i.getResult() == null)) {
             throw new IllegalStateException("Toutes les analyses doivent avoir un résultat avant validation");
         }

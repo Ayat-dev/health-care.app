@@ -1,5 +1,6 @@
 package com.clinic.backend.hospitalization;
 
+import com.clinic.backend.config.ResourceNotFoundException;
 import com.clinic.backend.audit.Audited;
 import com.clinic.backend.consultation.Consultation;
 import com.clinic.backend.consultation.ConsultationRepository;
@@ -108,13 +109,13 @@ public class HospitalizationService {
     @Transactional(readOnly = true)
     public Hospitalization getById(Long id) {
         return hospitalizationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Hospitalisation introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Hospitalisation introuvable : " + id));
     }
 
     @Transactional(readOnly = true)
     public HospitalizationDto getDtoById(Long id) {
         return toDto(hospitalizationRepository.findWithRefsById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Hospitalisation introuvable : " + id)));
+                .orElseThrow(() -> new ResourceNotFoundException("Hospitalisation introuvable : " + id)));
     }
 
     /** Prefill a new admission from a patient (and optionally a consultation → doctor). */
@@ -123,7 +124,7 @@ public class HospitalizationService {
         HospitalizationDto dto = new HospitalizationDto();
         if (consultationId != null) {
             Consultation c = consultationRepository.findWithRefsById(consultationId)
-                    .orElseThrow(() -> new IllegalArgumentException("Consultation introuvable : " + consultationId));
+                    .orElseThrow(() -> new ResourceNotFoundException("Consultation introuvable : " + consultationId));
             if (c.getPatient() != null) dto.setPatientId(c.getPatient().getId());
             if (c.getDoctor() != null) dto.setDoctorId(c.getDoctor().getId());
             if (c.getChiefComplaint() != null) dto.setAdmissionReason(c.getChiefComplaint());
@@ -170,7 +171,7 @@ public class HospitalizationService {
     @Audited(action = "TRANSFER", entity = "Hospitalization")
     public Hospitalization transfer(Long id, Long newRoomId, String reason) {
         Hospitalization current = hospitalizationRepository.findWithRefsById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Hospitalisation introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Hospitalisation introuvable : " + id));
         if (!"ADMIS".equals(current.getStatus())) {
             throw new IllegalStateException("Seul un patient admis peut être transféré");
         }
@@ -179,7 +180,7 @@ public class HospitalizationService {
             throw new IllegalArgumentException("Le patient est déjà dans cette chambre");
         }
         Room newRoom = roomRepository.findById(newRoomId)
-                .orElseThrow(() -> new IllegalArgumentException("Chambre introuvable : " + newRoomId));
+                .orElseThrow(() -> new ResourceNotFoundException("Chambre introuvable : " + newRoomId));
         ensureBedAvailable(newRoom);
 
         String fromRoom = current.getRoom() != null ? current.getRoom().getRoomNumber() : "?";
@@ -203,7 +204,7 @@ public class HospitalizationService {
     @Audited(action = "DISCHARGE", entity = "Hospitalization")
     public Hospitalization discharge(Long id, String status, String diagnosis) {
         Hospitalization h = hospitalizationRepository.findWithRefsById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Hospitalisation introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Hospitalisation introuvable : " + id));
         if (!"ADMIS".equals(h.getStatus())) {
             throw new IllegalStateException("Seul un patient admis peut sortir");
         }

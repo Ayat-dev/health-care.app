@@ -1,5 +1,6 @@
 package com.clinic.backend.insurance;
 
+import com.clinic.backend.config.ResourceNotFoundException;
 import com.clinic.backend.dto.InsuranceProviderDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,7 @@ public class InsuranceProviderService {
     @Transactional(readOnly = true)
     public InsuranceProvider getById(Long id) {
         return insuranceProviderRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Assureur introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Assureur introuvable : " + id));
     }
 
     public InsuranceProvider create(InsuranceProviderDto dto) {

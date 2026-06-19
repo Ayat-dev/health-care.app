@@ -1,5 +1,6 @@
 package com.clinic.backend.appointment;
 
+import com.clinic.backend.config.ResourceNotFoundException;
 import com.clinic.backend.department.Department;
 import com.clinic.backend.department.DepartmentRepository;
 import com.clinic.backend.dto.AppointmentDto;
@@ -60,14 +61,14 @@ public class AppointmentService {
     @Transactional(readOnly = true)
     public Appointment getById(Long id) {
         return appointmentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Rendez-vous introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Rendez-vous introuvable : " + id));
     }
 
     /** Fetch + map in one transaction so lazy patient/doctor/department are available. */
     @Transactional(readOnly = true)
     public AppointmentDto getDtoById(Long id) {
         Appointment a = appointmentRepository.findWithRefsById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Rendez-vous introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Rendez-vous introuvable : " + id));
         return toDto(a);
     }
 

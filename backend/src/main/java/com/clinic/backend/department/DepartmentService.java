@@ -1,5 +1,6 @@
 package com.clinic.backend.department;
 
+import com.clinic.backend.config.ResourceNotFoundException;
 import com.clinic.backend.dto.DepartmentDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,7 +30,7 @@ public class DepartmentService {
     @Transactional(readOnly = true)
     public Department getById(Long id) {
         return departmentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Département introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Département introuvable : " + id));
     }
 
     // ── Création ──────────────────────────────────────────────────────────

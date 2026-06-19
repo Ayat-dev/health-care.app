@@ -1,5 +1,6 @@
 package com.clinic.backend.maternity;
 
+import com.clinic.backend.config.ResourceNotFoundException;
 import com.clinic.backend.dto.MaternityRecordDto;
 import com.clinic.backend.dto.PrenatalVisitDto;
 import com.clinic.backend.model.User;
@@ -47,13 +48,13 @@ public class MaternityService {
     @Transactional(readOnly = true)
     public MaternityRecord getById(Long id) {
         return recordRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Dossier maternité introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Dossier maternité introuvable : " + id));
     }
 
     @Transactional(readOnly = true)
     public MaternityRecordDto getDtoById(Long id) {
         MaternityRecord r = recordRepository.findWithRefsById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Dossier maternité introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Dossier maternité introuvable : " + id));
         return toDto(r);
     }
 
@@ -95,7 +96,7 @@ public class MaternityService {
     // ── Mise à jour ──────────────────────────────────────────────────────────────
     public MaternityRecord update(Long id, MaternityRecordDto dto) {
         MaternityRecord r = recordRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Dossier maternité introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Dossier maternité introuvable : " + id));
         applyEditableFields(r, dto);
         return recordRepository.save(r);
     }
@@ -120,7 +121,7 @@ public class MaternityService {
     // ── Accouchement ─────────────────────────────────────────────────────────────
     public MaternityRecord recordDelivery(Long id, MaternityRecordDto dto) {
         MaternityRecord r = recordRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Dossier maternité introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Dossier maternité introuvable : " + id));
         if ("CLOTURE".equals(r.getStatus())) {
             throw new IllegalStateException("Ce dossier est clôturé et ne peut plus être modifié");
         }
@@ -154,7 +155,7 @@ public class MaternityService {
     @Transactional(readOnly = true)
     public PrenatalVisitDto prefillVisit(Long recordId) {
         MaternityRecord r = recordRepository.findById(recordId)
-                .orElseThrow(() -> new IllegalArgumentException("Dossier maternité introuvable : " + recordId));
+                .orElseThrow(() -> new ResourceNotFoundException("Dossier maternité introuvable : " + recordId));
         PrenatalVisitDto dto = new PrenatalVisitDto();
         dto.setMaternityRecordId(recordId);
         dto.setVisitDate(LocalDate.now());
@@ -167,13 +168,13 @@ public class MaternityService {
     @Transactional(readOnly = true)
     public PrenatalVisitDto getVisitDto(Long visitId) {
         PrenatalVisit v = visitRepository.findWithRefsById(visitId)
-                .orElseThrow(() -> new IllegalArgumentException("Consultation prénatale introuvable : " + visitId));
+                .orElseThrow(() -> new ResourceNotFoundException("Consultation prénatale introuvable : " + visitId));
         return toVisitDto(v);
     }
 
     public PrenatalVisit addVisit(Long recordId, PrenatalVisitDto dto) {
         MaternityRecord r = recordRepository.findById(recordId)
-                .orElseThrow(() -> new IllegalArgumentException("Dossier maternité introuvable : " + recordId));
+                .orElseThrow(() -> new ResourceNotFoundException("Dossier maternité introuvable : " + recordId));
         if ("CLOTURE".equals(r.getStatus())) {
             throw new IllegalStateException("Ce dossier est clôturé : aucune nouvelle CPN possible");
         }
@@ -192,7 +193,7 @@ public class MaternityService {
 
     public PrenatalVisit updateVisit(Long visitId, PrenatalVisitDto dto) {
         PrenatalVisit v = visitRepository.findWithRefsById(visitId)
-                .orElseThrow(() -> new IllegalArgumentException("Consultation prénatale introuvable : " + visitId));
+                .orElseThrow(() -> new ResourceNotFoundException("Consultation prénatale introuvable : " + visitId));
         if (dto.getVisitDate() == null) {
             throw new IllegalArgumentException("La date de la consultation est obligatoire");
         }
@@ -229,7 +230,7 @@ public class MaternityService {
     private User resolveDoctor(Long doctorId) {
         if (doctorId == null) return null;
         return userRepository.findById(doctorId)
-                .orElseThrow(() -> new IllegalArgumentException("Médecin introuvable : " + doctorId));
+                .orElseThrow(() -> new ResourceNotFoundException("Médecin introuvable : " + doctorId));
     }
 
     private User currentUser() {

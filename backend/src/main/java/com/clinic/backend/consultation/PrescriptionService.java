@@ -1,5 +1,6 @@
 package com.clinic.backend.consultation;
 
+import com.clinic.backend.config.ResourceNotFoundException;
 import com.clinic.backend.clinicconfig.ClinicConfig;
 import com.clinic.backend.clinicconfig.ClinicConfigService;
 import com.clinic.backend.dto.PrescriptionDto;
@@ -32,7 +33,7 @@ public class PrescriptionService {
     @Transactional(readOnly = true)
     public Prescription getById(Long id) {
         return prescriptionRepository.findWithRefsById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Ordonnance introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Ordonnance introuvable : " + id));
     }
 
     @Transactional(readOnly = true)
@@ -50,7 +51,7 @@ public class PrescriptionService {
     // ── Création depuis une consultation ───────────────────────────────────
     public Prescription createForConsultation(Long consultationId, PrescriptionDto dto) {
         Consultation c = consultationRepository.findWithRefsById(consultationId)
-                .orElseThrow(() -> new IllegalArgumentException("Consultation introuvable : " + consultationId));
+                .orElseThrow(() -> new ResourceNotFoundException("Consultation introuvable : " + consultationId));
 
         Prescription p = new Prescription();
         p.setConsultation(c);

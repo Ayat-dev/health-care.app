@@ -1,5 +1,6 @@
 package com.clinic.backend.service;
 
+import com.clinic.backend.config.ResourceNotFoundException;
 import com.clinic.backend.dto.UserDto;
 import com.clinic.backend.model.Role;
 import com.clinic.backend.model.User;
@@ -35,7 +36,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public User getById(Long id) {
         User u = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable : " + id));
         if (u.getDeletedAt() != null)
             throw new IllegalArgumentException("Utilisateur supprimé : " + id);
         return u;
