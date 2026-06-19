@@ -1,5 +1,6 @@
 package com.clinic.backend.billing;
 
+import com.clinic.backend.audit.Audited;
 import com.clinic.backend.catalog.ActCatalog;
 import com.clinic.backend.catalog.ActCatalogRepository;
 import com.clinic.backend.clinicconfig.ClinicConfig;
@@ -147,6 +148,7 @@ public class BillingService {
     }
 
     // ── Création ────────────────────────────────────────────────────────────────
+    @Audited(action = "CREATE", entity = "Invoice")
     public Invoice create(InvoiceDto dto) {
         if (dto.getPatientId() == null) {
             throw new IllegalArgumentException("Le patient est obligatoire");
@@ -263,6 +265,7 @@ public class BillingService {
     }
 
     // ── Encaissement ──────────────────────────────────────────────────────────────
+    @Audited(action = "PAYMENT", entity = "Invoice")
     public Invoice recordPayment(Long id, PaymentDto dto) {
         Invoice inv = invoiceRepository.findWithRefsById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Facture introuvable : " + id));
@@ -299,6 +302,7 @@ public class BillingService {
     }
 
     // ── Annulation (avec motif) ────────────────────────────────────────────────────
+    @Audited(action = "CANCEL", entity = "Invoice")
     public Invoice cancel(Long id, String reason) {
         Invoice inv = getById(id);
         if ("PAYE".equals(inv.getStatus())) {

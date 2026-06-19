@@ -1,5 +1,6 @@
 package com.clinic.backend.patient;
 
+import com.clinic.backend.audit.Audited;
 import com.clinic.backend.config.ResourceNotFoundException;
 import com.clinic.backend.dto.PatientDto;
 import com.clinic.backend.model.User;
@@ -45,6 +46,7 @@ public class PatientService {
     }
 
     // ── Création ──────────────────────────────────────────────────────────
+    @Audited(action = "CREATE", entity = "Patient")
     public Patient create(PatientDto dto) {
         Patient p = new Patient();
         mapDtoToEntity(dto, p);
@@ -53,6 +55,7 @@ public class PatientService {
     }
 
     // ── Modification ──────────────────────────────────────────────────────
+    @Audited(action = "UPDATE", entity = "Patient")
     public Patient update(Long id, PatientDto dto) {
         Patient p = getById(id);
         mapDtoToEntity(dto, p);

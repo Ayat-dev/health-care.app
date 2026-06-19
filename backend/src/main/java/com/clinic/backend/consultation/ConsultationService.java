@@ -1,5 +1,6 @@
 package com.clinic.backend.consultation;
 
+import com.clinic.backend.audit.Audited;
 import com.clinic.backend.appointment.Appointment;
 import com.clinic.backend.appointment.AppointmentRepository;
 import com.clinic.backend.department.Department;
@@ -79,6 +80,7 @@ public class ConsultationService {
     }
 
     // ── Création ──────────────────────────────────────────────────────────
+    @Audited(action = "CREATE", entity = "Consultation")
     public Consultation create(ConsultationDto dto) {
         Consultation c = new Consultation();
         if (dto.getConsultationDate() != null) {
@@ -114,6 +116,7 @@ public class ConsultationService {
 
     // ── Clôture ─────────────────────────────────────────────────────────────
     /** EN_COURS → TERMINE. Le diagnostic est obligatoire pour clôturer. */
+    @Audited(action = "COMPLETE", entity = "Consultation")
     public Consultation complete(Long id) {
         Consultation c = getById(id);
         if (c.getDiagnosis() == null || c.getDiagnosis().isBlank()) {

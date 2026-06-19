@@ -1,5 +1,6 @@
 package com.clinic.backend.hospitalization;
 
+import com.clinic.backend.audit.Audited;
 import com.clinic.backend.consultation.Consultation;
 import com.clinic.backend.consultation.ConsultationRepository;
 import com.clinic.backend.dto.BedBoardDepartmentDto;
@@ -133,6 +134,7 @@ public class HospitalizationService {
     }
 
     // ── Admission ───────────────────────────────────────────────────────────────
+    @Audited(action = "ADMIT", entity = "Hospitalization")
     public Hospitalization admit(HospitalizationDto dto) {
         if (dto.getPatientId() == null) throw new IllegalArgumentException("Le patient est obligatoire");
         if (dto.getDoctorId() == null) throw new IllegalArgumentException("Le médecin responsable est obligatoire");
@@ -165,6 +167,7 @@ public class HospitalizationService {
 
     // ── Transfert (vers une autre chambre) ────────────────────────────────────────
     /** Closes the current stay as TRANSFERE and opens a fresh ADMIS stay in the new room. */
+    @Audited(action = "TRANSFER", entity = "Hospitalization")
     public Hospitalization transfer(Long id, Long newRoomId, String reason) {
         Hospitalization current = hospitalizationRepository.findWithRefsById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Hospitalisation introuvable : " + id));
@@ -197,6 +200,7 @@ public class HospitalizationService {
     }
 
     // ── Sortie ─────────────────────────────────────────────────────────────────────
+    @Audited(action = "DISCHARGE", entity = "Hospitalization")
     public Hospitalization discharge(Long id, String status, String diagnosis) {
         Hospitalization h = hospitalizationRepository.findWithRefsById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Hospitalisation introuvable : " + id));

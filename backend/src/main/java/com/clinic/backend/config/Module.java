@@ -34,6 +34,7 @@ public enum Module {
     ADMIN_INSURANCE ("/admin/insurance",  "Assureurs",       "🛡️", Section.ADMIN),
     ADMIN_ACTS      ("/admin/acts",       "Actes & tarifs",  "🧾", Section.ADMIN),
     ADMIN_LAB_TESTS ("/admin/lab-tests",  "Analyses",        "🔬", Section.ADMIN),
+    ADMIN_AUDIT     ("/admin/audit",      "Journal d'audit", "📜", Section.ADMIN),
     ADMIN_CONFIG    ("/admin/config",     "Configuration",   "⚙️", Section.ADMIN);
 
     // ─────────────────────────────────────────────────────────────────────────────

@@ -1,5 +1,6 @@
 package com.clinic.backend.pharmacy;
 
+import com.clinic.backend.audit.Audited;
 import com.clinic.backend.consultation.Prescription;
 import com.clinic.backend.consultation.PrescriptionItem;
 import com.clinic.backend.consultation.PrescriptionRepository;
@@ -213,6 +214,7 @@ public class PharmacyService {
      * already be dispensed and is flagged dispensed on success. Each requested line decrements
      * one or more batches (earliest expiry first); insufficient or expired-only stock fails.
      */
+    @Audited(action = "DISPENSE", entity = "Dispensation")
     public Dispensation dispense(DispensationDto dto) {
         if (dto.getItems() == null || dto.getItems().isEmpty()) {
             throw new IllegalArgumentException("Aucun médicament à dispenser");

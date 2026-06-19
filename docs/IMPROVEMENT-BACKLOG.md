@@ -37,7 +37,9 @@
 - **Critère d'acceptation** : `SPRING_PROFILES_ACTIVE=prod` démarre sur PostgreSQL, console H2 inaccessible, app refuse de démarrer si `JWT_SECRET` absent (fail-fast).
 
 ### P1.2 — Journal d'audit (qui / quoi / quand)
-- [ ] Statut : todo
+- [x] Statut : **fait** (2026-06-19)
+- **Réalisé** : nouveau pkg `com.clinic.backend.audit` — `AuditLog` (entité append-only), `AuditLogRepository` (search filtré + `distinctEntityTypes/Actions`), `AuditService` (`record` en `@Transactional(REQUIRES_NEW)`, résout auteur via `SecurityContextHolder` + IP/User-Agent via `RequestContextHolder`, **n'échoue jamais vers l'appelant**), annotation `@Audited(action, entity)` + `AuditAspect` (`@AfterReturning`, entityId déduit du `getId()` du retour sinon 1er arg `Long`). `V14__audit_log_table.sql`. Vue admin lecture seule `/admin/audit` (`AdminAuditWebController`, `@PreAuthorize("hasRole('ADMIN')")`, filtres utilisateur/entité/action/dates, cap 300) + `admin/audit/list.html`. Nav : entrée `ADMIN_AUDIT` (📜) dans `Module` (auto-visible ADMIN via `EnumSet.allOf`). 14 méthodes annotées : Patient create/update, Lab create/validate/cancel, Invoice create/payment/cancel, Consultation create/complete, Dispensation dispense, Hospitalization admit/discharge/transfer.
+- **Vérifié** : Flyway→v14, build OK, app démarre ; create patient + record payment + cancel lab → **3 lignes d'audit** avec auteur réel (`admin`), entityId (Patient #4, Invoice #1, LabRequest #2) et IP (`::1`) ; les actions métier réussissent (302) → la trace en tx séparée ne casse rien ; filtres entité/action OK ; non-admin (laborantin) → **403**.
 - **Pourquoi** : manipulation de données médicales → exigence légale (HIPAA-like). **Aucun** audit aujourd'hui. Déjà listé « différé » au module 15.
 - **Où** : nouveau pkg `com.clinic.backend.audit`.
 - **Étapes** :
@@ -133,6 +135,7 @@
 |---|---|---|
 | 2026-06-19 | (création) | Backlog créé suite à l'analyse comparative + audit code. Bug RBAC `mod`→`navMod` corrigé (commit 4ed3535). |
 | 2026-06-19 | **P1.1** | Profils dev/prod + secrets externalisés (fail-fast), seed démo gated `!prod`, bootstrap admin prod via env, compose+`.env.example`. Vérifié dev/prod/fail-fast. Boot Postgres réel à confirmer au déploiement (Docker indispo en local). |
+| 2026-06-19 | **P1.2** | Journal d'audit : pkg `audit` (`@Audited` + AOP `@AfterReturning`, écriture `REQUIRES_NEW`), V14, vue admin `/admin/audit` (ADMIN). 14 méthodes auditées. Vérifié : 3 actions → 3 traces (auteur/entité/id/IP), filtres OK, non-admin 403. |
 
 ---
 

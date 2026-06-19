@@ -1,5 +1,6 @@
 package com.clinic.backend.lab;
 
+import com.clinic.backend.audit.Audited;
 import com.clinic.backend.catalog.LabTestCatalog;
 import com.clinic.backend.catalog.LabTestCatalogRepository;
 import com.clinic.backend.consultation.Consultation;
@@ -89,6 +90,7 @@ public class LabService {
     }
 
     // ── Création ────────────────────────────────────────────────────────────────
+    @Audited(action = "CREATE", entity = "LabRequest")
     public LabRequest create(LabRequestDto dto) {
         if (dto.getPatientId() == null) {
             throw new IllegalArgumentException("Le patient est obligatoire");
@@ -171,6 +173,7 @@ public class LabService {
     }
 
     // ── Validation (médecin / biologiste) ────────────────────────────────────────
+    @Audited(action = "VALIDATE", entity = "LabRequest")
     public LabRequest validate(Long requestId) {
         LabRequest r = labRequestRepository.findWithRefsById(requestId)
                 .orElseThrow(() -> new IllegalArgumentException("Demande d'analyses introuvable : " + requestId));
@@ -202,6 +205,7 @@ public class LabService {
         return labRequestRepository.save(r);
     }
 
+    @Audited(action = "CANCEL", entity = "LabRequest")
     public LabRequest cancel(Long requestId) {
         LabRequest r = getById(requestId);
         if ("VALIDE".equals(r.getStatus()) || "LIVRE".equals(r.getStatus())) {
