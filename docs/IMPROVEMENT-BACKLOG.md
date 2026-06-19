@@ -62,12 +62,12 @@
 - **Critère d'acceptation** : 5 mauvais mots de passe → compte verrouillé 15 min, message clair. — ✅
 
 ### P1.4 — `@RestControllerAdvice` global (fin des 500 bruts)
-- [ ] Statut : todo
-- **Pourquoi** : NB récurrent dans `CLAUDE.md` (« bare 500 on IllegalState ») sur pharmacy/lab/radio/hospit/billing/maternity. Le client JavaFX reçoit du 500 au lieu d'un JSON exploitable. Un `GlobalExceptionHandler` web existe déjà ; il manque le pendant **API**.
-- **Où** : `controller/api` ; s'inspirer de `config/GlobalExceptionHandler.java`.
-- **Étapes** :
-  1. `@RestControllerAdvice` ciblant `/api/**` : `IllegalArgumentException`→400, `IllegalStateException`→409, `ResourceNotFoundException`→404, `AccessDeniedException`→403, fallback→500, au format d'erreur standard du projet (`{timestamp,status,error,message,path}`).
-- **Critère d'acceptation** : dispensation insuffisante / surpaiement via API → 409 JSON propre, plus de 500.
+- [x] Statut : **fait** (déjà livré par le commit `e2db645` du 2026-06-14, *avant* la rédaction de ce backlog — la prémisse « il manque le pendant API » était fausse). Vérifié 2026-06-19.
+- **Constat** : `config/GlobalExceptionHandler.java` est un `@RestControllerAdvice(basePackages = "com.clinic.backend.controller.api")` — il couvre donc **les 16 contrôleurs API** (tous dans `controller.api`). Mapping en place : `MethodArgumentNotValidException`→400, `IllegalArgumentException`→400, `IllegalStateException`→**409**, `AuthenticationException`→401, `AccessDeniedException`→403, `ResourceNotFoundException`→404, fallback `Exception`→500, au format standard `{timestamp,status,error,message,path}`. Le NB « no global @RestControllerAdvice » répété dans `CLAUDE.md` est **obsolète** (historique d'avant le 2026-06-14).
+- **Scope volontairement étroit** : l'advice ne vise que `controller.api`, **pas** `com.clinic.backend.controller` au sens large — sinon il avalerait les exceptions des contrôleurs `controller.web` (vues Thymeleaf) et les rendrait en JSON. Le seul `@RestController` hors `controller.api` est `AuthController` (`controller`), dont les erreurs sont gérées **inline** (423/401, fait en P1.3).
+- **Vérifié** (H2, JWT admin) : surpaiement facture → **400** JSON standard (`Le montant dépasse le reste à payer (6000.00)`) ; facture déjà soldée → **409** JSON (`Cette facture est déjà soldée`) ; **plus aucun 500 brut**.
+- **Raffinement optionnel restant** : le not-found renvoie **400**, pas 404 — les services lèvent `IllegalArgumentException("… introuvable")` au lieu de `ResourceNotFoundException` (dont le handler 404 existe pourtant). Corriger demanderait de remplacer ces throws dans ~14 services ; reportable (hors acceptance, qui porte sur insuffisant/surpaiement).
+- **Critère d'acceptation** : dispensation insuffisante / surpaiement via API → JSON propre, plus de 500. — ✅ (mapping réel : insuffisant/surpaiement = `IllegalArgumentException`→**400** ; conflits d'état type « déjà dispensée/soldée » →**409**).
 
 ### P1.5 — Tests (sécurité + invariants métier)
 - [ ] Statut : todo
@@ -139,6 +139,7 @@
 | 2026-06-19 | **P1.1** | Profils dev/prod + secrets externalisés (fail-fast), seed démo gated `!prod`, bootstrap admin prod via env, compose+`.env.example`. Vérifié dev/prod/fail-fast. Boot Postgres réel à confirmer au déploiement (Docker indispo en local). |
 | 2026-06-19 | **P1.2** | Journal d'audit : pkg `audit` (`@Audited` + AOP `@AfterReturning`, écriture `REQUIRES_NEW`), V14, vue admin `/admin/audit` (ADMIN). 14 méthodes auditées. Vérifié : 3 actions → 3 traces (auteur/entité/id/IP), filtres OK, non-admin 403. |
 | 2026-06-19 | **P1.3** | Anti-brute-force : V15 (`failed_attempts`/`locked_until`), `LoginAttemptService` (5 échecs → verrou 15 min, reset au succès) branché par événements Spring Security (web+API), `isAccountNonLocked()` câblé, `LoginFailureHandler`→`?locked=true`, API→423/401 JSON. Vérifié : API 5×401→423, autre compte 200, reset prouvé (8 échecs entrecoupés de succès → jamais verrouillé), web 302→`/login?locked=true`. Rate-limit IP (Bucket4j) non fait. |
+| 2026-06-19 | **P1.4** | **Déjà fait** (commit `e2db645`, 2026-06-14, avant ce backlog). `GlobalExceptionHandler` = `@RestControllerAdvice` scopé `controller.api` (couvre les 16 contrôleurs API) : IllegalArgument→400, IllegalState→409, ResourceNotFound→404, Auth→401, AccessDenied→403, fallback→500, format standard. Vérifié : surpaiement→400 JSON, facture soldée→409 JSON, plus de 500 brut. NB CLAUDE.md « no @RestControllerAdvice » obsolète. Raffinement reporté : not-found→400 (services lèvent IllegalArgument au lieu de ResourceNotFound). |
 
 ---
 
