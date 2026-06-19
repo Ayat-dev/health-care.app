@@ -70,14 +70,16 @@
 - **Critère d'acceptation** : dispensation insuffisante / surpaiement via API → JSON propre, plus de 500. — ✅ (mapping réel : insuffisant/surpaiement = `IllegalArgumentException`→**400** ; conflits d'état type « déjà dispensée/soldée » →**409**).
 
 ### P1.5 — Tests (sécurité + invariants métier)
-- [ ] Statut : todo
+- [x] Statut : **fait** (2026-06-19) — **26 tests verts** (`mvnd test` BUILD SUCCESS).
+- **Réalisé** : `spring-security-test` ajouté au pom ; `src/test/resources/application-test.properties` (profil `test` : H2 dédié + secret JWT de test) ; tests sous `@ActiveProfiles("test")` (DataInitializer seedé, profil `!prod`). 5 classes :
+  - `ClinicApplicationTests` — smoke contexte (Flyway migre, beans se câblent, Hibernate valide).
+  - `LoginAttemptServiceTest` (5, Mockito pur) — invariants P1.3 : +1 par échec, verrou à 5, reset au succès, verrou expiré repart de 0, utilisateur inconnu/null ne casse rien.
+  - `SecurityMatrixTest` (9, MockMvc + `@WithMockUser`) — API sans token refusée, page web sans session → redirect `/login`, `/login` public ; `/admin/audit` (ADMIN 200 / MEDECIN 403), `/reports/dashboard` (MEDECIN 200 / CAISSIER 403), `/reports/financial` (CAISSIER 200 / MEDECIN 403).
+  - `PageRenderSmokeTest` (6, MockMvc + `@WithUserDetails("admin")`) — `/dashboard`, `/patients`, `/appointments`, `/billing`, `/reports`, `/admin/audit` → 200 (exerce layout+sidebar = la classe du bug `mod`→`navMod`). Principal réel via `userDetailsServiceBeanName="userDetailsServiceImpl"`.
+  - `BusinessInvariantTest` (5, `@SpringBootTest` + `@Transactional` rollback + `@WithUserDetails`) — couverture assurance (80% sur 1000 → ins 800/patient 200), surpaiement rejeté (IllegalArgument), paiement sur facture soldée rejeté (IllegalState), **FIFO** (lot J+30 vidé avant le lot +2 ans : reste 5 sur le lointain), stock insuffisant rejeté.
+- **Différé** : **étape 4 (Testcontainers PostgreSQL) non faite** — Docker indisponible en local (même contrainte qu'en P1.1), `mvnd test` doit rester vert ici. À ajouter quand un runtime Docker (CI) sera dispo, pour valider Flyway sur le vrai moteur. Double-admission/transition d'hospitalisation non couvertes (FIFO + couverture + gardes de paiement = invariants les plus à risque, priorisés).
 - **Pourquoi** : **0 test** dans `backend/src/test`. Pas de filet pour les régressions (ex. le bug `mod` aurait été attrapé par un test de rendu).
-- **Étapes** :
-  1. Tests `@WebMvcTest`/`@SpringBootTest` de sécurité : pour chaque rôle, matrice 200/403 attendus (automatiser ce que j'ai vérifié à la main).
-  2. Test de rendu : `GET /dashboard` (et un échantillon de pages) → 200 (anti-régression templating).
-  3. Tests d'invariants métier : dispensation FIFO, couverture assurance, transitions de statut interdites, double-admission, double-dispensation.
-  4. Ajouter Testcontainers (PostgreSQL) pour valider Flyway sur le vrai moteur.
-- **Critère d'acceptation** : `mvnd test` vert, matrice de rôles couverte.
+- **Critère d'acceptation** : `mvnd test` vert, matrice de rôles couverte. — ✅ (26 tests, matrice RBAC + rendu + invariants).
 
 ---
 
@@ -139,7 +141,8 @@
 | 2026-06-19 | **P1.1** | Profils dev/prod + secrets externalisés (fail-fast), seed démo gated `!prod`, bootstrap admin prod via env, compose+`.env.example`. Vérifié dev/prod/fail-fast. Boot Postgres réel à confirmer au déploiement (Docker indispo en local). |
 | 2026-06-19 | **P1.2** | Journal d'audit : pkg `audit` (`@Audited` + AOP `@AfterReturning`, écriture `REQUIRES_NEW`), V14, vue admin `/admin/audit` (ADMIN). 14 méthodes auditées. Vérifié : 3 actions → 3 traces (auteur/entité/id/IP), filtres OK, non-admin 403. |
 | 2026-06-19 | **P1.3** | Anti-brute-force : V15 (`failed_attempts`/`locked_until`), `LoginAttemptService` (5 échecs → verrou 15 min, reset au succès) branché par événements Spring Security (web+API), `isAccountNonLocked()` câblé, `LoginFailureHandler`→`?locked=true`, API→423/401 JSON. Vérifié : API 5×401→423, autre compte 200, reset prouvé (8 échecs entrecoupés de succès → jamais verrouillé), web 302→`/login?locked=true`. Rate-limit IP (Bucket4j) non fait. |
-| 2026-06-19 | **P1.4** | **Déjà fait** (commit `e2db645`, 2026-06-14, avant ce backlog). `GlobalExceptionHandler` = `@RestControllerAdvice` scopé `controller.api` (couvre les 16 contrôleurs API) : IllegalArgument→400, IllegalState→409, ResourceNotFound→404, Auth→401, AccessDenied→403, fallback→500, format standard. Vérifié : surpaiement→400 JSON, facture soldée→409 JSON, plus de 500 brut. NB CLAUDE.md « no @RestControllerAdvice » obsolète. Raffinement reporté : not-found→400 (services lèvent IllegalArgument au lieu de ResourceNotFound). |
+| 2026-06-19 | **P1.4** | **Déjà fait** (commit `e2db645`, 2026-06-14, avant ce backlog). `GlobalExceptionHandler` = `@RestControllerAdvice` scopé `controller.api` (couvre les 16 contrôleurs API) : IllegalArgument→400, IllegalState→409, ResourceNotFound→404, Auth→401, AccessDenied→403, fallback→500, format standard. Vérifié : surpaiement→400 JSON, facture soldée→409 JSON, plus de 500 brut. NB CLAUDE.md « no @RestControllerAdvice » obsolète. Raffinement reporté : not-found→400 (services lèvent IllegalArgument au lieu de ResourceNotFound) — à faire en « P1.4b » après P1.5. |
+| 2026-06-19 | **P1.5** | Tests : **0 → 26 verts** (`mvnd test` OK). `spring-security-test` + profil `test` (H2). 5 classes : smoke contexte, `LoginAttemptServiceTest` (P1.3), `SecurityMatrixTest` (matrice RBAC MockMvc), `PageRenderSmokeTest` (anti-régression templating), `BusinessInvariantTest` (couverture assurance, surpaiement, facture soldée, FIFO, stock insuffisant). Testcontainers PostgreSQL différé (Docker indispo local). |
 
 ---
 
