@@ -1,8 +1,14 @@
 package com.clinic.backend.controller.web;
 
 import com.clinic.backend.clinicconfig.ClinicConfigService;
+import com.clinic.backend.dto.InvoiceDto;
+import com.clinic.backend.dto.OutstandingReportDto;
+import com.clinic.backend.export.ExcelExportService;
 import com.clinic.backend.reports.ReportService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.TextStyle;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 @Controller
@@ -24,6 +32,7 @@ public class ReportWebController {
 
     private final ReportService reportService;
     private final ClinicConfigService clinicConfigService;
+    private final ExcelExportService excelExportService;
 
     // ── Tableau de bord (KPIs direction) ───────────────────────────────────────
     @GetMapping({"", "/dashboard"})
@@ -81,6 +90,32 @@ public class ReportWebController {
         model.addAttribute("report", reportService.outstanding());
         model.addAttribute("config", clinicConfigService.getConfig());
         return "reports/outstanding";
+    }
+
+    // ── Export Excel des impayés ────────────────────────────────────────────────
+    @GetMapping("/outstanding/excel")
+    @PreAuthorize("hasAnyRole('ADMIN','CAISSIER','SECRETAIRE')")
+    public ResponseEntity<byte[]> outstandingExcel() {
+        OutstandingReportDto report = reportService.outstanding();
+        List<String> headers = List.of(
+                "N° facture", "Patient", "Total", "Payé", "Reste à payer", "Statut", "Émise le");
+        List<List<Object>> rows = new ArrayList<>();
+        for (InvoiceDto inv : report.getInvoices()) {
+            rows.add(java.util.Arrays.asList(
+                    inv.getInvoiceNumber(),
+                    inv.getPatientName(),
+                    inv.getPatientAmount(),
+                    inv.getPaidAmount(),
+                    inv.getBalanceDue(),
+                    inv.getStatus(),
+                    inv.getCreatedAt() != null ? inv.getCreatedAt().toLocalDate().toString() : ""));
+        }
+        byte[] xlsx = excelExportService.toXlsx("Impayés", headers, rows);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"impayes.xlsx\"")
+                .body(xlsx);
     }
 
     private void addPeriod(Model model, int month, int year) {

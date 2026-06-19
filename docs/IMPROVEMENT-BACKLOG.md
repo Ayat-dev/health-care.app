@@ -97,9 +97,11 @@
 - **Étapes** : table de référence `icd10_catalog` + auto-complétion dans la consultation ; garder le texte libre en complément.
 
 ### P2.3 — Export PDF / Excel binaire
-- [ ] Statut : todo (déjà différé faute de lib au pom)
+- [~] Statut : **socle + 1er slice fait** (2026-06-19) ; reste les autres documents.
+- **Réalisé** : libs au pom — **openhtmltopdf 1.0.10** (LGPL, choisi plutôt qu'iText/AGPL pour le SaaS) + **jsoup** (HTML→XHTML) + **Apache POI 5.2.5** (xlsx). Nouveau pkg `export` : `PdfExportService` (rend un template Thymeleaf hors requête web avec `pdf=true` → jsoup → openhtmltopdf → octets ; **réutilise les vues d'impression existantes**, pas de duplication) et `ExcelExportService` (POI, largeurs fixes pour rester headless-safe). Documents livrés : **reçu de facture PDF** (`GET /billing/invoices/{id}/receipt/pdf`), **ordonnance PDF** (`GET /prescriptions/{id}/pdf`), **impayés Excel** (`GET /reports/outstanding/excel`). Boutons « ⬇ PDF » sur reçu/ordonnance (toolbar masquée en PDF via `th:if="${!pdf}"`) et « ⬇ Excel » sur la page impayés. Tests `ExportTest` (reçu PDF = `%PDF-` valide >500 o ; impayés xlsx = magie `PK`). **32 tests verts.**
+- **Reste à faire** : bulletins **labo** + **imagerie** en PDF (même plomberie `PdfExportService` sur leurs templates `bulletin.html`), export **PDF des rapports** (financier/activité/épidémio) + `format=pdf|excel` sur `/api/reports/*` (côté API), et export Excel d'autres rapports (caisse du jour). NB : fidélité visuelle des PDF à valider à l'œil (les `display:flex` des entêtes peuvent dégrader en flux normal sous openhtmltopdf — contenu correct dans tous les cas).
 - **Pourquoi** : ordonnances, bulletins labo/imagerie, reçus, rapports. Aujourd'hui HTML print-only.
-- **Étapes** : iText/JasperReports + Apache POI au pom ; activer `format=pdf|excel` sur `/api/reports/*` et boutons « PDF » sur les bulletins/reçus.
+- **Étapes** : ~~iText/JasperReports~~ openhtmltopdf + Apache POI au pom ; activer `format=pdf|excel` sur `/api/reports/*` et boutons « PDF » sur les bulletins/reçus.
 
 ### P2.4 — Portail patient
 - [ ] Statut : todo (rôle `PATIENT` existe déjà, non câblé)
@@ -144,6 +146,7 @@
 | 2026-06-19 | **P1.4** | **Déjà fait** (commit `e2db645`, 2026-06-14, avant ce backlog). `GlobalExceptionHandler` = `@RestControllerAdvice` scopé `controller.api` (couvre les 16 contrôleurs API) : IllegalArgument→400, IllegalState→409, ResourceNotFound→404, Auth→401, AccessDenied→403, fallback→500, format standard. Vérifié : surpaiement→400 JSON, facture soldée→409 JSON, plus de 500 brut. NB CLAUDE.md « no @RestControllerAdvice » obsolète. Raffinement reporté : not-found→400 (services lèvent IllegalArgument au lieu de ResourceNotFound) — à faire en « P1.4b » après P1.5. |
 | 2026-06-19 | **P1.5** | Tests : **0 → 26 verts** (`mvnd test` OK). `spring-security-test` + profil `test` (H2). 5 classes : smoke contexte, `LoginAttemptServiceTest` (P1.3), `SecurityMatrixTest` (matrice RBAC MockMvc), `PageRenderSmokeTest` (anti-régression templating), `BusinessInvariantTest` (couverture assurance, surpaiement, facture soldée, FIFO, stock insuffisant). Testcontainers PostgreSQL différé (Docker indispo local). |
 | 2026-06-19 | **P1.4b** | not-found par id → **404** (`ResourceNotFoundException extends IllegalArgumentException` : zéro régression sur les `catch` web, 404 côté API). Conversion heuristique dans 15 services (FK de body `dto.get*` restent 400). +1 classe `ApiErrorMappingTest` (404/400/400/409). **30 tests verts**. |
+| 2026-06-19 | **P2.3** (slice) | Export : openhtmltopdf+jsoup+POI au pom, pkg `export` (`PdfExportService` réutilise les vues print via `pdf=true`, `ExcelExportService`). Livré : reçu PDF, ordonnance PDF, impayés Excel + boutons. `ExportTest` (PDF/xlsx valides). **32 tests verts**. Reste : bulletins labo/radio PDF, rapports PDF, `format=pdf\|excel` sur `/api/reports/*`. |
 
 ---
 

@@ -4,7 +4,10 @@
 
 <div class="panel-header" style="padding:0 0 12px;">
     <span>Liste des impayés</span>
-    <button onclick="window.print()" class="btn btn-ghost btn-sm">🖨 Imprimer</button>
+    <span class="no-print">
+        <a th:href="@{/reports/outstanding/excel}" class="btn btn-ghost btn-sm">⬇ Excel</a>
+        <button onclick="window.print()" class="btn btn-ghost btn-sm">🖨 Imprimer</button>
+    </span>
 </div>
 
 <div class="stats-grid">

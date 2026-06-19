@@ -6,11 +6,15 @@ import com.clinic.backend.catalog.ActCatalogService;
 import com.clinic.backend.clinicconfig.ClinicConfigService;
 import com.clinic.backend.dto.InvoiceDto;
 import com.clinic.backend.dto.PaymentDto;
+import com.clinic.backend.export.PdfExportService;
 import com.clinic.backend.insurance.InsuranceProviderService;
 import com.clinic.backend.patient.Patient;
 import com.clinic.backend.patient.PatientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +23,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/billing")
@@ -31,6 +37,7 @@ public class BillingWebController {
     private final ActCatalogService actCatalogService;
     private final InsuranceProviderService insuranceProviderService;
     private final ClinicConfigService clinicConfigService;
+    private final PdfExportService pdfExportService;
 
     // ── Tableau de bord financier ────────────────────────────────────────────────
     @GetMapping({"", "/dashboard"})
@@ -150,12 +157,29 @@ public class BillingWebController {
         return "redirect:/billing/invoices/" + id;
     }
 
-    // ── Reçu imprimable ───────────────────────────────────────────────────────────────────
+    // ── Reçu imprimable (HTML) ─────────────────────────────────────────────────────────────
     @GetMapping("/invoices/{id}/receipt")
     public String receipt(@PathVariable Long id, Model model) {
+        Map<String, Object> data = receiptModel(id);
+        model.addAllAttributes(data);
+        model.addAttribute("pdf", false); // affiche la toolbar dans le navigateur
+        return "billing/invoices/receipt";
+    }
+
+    // ── Reçu téléchargeable (PDF) ──────────────────────────────────────────────────────────
+    @GetMapping("/invoices/{id}/receipt/pdf")
+    public ResponseEntity<byte[]> receiptPdf(@PathVariable Long id) {
         InvoiceDto invoice = billingService.getDtoById(id);
-        model.addAttribute("invoice", invoice);
-        model.addAttribute("config", clinicConfigService.getConfig());
+        byte[] pdf = pdfExportService.renderTemplate("billing/invoices/receipt", receiptModel(id));
+        return pdfInline(pdf, "recu-" + invoice.getInvoiceNumber() + ".pdf");
+    }
+
+    /** Modèle partagé entre la vue HTML et l'export PDF du reçu. */
+    private Map<String, Object> receiptModel(Long id) {
+        InvoiceDto invoice = billingService.getDtoById(id);
+        Map<String, Object> model = new HashMap<>();
+        model.put("invoice", invoice);
+        model.put("config", clinicConfigService.getConfig());
 
         Integer age = null;
         if (invoice.getPatientId() != null) {
@@ -164,8 +188,15 @@ public class BillingWebController {
                 age = Period.between(patient.getBirthDate(), LocalDate.now()).getYears();
             }
         }
-        model.addAttribute("patientAge", age);
-        return "billing/invoices/receipt";
+        model.put("patientAge", age);
+        return model;
+    }
+
+    static ResponseEntity<byte[]> pdfInline(byte[] pdf, String filename) {
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
+                .body(pdf);
     }
 
     // ── Helpers ─────────────────────────────────────────────────────────────────────────────
