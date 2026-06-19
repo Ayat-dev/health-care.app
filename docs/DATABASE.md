@@ -263,6 +263,22 @@ CREATE INDEX idx_consultations_doctor  ON consultations(doctor_id);
 CREATE INDEX idx_consultations_date    ON consultations(consultation_date);
 ```
 
+### `icd10_catalog` (diagnostics codés CIM-10 — P2.2, V16)
+Table de référence alimentant l'auto-complétion des diagnostics. `consultations.icd10_codes`
+(codes séparés par virgule) y puise ses valeurs ; le `diagnosis` en texte libre reste obligatoire
+et complémentaire.
+```sql
+CREATE TABLE icd10_catalog (
+    id         BIGSERIAL PRIMARY KEY,
+    code       VARCHAR(10)  NOT NULL UNIQUE,   -- ex. J06.9, I10, O80
+    title      VARCHAR(255) NOT NULL,          -- libellé français
+    category   VARCHAR(120),                   -- chapitre CIM-10
+    is_active  BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX idx_icd10_is_active ON icd10_catalog(is_active);
+```
+
 ### `prescriptions` (ordonnances)
 ```sql
 CREATE TABLE prescriptions (

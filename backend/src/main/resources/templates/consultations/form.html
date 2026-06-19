@@ -112,10 +112,18 @@
                     <label class="form-label">Diagnostic <small>(obligatoire pour clôturer)</small></label>
                     <textarea name="diagnosis" class="form-control" rows="2" th:text="${consultation.diagnosis}"></textarea>
                 </div>
-                <div class="form-group">
+                <div class="form-group icd10-field">
                     <label class="form-label">Codes CIM-10</label>
-                    <input type="text" name="icd10Codes" class="form-control" th:value="${consultation.icd10Codes}"
+                    <input type="text" id="icd10Search" class="form-control" autocomplete="off"
+                           placeholder="Rechercher un diagnostic (code ou libellé)…"/>
+                    <ul id="icd10Suggestions" class="icd10-suggestions" hidden></ul>
+                    <input type="text" name="icd10Codes" id="icd10Codes" class="form-control"
+                           style="margin-top:.4rem" th:value="${consultation.icd10Codes}"
                            placeholder="ex: J06.9, R50.9"/>
+                    <small style="color:var(--muted,#64748b);font-size:.78rem">
+                        Tapez pour rechercher puis cliquez un résultat — ou saisissez directement les codes (séparés par virgule).
+                        Le diagnostic en texte libre reste obligatoire.
+                    </small>
                 </div>
             </div>
             <div class="form-group">
@@ -137,6 +145,68 @@
         </div>
     </form>
 </div>
+
+<script>
+(function () {
+    var searchInput = document.getElementById('icd10Search');
+    var codesInput  = document.getElementById('icd10Codes');
+    var box         = document.getElementById('icd10Suggestions');
+    if (!searchInput || !codesInput || !box) return;
+
+    var timer = null;
+
+    function hide() { box.hidden = true; box.innerHTML = ''; }
+
+    function currentCodes() {
+        return codesInput.value.split(',').map(function (s) { return s.trim(); })
+                         .filter(function (s) { return s.length > 0; });
+    }
+
+    function addCode(code) {
+        var codes = currentCodes();
+        var exists = codes.some(function (c) { return c.toUpperCase() === code.toUpperCase(); });
+        if (!exists) {
+            codes.push(code);
+            codesInput.value = codes.join(', ');
+        }
+        searchInput.value = '';
+        hide();
+    }
+
+    function render(items) {
+        if (!items || !items.length) { hide(); return; }
+        box.innerHTML = '';
+        items.forEach(function (it) {
+            var li = document.createElement('li');
+            li.className = 'icd10-suggestion';
+            var strong = document.createElement('strong');
+            strong.textContent = it.code;
+            var span = document.createElement('span');
+            span.textContent = it.title;
+            li.appendChild(strong);
+            li.appendChild(document.createTextNode(' '));
+            li.appendChild(span);
+            li.addEventListener('mousedown', function (e) { e.preventDefault(); addCode(it.code); });
+            box.appendChild(li);
+        });
+        box.hidden = false;
+    }
+
+    searchInput.addEventListener('input', function () {
+        var q = searchInput.value.trim();
+        clearTimeout(timer);
+        if (q.length < 2) { hide(); return; }
+        timer = setTimeout(function () {
+            fetch('/consultations/icd10/search?q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } })
+                .then(function (r) { return r.ok ? r.json() : []; })
+                .then(render)
+                .catch(hide);
+        }, 200);
+    });
+
+    searchInput.addEventListener('blur', function () { setTimeout(hide, 150); });
+})();
+</script>
 
 </th:block></body>
 </html>

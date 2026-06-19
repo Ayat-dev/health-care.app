@@ -1,10 +1,12 @@
 package com.clinic.backend.controller.web;
 
+import com.clinic.backend.catalog.Icd10Service;
 import com.clinic.backend.consultation.Consultation;
 import com.clinic.backend.consultation.ConsultationService;
 import com.clinic.backend.consultation.PrescriptionService;
 import com.clinic.backend.department.DepartmentService;
 import com.clinic.backend.dto.ConsultationDto;
+import com.clinic.backend.dto.Icd10CodeDto;
 import com.clinic.backend.dto.PrescriptionDto;
 import com.clinic.backend.dto.PrescriptionItemDto;
 import com.clinic.backend.model.User;
@@ -32,6 +34,7 @@ public class ConsultationWebController {
     private final PatientService patientService;
     private final DepartmentService departmentService;
     private final UserRepository userRepository;
+    private final Icd10Service icd10Service;
 
     // ── Liste ───────────────────────────────────────────────────────────────
     @GetMapping
@@ -166,6 +169,18 @@ public class ConsultationWebController {
             model.addAttribute("error", e.getMessage());
             return "prescriptions/form";
         }
+    }
+
+    // ── Auto-complétion CIM-10 (P2.2) ──────────────────────────────────────────
+    /**
+     * Sert l'auto-complétion des diagnostics CIM-10 au formulaire de consultation.
+     * Servi sous la chaîne web (session) car {@code /api/**} est en JWT stateless —
+     * un fetch depuis la page n'y serait pas authentifié.
+     */
+    @GetMapping("/icd10/search")
+    @ResponseBody
+    public List<Icd10CodeDto> searchIcd10(@RequestParam("q") String q) {
+        return icd10Service.search(q);
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────

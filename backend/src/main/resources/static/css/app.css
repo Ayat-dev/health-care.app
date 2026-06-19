@@ -1037,3 +1037,32 @@ body.login-page {
     .main, .page-content { margin: 0 !important; padding: 0 !important; }
     .panel, .stat-card { box-shadow: none; border: 1px solid #e2e8f0; }
 }
+
+/* ── Auto-complétion CIM-10 (consultation, P2.2) ─────────────────────────── */
+.icd10-field { position: relative; }
+.icd10-suggestions {
+    list-style: none;
+    margin: 2px 0 0;
+    padding: 4px 0;
+    position: absolute;
+    z-index: 30;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, .12);
+    max-height: 260px;
+    overflow-y: auto;
+}
+.icd10-suggestion {
+    padding: 7px 12px;
+    cursor: pointer;
+    font-size: .85rem;
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+}
+.icd10-suggestion:hover { background: #f1f5f9; }
+.icd10-suggestion strong { color: #2563eb; flex: 0 0 auto; font-family: ui-monospace, monospace; }
+.icd10-suggestion span { color: #334155; }

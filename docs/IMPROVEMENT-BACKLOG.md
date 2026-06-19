@@ -92,9 +92,12 @@
 - **Critère** : `GET /fhir/Patient/{id}` renvoie une ressource FHIR valide.
 
 ### P2.2 — Diagnostics CIM-10 codés (fin du texte libre)
-- [ ] Statut : todo
+- [x] Statut : **fait** (2026-06-19)
+- **Réalisé** : table de référence `icd10_catalog` (`V16`, ~50 codes amorcés — pathologies fréquentes en clinique africaine : paludisme, drépanocytose, HTA, diabète, IRA, gastrite, CPN…). Pkg `catalog` : `Icd10Code` (code unique/title/category/active), `Icd10CodeRepository` (`search` JPQL actif-only, correspondance code **ou** libellé, préfixe-code priorisé, borné par `Pageable`), `Icd10Service` (search bornée à 20, CRUD + toggle), `Icd10CodeDto`. REST `Icd10ApiController` (`/api/icd10` : `GET /search?q=` ouvert aux authentifiés, écritures ADMIN). Admin CRUD `Icd10WebController` (`/admin/icd10` list+form) + nav `ADMIN_ICD10` (🏷️, auto-visible ADMIN). **Auto-complétion câblée dans le formulaire de consultation** : champ de recherche + dropdown JS qui appelle `GET /consultations/icd10/search` (endpoint servi sous la **chaîne web/session** — `/api/**` est JWT stateless, inaccessible depuis la page ; gardé `ADMIN/MEDECIN/INFIRMIER`), clic = ajout du code (dédup) dans `icd10Codes` (séparés par virgule). Le `diagnosis` texte libre **reste obligatoire** pour clôturer (inchangé). CSS `.icd10-suggestions` ajouté à `app.css`. `consultations.icd10_codes` (déjà en V6) inchangé — alimenté désormais par le catalogue. `docs/DATABASE.md` §5 documente `icd10_catalog`.
+- **Vérifié** : `mvnd test` **41 verts** (was 37 ; +`Icd10CatalogTest` : recherche par code `J06`→`J06.9`, par libellé `diab`→`E11`, non-admin POST→403, doublon `I10`→400). Les `@SpringBootTest` valident Flyway→v16 + Hibernate validate sur la nouvelle table.
 - **Pourquoi** : diagnostic actuellement en texte libre → épidémiologie et facturation par acte fragiles.
 - **Étapes** : table de référence `icd10_catalog` + auto-complétion dans la consultation ; garder le texte libre en complément.
+- **Reste (optionnel)** : brancher le « top pathologies » des rapports (module 14) sur `icd10_codes` plutôt que sur `diagnosis` texte libre ; étendre l'amorce (catalogue complet importable) ; afficher le libellé des codes (pas que le code) sur la fiche consultation/détail.
 
 ### P2.3 — Export PDF / Excel binaire
 - [x] Statut : **fait côté web** (2026-06-19) ; reste optionnel : `format=pdf|excel` côté API REST.
@@ -150,6 +153,7 @@
 | 2026-06-19 | **P1.4b** | not-found par id → **404** (`ResourceNotFoundException extends IllegalArgumentException` : zéro régression sur les `catch` web, 404 côté API). Conversion heuristique dans 15 services (FK de body `dto.get*` restent 400). +1 classe `ApiErrorMappingTest` (404/400/400/409). **30 tests verts**. |
 | 2026-06-19 | **P2.3** (slice) | Export : openhtmltopdf+jsoup+POI au pom, pkg `export` (`PdfExportService` réutilise les vues print via `pdf=true`, `ExcelExportService`). Livré : reçu PDF, ordonnance PDF, impayés Excel + boutons. `ExportTest` (PDF/xlsx valides). **32 tests verts**. Reste : bulletins labo/radio PDF, rapports PDF, `format=pdf\|excel` sur `/api/reports/*`. |
 | 2026-06-19 | **P2.3** (fin web) | Complété : bulletins **labo** + **imagerie** PDF, **3 rapports** PDF (financier/activité/épidémio) via template print générique `reports/pdf-report.html`. Boutons partout. `ExportTest`→7. **37 tests verts**. Ordonnance imprimée en réel (fidélité OK). Reste optionnel : `format=pdf\|excel` API REST + images radio en base64. |
+| 2026-06-19 | **P2.2** | Diagnostics CIM-10 codés : `V16` `icd10_catalog` (~50 codes amorcés), pkg `catalog` (`Icd10Code`/repo `search`/service/DTO), `/api/icd10` (search ouvert, écritures ADMIN), admin `/admin/icd10` + nav `ADMIN_ICD10`. Auto-complétion JS dans le formulaire consultation via `/consultations/icd10/search` (servi en session, `/api/**` étant JWT) ; texte libre `diagnosis` conservé + obligatoire. DATABASE.md §5 à jour. `Icd10CatalogTest` (+4). **41 tests verts**. Reste optionnel : rapports « top pathologies » sur codes, libellés sur la fiche, catalogue complet. |
 
 ---
 

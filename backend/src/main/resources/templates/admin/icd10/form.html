@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(${code.id == null ? 'Nouveau code CIM-10' : 'Modifier code CIM-10'}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="form-card">
+    <form th:action="${code.id == null ? '/admin/icd10/new' : '/admin/icd10/' + code.id + '/edit'}"
+          method="post">
+
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label class="form-label">Code *</label>
+                <input type="text" name="code" th:value="${code.code}"
+                       class="form-control" placeholder="J06.9" required/>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Catégorie</label>
+                <input type="text" name="category" th:value="${code.category}"
+                       class="form-control" placeholder="Maladies de l'appareil respiratoire"/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Libellé *</label>
+            <input type="text" name="title" th:value="${code.title}"
+                   class="form-control" placeholder="Infection aiguë des voies respiratoires supérieures" required/>
+        </div>
+        <div class="form-group" style="max-width:220px;">
+            <label class="form-label">Statut</label>
+            <select name="active" class="form-control">
+                <option value="true" th:selected="${code.active}">Actif</option>
+                <option value="false" th:selected="${!code.active}">Désactivé</option>
+            </select>
+        </div>
+
+        <div class="form-actions">
+            <a th:href="@{/admin/icd10}" class="btn btn-ghost">Annuler</a>
+            <button type="submit" class="btn btn-primary">
+                <span th:text="${code.id == null ? 'Créer le code' : 'Enregistrer'}">Créer</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+</th:block></body>
+</html>
