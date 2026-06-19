@@ -24,8 +24,9 @@ Thumbs.db
 logs/
 
 # Variables d'environnement sensibles (prod)
+# NB : application-prod.properties est versionné — il ne contient AUCUN secret
+# (tout via ${ENV}). Les vrais secrets vivent uniquement dans .env (ci-dessous).
 .env
-application-prod.properties
 
 # Fichiers uploadés à l'exécution (photos patients, documents — données médicales)
 uploads/
