@@ -39,7 +39,8 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
         http
-            .securityMatcher("/api/**")
+            // /fhir/** = API d'interopérabilité FHIR R4 (P2.1) : même modèle stateless/JWT que /api/**.
+            .securityMatcher("/api/**", "/fhir/**")
             .csrf(csrf -> csrf.disable())
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .headers(headers -> headers
@@ -49,6 +50,7 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/login").permitAll()
+                .requestMatchers("/fhir/metadata").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

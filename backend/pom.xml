@@ -138,6 +138,15 @@
             <version>5.2.5</version>
         </dependency>
 
+        <!-- Interopérabilité FHIR R4 (P2.1) : modèle + parser HAPI FHIR pour
+             projeter Patient/Encounter/Observation/MedicationRequest sous /fhir/**.
+             HAPI 7.x est basé sur Jakarta EE (compatible Spring Boot 3 / Java 21). -->
+        <dependency>
+            <groupId>ca.uhn.hapi.fhir</groupId>
+            <artifactId>hapi-fhir-structures-r4</artifactId>
+            <version>7.4.0</version>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
