@@ -1,15 +1,22 @@
-version: '3.9'
-
 services:
   postgres:
     image: postgres:16
     container_name: medical_postgres
     restart: always
-    env_file: ./backend/.env
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     networks:
       - medical_net
 
@@ -17,11 +24,16 @@ services:
     build: ./backend
     container_name: medical_backend
     restart: always
-    env_file: ./backend/.env
+    env_file: .env
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
     ports:
       - "8080:8080"
+    volumes:
+      - backend_uploads:/app/uploads
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - medical_net
 
@@ -42,3 +54,4 @@ networks:
 
 volumes:
   postgres_data:
+  backend_uploads:

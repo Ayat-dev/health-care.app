@@ -22,7 +22,10 @@
 ## 🔴 P1 — Bloquants production (sécurité & fiabilité)
 
 ### P1.1 — Séparation des profils Spring dev / prod
-- [ ] Statut : todo
+- [x] Statut : **fait** (2026-06-19)
+- **Réalisé** : `application.properties` réduit à une base neutre (`spring.profiles.active=dev`, Flyway, OSIV off, multipart, upload-dir, expiration JWT) ; `application-dev.properties` (H2, console H2 on, secret de dev) ; `application-prod.properties` (PostgreSQL + secrets via env, **sans défaut → fail-fast**, console H2 off). `DataInitializer` gated `@Profile("!prod")` (plus de seed démo ni de `admin/admin123` en prod) ; nouveau `ProdDataInitializer` (`@Profile("prod")`) crée l'admin depuis `CLINIC_ADMIN_USERNAME/PASSWORD` si base vide. `docker-compose.yml` : `SPRING_PROFILES_ACTIVE=prod`, healthcheck Postgres + `depends_on: condition: service_healthy`, volume `backend_uploads`. `.env.example` (racine) créé ; `.env` déjà gitignoré.
+- **Vérifié** : dev (défaut) démarre, Flyway v13, login admin/admin123 + dashboard 200 ; prod **sans secrets → refuse de démarrer** (`Could not resolve placeholder 'JWT_SECRET'`, rien sur 8080) ; prod avec secrets (testé sur H2, même chemin de code, Docker indispo pour Postgres) → admin bootstrappé depuis l'env (login OK, dashboard 200), `admin/admin123` rejeté (`/login?error=true`), `/patients` 200 sans donnée démo, **h2-console 404** (vs 302 en dev).
+- **Reste à confirmer au déploiement réel** : boot complet sur PostgreSQL (non testable ici, Docker absent) — la config + le driver au pom sont en place.
 - **Pourquoi** : aujourd'hui un **seul** `application.properties` (H2 en mémoire, console H2 activée,
   `show-sql`, secret JWT par défaut en dur). Un déploiement « prod » tournerait sur la config de dev.
 - **Où** : `backend/src/main/resources/application.properties` (existant, dev).
@@ -129,6 +132,7 @@
 | Date | Item | Résultat |
 |---|---|---|
 | 2026-06-19 | (création) | Backlog créé suite à l'analyse comparative + audit code. Bug RBAC `mod`→`navMod` corrigé (commit 4ed3535). |
+| 2026-06-19 | **P1.1** | Profils dev/prod + secrets externalisés (fail-fast), seed démo gated `!prod`, bootstrap admin prod via env, compose+`.env.example`. Vérifié dev/prod/fail-fast. Boot Postgres réel à confirmer au déploiement (Docker indispo en local). |
 
 ---
 

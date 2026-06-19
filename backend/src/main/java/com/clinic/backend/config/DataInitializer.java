@@ -43,12 +43,20 @@ import com.clinic.backend.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * Données de test (utilisateurs de démo, patients, RDV, etc.).
+ * Actif sur tout profil SAUF {@code prod} — on ne seede jamais de comptes
+ * de démonstration (ex. {@code admin/admin123}) dans une clinique réelle.
+ * L'amorçage prod se fait via {@link ProdDataInitializer} (admin depuis l'env).
+ */
 @Configuration
+@Profile("!prod")
 public class DataInitializer {
 
     @Bean
