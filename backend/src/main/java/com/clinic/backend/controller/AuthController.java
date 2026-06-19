@@ -3,10 +3,14 @@ package com.clinic.backend.controller;
 import com.clinic.backend.model.User;
 import com.clinic.backend.repository.UserRepository;
 import com.clinic.backend.security.JwtService;
+import com.clinic.backend.service.LoginAttemptService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,9 +49,19 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> login(@RequestBody Map<String, String> data) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        data.get("username"), data.get("password")));
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            data.get("username"), data.get("password")));
+        } catch (LockedException e) {
+            // Anti-brute-force (P1.3) : compte verrouillé → 423 Locked, message clair.
+            return ResponseEntity.status(HttpStatus.LOCKED).body(Map.of(
+                    "error", "Compte verrouillé après trop de tentatives. Réessayez dans "
+                            + LoginAttemptService.LOCK_MINUTES + " minutes."));
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
+                    "error", "Identifiant ou mot de passe incorrect."));
+        }
 
         User user = userRepository.findByUsername(data.get("username"))
                 .orElseThrow();

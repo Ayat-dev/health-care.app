@@ -1,9 +1,12 @@
 package com.clinic.backend.security;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.AuthenticationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,10 +24,14 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
     private final RoleAuthenticationSuccessHandler successHandler;
+    private final LoginFailureHandler failureHandler;
 
-    public SecurityConfig(JwtFilter jwtFilter, RoleAuthenticationSuccessHandler successHandler) {
+    public SecurityConfig(JwtFilter jwtFilter,
+                          RoleAuthenticationSuccessHandler successHandler,
+                          LoginFailureHandler failureHandler) {
         this.jwtFilter      = jwtFilter;
         this.successHandler = successHandler;
+        this.failureHandler = failureHandler;
     }
 
     // ─── Chaîne 1 : API REST — stateless, JWT ───────────────────────────────
@@ -86,7 +93,7 @@ public class SecurityConfig {
             .formLogin(form -> form
                 .loginPage("/login")
                 .successHandler(successHandler)
-                .failureUrl("/login?error=true")
+                .failureHandler(failureHandler)
                 .permitAll()
             )
             .logout(logout -> logout
@@ -104,6 +111,16 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
+    }
+
+    /**
+     * Publie les événements succès/échec d'authentification consommés par
+     * {@link AuthenticationEventListener} (anti-brute-force, P1.3). Sans ce bean
+     * l'{@code AuthenticationManager} utilise un publisher no-op.
+     */
+    @Bean
+    public AuthenticationEventPublisher authenticationEventPublisher(ApplicationEventPublisher delegate) {
+        return new DefaultAuthenticationEventPublisher(delegate);
     }
 
     @Bean

@@ -24,6 +24,12 @@ public class User implements UserDetails {
 
     private boolean active = true;
 
+    // Anti-brute-force (P1.3) : échecs consécutifs + verrou temporaire.
+    @Column(nullable = false)
+    private int failedAttempts = 0;
+
+    private LocalDateTime lockedUntil;
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
@@ -58,7 +64,9 @@ public class User implements UserDetails {
     public boolean isAccountNonExpired() { return true; }
 
     @Override
-    public boolean isAccountNonLocked() { return true; }
+    public boolean isAccountNonLocked() {
+        return lockedUntil == null || lockedUntil.isBefore(LocalDateTime.now());
+    }
 
     @Override
     public boolean isCredentialsNonExpired() { return true; }
@@ -74,6 +82,10 @@ public class User implements UserDetails {
 
     public boolean isActive() { return active; }
 
+    public int getFailedAttempts() { return failedAttempts; }
+
+    public LocalDateTime getLockedUntil() { return lockedUntil; }
+
     public LocalDateTime getCreatedAt() { return createdAt; }
 
     public LocalDateTime getDeletedAt() { return deletedAt; }
@@ -87,6 +99,10 @@ public class User implements UserDetails {
     public void setRole(String role) { this.role = role; }
 
     public void setActive(boolean active) { this.active = active; }
+
+    public void setFailedAttempts(int failedAttempts) { this.failedAttempts = failedAttempts; }
+
+    public void setLockedUntil(LocalDateTime lockedUntil) { this.lockedUntil = lockedUntil; }
 
     public void setDeletedAt(LocalDateTime deletedAt) { this.deletedAt = deletedAt; }
 }

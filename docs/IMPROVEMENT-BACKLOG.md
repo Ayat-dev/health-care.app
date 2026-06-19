@@ -49,15 +49,17 @@
 - **Critère d'acceptation** : créer/modifier un patient, valider un labo, encaisser une facture → 1 ligne `audit_log` chacune avec l'utilisateur réel.
 
 ### P1.3 — Anti-brute-force (verrouillage + rate-limit login)
-- [ ] Statut : todo
+- [x] Statut : **fait** (2026-06-19)
+- **Réalisé** : `V15__user_login_lockout.sql` ajoute `failed_attempts INT NOT NULL DEFAULT 0` + `locked_until TIMESTAMP` sur `users` ; `User` porte les champs et `isAccountNonLocked()` = `lockedUntil == null || lockedUntil < now()` (auto-déverrouillage à expiration). `LoginAttemptService` (`@Transactional`) : `loginFailed` incrémente (un verrou expiré repart de 0), verrouille 15 min à `MAX_ATTEMPTS=5` ; `loginSucceeded` remet compteur+verrou à zéro. Branché **par événements** Spring Security (`AuthenticationEventListener` : `AuthenticationSuccessEvent`/`AuthenticationFailureBadCredentialsEvent`) → couvre web **et** API d'un coup ; `LockedException` ignorée (sinon le verrou se prolongerait). `DefaultAuthenticationEventPublisher` exposé en bean (sinon publisher no-op). `LoginFailureHandler` (web) route `LockedException`→`/login?locked=true`, reste→`/login?error=true` ; message « Compte verrouillé… 15 minutes » dans `login.html`. `AuthController.login` (API) catch → **423 Locked** / **401** JSON propre (au lieu d'un 500 brut). On n'écoute pas les `BadCredentials` du `JwtFilter` (il pose l'auth en direct, pas d'événement → pas de bruit par requête).
+- **Vérifié** (H2, app bootée Flyway→v15) : **API** 5 mauvais mdp sur `admin` → 5×401 JSON, puis bon mdp → **423 Locked** (verrou actif) ; `dr.martin` intact → 200. **Reset prouvé** : 4 échecs + 1 succès ×2 (8 échecs au total) → jamais verrouillé, dernier succès 200. **Web** (avec token CSRF + session) : `admin` verrouillé → **302 → `/login?locked=true`**.
 - **Pourquoi** : aucun lockout ni rate-limit ; `/login` et `/api/auth/login` exposés au bourrinage.
 - **Où** : `User` (a déjà `active`), `SecurityConfig`, `service` auth.
 - **Étapes** :
   1. Colonnes `failed_attempts INT`, `locked_until TIMESTAMPTZ` sur `users` (V15).
   2. `AuthenticationFailureHandler` : incrémente ; à N (ex. 5) → `locked_until = now()+15min`. Succès → reset.
   3. `isAccountNonLocked()` reflète `locked_until`.
-  4. (Option) rate-limit IP via Bucket4j sur les endpoints de login.
-- **Critère d'acceptation** : 5 mauvais mots de passe → compte verrouillé 15 min, message clair.
+  4. (Option) rate-limit IP via Bucket4j sur les endpoints de login. — **non fait** (lockout par compte suffit pour le critère ; rate-limit IP reportable si besoin DoS distribué).
+- **Critère d'acceptation** : 5 mauvais mots de passe → compte verrouillé 15 min, message clair. — ✅
 
 ### P1.4 — `@RestControllerAdvice` global (fin des 500 bruts)
 - [ ] Statut : todo
@@ -136,6 +138,7 @@
 | 2026-06-19 | (création) | Backlog créé suite à l'analyse comparative + audit code. Bug RBAC `mod`→`navMod` corrigé (commit 4ed3535). |
 | 2026-06-19 | **P1.1** | Profils dev/prod + secrets externalisés (fail-fast), seed démo gated `!prod`, bootstrap admin prod via env, compose+`.env.example`. Vérifié dev/prod/fail-fast. Boot Postgres réel à confirmer au déploiement (Docker indispo en local). |
 | 2026-06-19 | **P1.2** | Journal d'audit : pkg `audit` (`@Audited` + AOP `@AfterReturning`, écriture `REQUIRES_NEW`), V14, vue admin `/admin/audit` (ADMIN). 14 méthodes auditées. Vérifié : 3 actions → 3 traces (auteur/entité/id/IP), filtres OK, non-admin 403. |
+| 2026-06-19 | **P1.3** | Anti-brute-force : V15 (`failed_attempts`/`locked_until`), `LoginAttemptService` (5 échecs → verrou 15 min, reset au succès) branché par événements Spring Security (web+API), `isAccountNonLocked()` câblé, `LoginFailureHandler`→`?locked=true`, API→423/401 JSON. Vérifié : API 5×401→423, autre compte 200, reset prouvé (8 échecs entrecoupés de succès → jamais verrouillé), web 302→`/login?locked=true`. Rate-limit IP (Bucket4j) non fait. |
 
 ---
 
