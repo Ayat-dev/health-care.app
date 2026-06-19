@@ -32,6 +32,7 @@ public class LabWebController {
     private final LabTestCatalogService labTestCatalogService;
     private final ClinicConfigService clinicConfigService;
     private final UserRepository userRepository;
+    private final com.clinic.backend.export.PdfExportService pdfExportService;
 
     // ── Travail du jour (laborantin) ─────────────────────────────────────────────
     @GetMapping
@@ -142,12 +143,27 @@ public class LabWebController {
         return "redirect:/lab/requests/" + id;
     }
 
-    // ── Bulletin imprimable ───────────────────────────────────────────────────────────
+    // ── Bulletin imprimable (HTML) ─────────────────────────────────────────────────────
     @GetMapping("/requests/{id}/bulletin")
     public String bulletin(@PathVariable Long id, Model model) {
+        model.addAllAttributes(bulletinModel(id));
+        model.addAttribute("pdf", false);
+        return "lab/bulletin";
+    }
+
+    // ── Bulletin téléchargeable (PDF) ───────────────────────────────────────────────────
+    @GetMapping("/requests/{id}/bulletin/pdf")
+    public org.springframework.http.ResponseEntity<byte[]> bulletinPdf(@PathVariable Long id) {
         LabRequestDto request = labService.getDtoById(id);
-        model.addAttribute("request", request);
-        model.addAttribute("config", clinicConfigService.getConfig());
+        byte[] pdf = pdfExportService.renderTemplate("lab/bulletin", bulletinModel(id));
+        return BillingWebController.pdfInline(pdf, "bulletin-labo-" + request.getRequestNumber() + ".pdf");
+    }
+
+    private java.util.Map<String, Object> bulletinModel(Long id) {
+        LabRequestDto request = labService.getDtoById(id);
+        java.util.Map<String, Object> model = new java.util.HashMap<>();
+        model.put("request", request);
+        model.put("config", clinicConfigService.getConfig());
 
         Integer age = null;
         if (request.getPatientId() != null) {
@@ -156,8 +172,8 @@ public class LabWebController {
                 age = Period.between(patient.getBirthDate(), LocalDate.now()).getYears();
             }
         }
-        model.addAttribute("patientAge", age);
-        return "lab/bulletin";
+        model.put("patientAge", age);
+        return model;
     }
 
     // ── Helpers ─────────────────────────────────────────────────────────────────────────

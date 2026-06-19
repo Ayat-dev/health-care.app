@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${title}">Rapport</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: "Segoe UI", Arial, sans-serif; color: #0f172a; margin: 0; padding: 28px; }
+        .head { border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 8px; }
+        .clinic { font-size: 20px; font-weight: 700; }
+        .meta { font-size: 11px; color: #475569; }
+        h1 { font-size: 18px; margin: 18px 0 2px; }
+        .period { color: #64748b; font-size: 13px; margin-bottom: 14px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 14px; }
+        th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #e2e8f0; }
+        th { color: #64748b; font-size: 11px; text-transform: uppercase; }
+        .num { text-align: right; }
+        .kpi td { font-size: 14px; border-bottom: 1px solid #f1f5f9; }
+        .kpi .v { font-weight: 700; text-align: right; }
+        .section-title { font-size: 14px; font-weight: 700; margin: 16px 0 6px; }
+        .footer { margin-top: 28px; font-size: 11px; color: #64748b; }
+    </style>
+</head>
+<body>
+<div class="head">
+    <div class="clinic" th:text="${config.name}">Clinique</div>
+    <div class="meta">
+        <span th:if="${config.address}" th:text="${config.address}">Adresse</span>
+        <span th:if="${config.phone}" th:text="' · Tél : ' + ${config.phone}">Tél</span>
+    </div>
+</div>
+
+<h1 th:text="${title}">Rapport</h1>
+<div class="period" th:text="${period}">Période</div>
+
+<table class="kpi">
+    <tr th:each="k : ${kpis}">
+        <td th:text="${k.label}">Libellé</td>
+        <td class="v" th:text="${k.value}">0</td>
+    </tr>
+</table>
+
+<div th:each="s : ${sections}">
+    <div class="section-title" th:text="${s.title}">Section</div>
+    <table>
+        <thead>
+        <tr><th th:text="${s.col1}">Libellé</th><th class="num" th:text="${s.col2}">Valeur</th></tr>
+        </thead>
+        <tbody>
+        <tr th:if="${s.rows.isEmpty()}"><td colspan="2">Aucune donnée sur la période.</td></tr>
+        <tr th:each="r : ${s.rows}">
+            <td th:text="${r.label}">—</td>
+            <td class="num" th:text="${r.value}">0</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="footer" th:text="'Document généré le ' + ${generatedAt}">Généré</div>
+</body>
+</html>

@@ -38,6 +38,41 @@ class ExportTest {
     }
 
     @Test
+    void bulletin_labo_pdf_valide() throws Exception {
+        assertPdf("/lab/requests/1/bulletin/pdf");
+    }
+
+    @Test
+    void bulletin_radio_pdf_valide() throws Exception {
+        assertPdf("/radiology/requests/1/bulletin/pdf");
+    }
+
+    @Test
+    void rapport_financier_pdf_valide() throws Exception {
+        assertPdf("/reports/financial/pdf");
+    }
+
+    @Test
+    void rapport_activite_pdf_valide() throws Exception {
+        assertPdf("/reports/activity/pdf");
+    }
+
+    @Test
+    void rapport_epidemiologie_pdf_valide() throws Exception {
+        assertPdf("/reports/epidemiology/pdf");
+    }
+
+    private void assertPdf(String url) throws Exception {
+        MvcResult res = mvc.perform(get(url))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/pdf"))
+                .andReturn();
+        byte[] body = res.getResponse().getContentAsByteArray();
+        assertThat(body.length).isGreaterThan(500);
+        assertThat(new String(body, 0, 5)).isEqualTo("%PDF-");
+    }
+
+    @Test
     void impayes_excel_est_un_xlsx_valide() throws Exception {
         MvcResult res = mvc.perform(get("/reports/outstanding/excel"))
                 .andExpect(status().isOk())

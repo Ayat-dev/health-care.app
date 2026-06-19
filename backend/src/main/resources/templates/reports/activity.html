@@ -4,7 +4,10 @@
 
 <div class="panel-header" style="padding:0 0 12px;">
     <span th:text="'Activité médicale — ' + ${monthName} + ' ' + ${year}">Activité</span>
-    <button onclick="window.print()" class="btn btn-ghost btn-sm">🖨 Imprimer</button>
+    <span class="no-print">
+        <a th:href="@{/reports/activity/pdf(month=${month},year=${year})}" class="btn btn-ghost btn-sm">⬇ PDF</a>
+        <button onclick="window.print()" class="btn btn-ghost btn-sm">🖨 Imprimer</button>
+    </span>
 </div>
 
 <form method="get" th:action="@{/reports/activity}" class="form-card no-print"

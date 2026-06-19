@@ -31,6 +31,7 @@ public class RadiologyWebController {
     private final PatientService patientService;
     private final ClinicConfigService clinicConfigService;
     private final UserRepository userRepository;
+    private final com.clinic.backend.export.PdfExportService pdfExportService;
 
     // ── Travail du jour (radiologue) ─────────────────────────────────────────────
     @GetMapping
@@ -167,12 +168,27 @@ public class RadiologyWebController {
         return "redirect:/radiology/requests/" + id;
     }
 
-    // ── Compte-rendu imprimable ───────────────────────────────────────────────────────────
+    // ── Compte-rendu imprimable (HTML) ─────────────────────────────────────────────────────
     @GetMapping("/requests/{id}/bulletin")
     public String bulletin(@PathVariable Long id, Model model) {
+        model.addAllAttributes(bulletinModel(id));
+        model.addAttribute("pdf", false);
+        return "radiology/bulletin";
+    }
+
+    // ── Compte-rendu téléchargeable (PDF) ────────────────────────────────────────────────
+    @GetMapping("/requests/{id}/bulletin/pdf")
+    public org.springframework.http.ResponseEntity<byte[]> bulletinPdf(@PathVariable Long id) {
         RadiologyRequestDto request = radiologyService.getDtoById(id);
-        model.addAttribute("request", request);
-        model.addAttribute("config", clinicConfigService.getConfig());
+        byte[] pdf = pdfExportService.renderTemplate("radiology/bulletin", bulletinModel(id));
+        return BillingWebController.pdfInline(pdf, "compte-rendu-" + request.getRequestNumber() + ".pdf");
+    }
+
+    private java.util.Map<String, Object> bulletinModel(Long id) {
+        RadiologyRequestDto request = radiologyService.getDtoById(id);
+        java.util.Map<String, Object> model = new java.util.HashMap<>();
+        model.put("request", request);
+        model.put("config", clinicConfigService.getConfig());
 
         Integer age = null;
         if (request.getPatientId() != null) {
@@ -181,8 +197,8 @@ public class RadiologyWebController {
                 age = Period.between(patient.getBirthDate(), LocalDate.now()).getYears();
             }
         }
-        model.addAttribute("patientAge", age);
-        return "radiology/bulletin";
+        model.put("patientAge", age);
+        return model;
     }
 
     // ── Helpers ─────────────────────────────────────────────────────────────────────────
