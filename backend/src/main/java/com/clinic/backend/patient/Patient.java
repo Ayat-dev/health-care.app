@@ -1,5 +1,6 @@
 package com.clinic.backend.patient;
 
+import com.clinic.backend.crypto.PhiStringConverter;
 import com.clinic.backend.model.User;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -51,6 +52,7 @@ public class Patient {
     @Column(length = 120)
     private String email;
 
+    @Convert(converter = PhiStringConverter.class)
     @Column(columnDefinition = "TEXT")
     private String address;
 
@@ -66,12 +68,15 @@ public class Patient {
     @Column(name = "blood_type", length = 5)
     private String bloodType;
 
+    @Convert(converter = PhiStringConverter.class)
     @Column(columnDefinition = "TEXT")
     private String allergies;
 
+    @Convert(converter = PhiStringConverter.class)
     @Column(name = "chronic_conditions", columnDefinition = "TEXT")
     private String chronicConditions;
 
+    @Convert(converter = PhiStringConverter.class)
     @Column(name = "medical_history", columnDefinition = "TEXT")
     private String medicalHistory;
 
@@ -90,6 +95,7 @@ public class Patient {
     @Column(name = "photo_url", length = 255)
     private String photoUrl;
 
+    @Convert(converter = PhiStringConverter.class)
     @Column(columnDefinition = "TEXT")
     private String notes;
 

@@ -27,13 +27,34 @@ services:
     env_file: .env
     environment:
       SPRING_PROFILES_ACTIVE: prod
-    ports:
-      - "8080:8080"
+    # Pas de port publié sur l'hôte : le backend n'est joignable QUE via le
+    # reverse-proxy nginx (chiffrement en transit forcé). Sur le réseau Docker
+    # privé, nginx l'atteint en clair sur backend:8080.
+    expose:
+      - "8080"
     volumes:
       - backend_uploads:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - medical_net
+
+  # ── Reverse-proxy TLS (P2.5 — chiffrement en transit) ──────────────────────
+  # Termine le HTTPS et relaie vers le backend. Génerer le certificat AVANT le
+  # 1er démarrage (cf. nginx/README.md) — sinon nginx refuse de démarrer.
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: medical_nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - backend
     networks:
       - medical_net
 

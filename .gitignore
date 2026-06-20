@@ -32,5 +32,8 @@ logs/
 uploads/
 backend/uploads/
 
+# Certificats TLS du reverse-proxy (P2.5) — JAMAIS versionnés (clé privée)
+nginx/certs/
+
 #autres
 AIDE_MEMOIRE.txt
