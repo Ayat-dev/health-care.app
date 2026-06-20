@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:lang="${#locale.language}"
+      th:dir="${#locale.language == 'ar'} ? 'rtl' : 'ltr'">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Connexion — ClinicApp</title>
+    <title>ClinicApp</title>
     <link rel="stylesheet" th:href="@{/css/app.css}"/>
     <!-- PWA (P3.1) -->
     <link rel="manifest" th:href="@{/manifest.webmanifest}"/>
@@ -96,37 +98,52 @@
             font-size: 13px;
             margin-bottom: 16px;
         }
+        .login-lang {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 13px;
+        }
+        .login-lang a { color: #64748b; text-decoration: none; margin: 0 6px; }
+        .login-lang a.active { color: #2563eb; font-weight: 600; }
     </style>
 </head>
 <body>
 <div class="login-wrapper">
     <div class="login-logo">
         <h1>ClinicApp</h1>
-        <p>Système de gestion de clinique</p>
+        <p th:text="#{app.tagline}">Système de gestion de clinique</p>
     </div>
     <div class="login-card">
-        <div class="alert-error" th:if="${param.error}">
+        <div class="alert-error" th:if="${param.error}" th:text="#{login.error}">
             Identifiant ou mot de passe incorrect.
         </div>
-        <div class="alert-error" th:if="${param.locked}">
+        <div class="alert-error" th:if="${param.locked}" th:text="#{login.locked}">
             Compte verrouillé après trop de tentatives. Réessayez dans 15 minutes.
         </div>
-        <div class="alert-success" th:if="${param.logout}">
+        <div class="alert-success" th:if="${param.logout}" th:text="#{login.logout_success}">
             Vous avez été déconnecté.
         </div>
         <form th:action="@{/login}" method="post">
             <div class="form-group">
-                <label class="form-label" for="username">Nom d'utilisateur</label>
+                <label class="form-label" for="username" th:text="#{login.username}">Nom d'utilisateur</label>
                 <input class="form-control" type="text" id="username" name="username"
-                       placeholder="ex: dr.martin" autofocus required/>
+                       th:placeholder="#{login.username_placeholder}" autofocus required/>
             </div>
             <div class="form-group">
-                <label class="form-label" for="password">Mot de passe</label>
+                <label class="form-label" for="password" th:text="#{login.password}">Mot de passe</label>
                 <input class="form-control" type="password" id="password" name="password"
                        placeholder="••••••••" required/>
             </div>
-            <button type="submit" class="btn-login">Se connecter</button>
+            <button type="submit" class="btn-login" th:text="#{login.submit}">Se connecter</button>
         </form>
+    </div>
+    <div class="login-lang">
+        <a th:href="@{/login(lang='fr')}" th:text="#{lang.fr}"
+           th:classappend="${#locale.language == 'fr'} ? 'active'">Français</a>
+        <a th:href="@{/login(lang='en')}" th:text="#{lang.en}"
+           th:classappend="${#locale.language == 'en'} ? 'active'">English</a>
+        <a th:href="@{/login(lang='ar')}" th:text="#{lang.ar}"
+           th:classappend="${#locale.language == 'ar'} ? 'active'">العربية</a>
     </div>
 </div>
 </body>

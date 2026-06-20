@@ -1118,3 +1118,34 @@ body.login-page {
 .portal-card .pc-icon { font-size: 1.6rem; }
 .portal-card .pc-title { font-weight: 600; margin: 8px 0 4px; }
 .portal-card .pc-sub { color: var(--text-500); font-size: .85rem; }
+
+/* ── i18n : sélecteur de langue (P3.2) ────────────────────── */
+.lang-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 12px;
+    margin-inline-end: 4px;
+}
+.lang-switch a {
+    color: var(--text-500);
+    text-decoration: none;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    line-height: 1;
+}
+.lang-switch a:hover { background: var(--bg-100, #f1f5f9); color: var(--text-900); }
+.lang-switch a.active { color: var(--blue); font-weight: 600; }
+
+/* ── i18n : support RTL (arabe) ───────────────────────────── */
+/* La sidebar est en position:fixed left:0 et .main a un margin-left ;
+   en RTL on bascule tout du côté droit. */
+[dir="rtl"] .sidebar { left: auto; right: 0; }
+[dir="rtl"] .main    { margin-left: 0; margin-right: var(--sidebar-w); }
+[dir="rtl"] .nav-item,
+[dir="rtl"] .stat-card,
+[dir="rtl"] .panel-title,
+[dir="rtl"] .form-label { text-align: right; }
+@media (max-width: 768px) {
+    [dir="rtl"] .main { margin-right: 0; }
+}

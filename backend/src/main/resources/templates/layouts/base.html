@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      th:fragment="layout(title, content)">
+      th:fragment="layout(title, content)"
+      th:lang="${#locale.language}"
+      th:dir="${#locale.language == 'ar'} ? 'rtl' : 'ltr'">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -25,7 +27,7 @@
 
             <!-- ── PRINCIPAL ─────────────────────────────────────── -->
             <th:block th:if="${!principalModules.isEmpty()}">
-                <div class="nav-section">PRINCIPAL</div>
+                <div class="nav-section" th:text="#{nav.section.principal}">PRINCIPAL</div>
                 <th:block th:each="navMod : ${principalModules}">
 
                     <!-- Notifications : traitement spécial pour le badge -->
@@ -33,10 +35,10 @@
                         <a th:href="${navMod.urlPrefix}" class="nav-item"
                            th:classappend="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'active'">
                             <span th:text="${navMod.icon}">🔔</span>
-                            <span th:text="${navMod.label}">Notifications</span>
+                            <span th:text="#{${navMod.labelKey}}">Notifications</span>
                             <span th:if="${unreadNotifications > 0}"
                                   class="badge badge-red"
-                                  style="margin-left:auto; font-size:.7rem; padding:.1rem .4rem;"
+                                  style="margin-inline-start:auto; font-size:.7rem; padding:.1rem .4rem;"
                                   th:text="${unreadNotifications}">0</span>
                         </a>
                     </th:block>
@@ -46,7 +48,7 @@
                         <a th:href="${navMod.urlPrefix}" class="nav-item"
                            th:classappend="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'active'">
                             <span th:text="${navMod.icon}"></span>
-                            <span th:text="${navMod.label}"></span>
+                            <span th:text="#{${navMod.labelKey}}"></span>
                         </a>
                     </th:block>
 
@@ -55,45 +57,45 @@
 
             <!-- ── SOINS ──────────────────────────────────────────── -->
             <th:block th:if="${!soinsModules.isEmpty()}">
-                <div class="nav-section">SOINS</div>
+                <div class="nav-section" th:text="#{nav.section.soins}">SOINS</div>
                 <th:block th:each="navMod : ${soinsModules}">
                     <a th:href="${navMod.urlPrefix}" class="nav-item"
                        th:classappend="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'active'">
                         <span th:text="${navMod.icon}"></span>
-                        <span th:text="${navMod.label}"></span>
+                        <span th:text="#{${navMod.labelKey}}"></span>
                     </a>
                 </th:block>
             </th:block>
 
             <!-- ── GESTION ────────────────────────────────────────── -->
             <th:block th:if="${!gestionModules.isEmpty()}">
-                <div class="nav-section">GESTION</div>
+                <div class="nav-section" th:text="#{nav.section.gestion}">GESTION</div>
                 <th:block th:each="navMod : ${gestionModules}">
                     <a th:href="${navMod.urlPrefix}" class="nav-item"
                        th:classappend="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'active'">
                         <span th:text="${navMod.icon}"></span>
-                        <span th:text="${navMod.label}"></span>
+                        <span th:text="#{${navMod.labelKey}}"></span>
                     </a>
                 </th:block>
             </th:block>
 
             <!-- ── ADMIN ──────────────────────────────────────────── -->
             <th:block th:if="${!adminModules.isEmpty()}">
-                <div class="nav-section">ADMIN</div>
+                <div class="nav-section" th:text="#{nav.section.admin}">ADMIN</div>
                 <th:block th:each="navMod : ${adminModules}">
                     <a th:href="${navMod.urlPrefix}" class="nav-item"
                        th:classappend="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'active'">
                         <span th:text="${navMod.icon}"></span>
-                        <span th:text="${navMod.label}"></span>
+                        <span th:text="#{${navMod.labelKey}}"></span>
                     </a>
                 </th:block>
             </th:block>
 
         </nav>
         <div class="sidebar-footer">
-            <span sec:authentication="name">Utilisateur</span>
+            <span sec:authentication="name" th:title="#{layout.user}">Utilisateur</span>
             <form th:action="@{/logout}" method="post" style="display:inline;">
-                <button type="submit" class="btn btn-ghost btn-sm">Déconnexion</button>
+                <button type="submit" class="btn btn-ghost btn-sm" th:text="#{layout.logout}">Déconnexion</button>
             </form>
         </div>
     </aside>
@@ -103,6 +105,15 @@
         <div class="topbar">
             <h1 class="topbar-title" th:text="${title}">Page</h1>
             <div class="topbar-actions">
+                <!-- Sélecteur de langue (P3.2) — bascule ?lang=, conserve la page courante -->
+                <div class="lang-switch" th:aria-label="#{lang.label}">
+                    <a th:href="@{${currentUri}(lang='fr')}" th:text="#{lang.fr}"
+                       th:classappend="${#locale.language == 'fr'} ? 'active'">FR</a>
+                    <a th:href="@{${currentUri}(lang='en')}" th:text="#{lang.en}"
+                       th:classappend="${#locale.language == 'en'} ? 'active'">EN</a>
+                    <a th:href="@{${currentUri}(lang='ar')}" th:text="#{lang.ar}"
+                       th:classappend="${#locale.language == 'ar'} ? 'active'">AR</a>
+                </div>
                 <span class="badge badge-blue" sec:authentication="name">User</span>
             </div>
         </div>

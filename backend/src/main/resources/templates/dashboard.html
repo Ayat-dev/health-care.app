@@ -1,33 +1,33 @@
-<html th:replace="~{layouts/base :: layout('Tableau de bord', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{dashboard.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div class="stats-grid">
     <div class="stat-card">
-        <div class="stat-card-label">Patients</div>
+        <div class="stat-card-label" th:text="#{dashboard.patients}">Patients</div>
         <div class="stat-card-value" th:text="${patientsCount}">—</div>
     </div>
     <div class="stat-card">
-        <div class="stat-card-label">Rendez-vous aujourd'hui</div>
+        <div class="stat-card-label" th:text="#{dashboard.appointments_today}">Rendez-vous aujourd'hui</div>
         <div class="stat-card-value" th:text="${appointmentsToday}">—</div>
     </div>
     <div class="stat-card">
-        <div class="stat-card-label">Consultations aujourd'hui</div>
+        <div class="stat-card-label" th:text="#{dashboard.consultations_today}">Consultations aujourd'hui</div>
         <div class="stat-card-value" th:text="${consultationsToday}">—</div>
     </div>
     <div class="stat-card">
-        <div class="stat-card-label">Factures en attente</div>
+        <div class="stat-card-label" th:text="#{dashboard.pending_invoices}">Factures en attente</div>
         <div class="stat-card-value" th:text="${pendingInvoices}">—</div>
     </div>
 </div>
 
 <div class="panel" style="margin-top:24px;">
     <div class="panel-header">
-        <h2 class="panel-title">Bienvenue sur ClinicApp</h2>
+        <h2 class="panel-title" th:text="#{dashboard.welcome}">Bienvenue sur ClinicApp</h2>
     </div>
     <div style="padding:24px; color:#64748b;">
-        <p>Le système de gestion est opérationnel. Utilisez la navigation à gauche pour accéder aux modules.</p>
+        <p th:text="#{dashboard.intro}">Le système de gestion est opérationnel. Utilisez la navigation à gauche pour accéder aux modules.</p>
         <ul style="margin-top:12px; line-height:2;">
-            <li><a th:href="@{/patients}">📋 Gestion des patients</a></li>
+            <li><a th:href="@{/patients}">📋 <span th:text="#{dashboard.manage_patients}">Gestion des patients</span></a></li>
         </ul>
     </div>
 </div>
