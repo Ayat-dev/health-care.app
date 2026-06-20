@@ -96,4 +96,27 @@ class SecurityMatrixTest {
            .andExpect(status().isOk())
            .andExpect(content().string(containsString("ClinicApp")));
     }
+
+    // ── PWA (P3.1) : ressources installables accessibles sans session ────────
+
+    @Test
+    void manifest_pwa_est_public() throws Exception {
+        mvc.perform(get("/manifest.webmanifest"))
+           .andExpect(status().isOk())
+           .andExpect(content().string(containsString("\"short_name\"")));
+    }
+
+    @Test
+    void service_worker_est_public() throws Exception {
+        mvc.perform(get("/sw.js"))
+           .andExpect(status().isOk())
+           .andExpect(content().string(containsString("CACHE_VERSION")));
+    }
+
+    @Test
+    void page_offline_est_publique() throws Exception {
+        mvc.perform(get("/offline.html"))
+           .andExpect(status().isOk())
+           .andExpect(content().string(containsString("Connexion indisponible")));
+    }
 }

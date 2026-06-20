@@ -1,0 +1,21 @@
+{
+  "name": "ClinicApp — Gestion de clinique",
+  "short_name": "ClinicApp",
+  "description": "Système de gestion de clinique : patients, rendez-vous, consultations, pharmacie, laboratoire, facturation.",
+  "lang": "fr",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f1f5f9",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/images/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

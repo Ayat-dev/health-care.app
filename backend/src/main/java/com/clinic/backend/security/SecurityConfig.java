@@ -80,6 +80,8 @@ public class SecurityConfig {
                     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
                     "font-src 'self' https://fonts.gstatic.com; " +
                     "img-src 'self' data: blob:; " +
+                    "manifest-src 'self'; " +
+                    "worker-src 'self'; " +
                     "connect-src 'self';"
                 ))
             )
@@ -88,7 +90,9 @@ public class SecurityConfig {
                     "/login", "/auth/**",
                     "/error",
                     "/h2-console/**",
-                    "/css/**", "/js/**", "/images/**", "/uploads/**", "/favicon.ico"
+                    "/css/**", "/js/**", "/images/**", "/uploads/**", "/favicon.ico",
+                    // PWA (P3.1) — installables/utilisables sans session
+                    "/manifest.webmanifest", "/sw.js", "/offline.html"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
