@@ -31,7 +31,7 @@
   --sidebar-text:     #94a3b8;
   --sidebar-text-act: #ffffff;
   --sidebar-border:   rgba(255,255,255,.08);
-  --sidebar-section:  #475569;
+  --sidebar-section:  #7e8ba3; /* a11y P3.4 : ≥4.5:1 sur le sidebar sombre (était #475569 ≈2.3:1) */
 
   /* Surfaces */
   --bg:        #f8fafc;
@@ -43,7 +43,7 @@
   --text-900:  #0f172a;
   --text-700:  #374151;
   --text-500:  #64748b;
-  --text-400:  #94a3b8;
+  --text-400:  #6b7280; /* a11y P3.4 : 4.9:1 sur blanc (était #94a3b8 ≈2.8:1, échec AA) */
 
   /* Utilitaires */
   --radius-sm: 6px;
@@ -1148,4 +1148,91 @@ body.login-page {
 [dir="rtl"] .form-label { text-align: right; }
 @media (max-width: 768px) {
     [dir="rtl"] .main { margin-right: 0; }
+}
+
+/* ============================================================
+   Accessibilité — WCAG 2.2 (P3.4)
+   ============================================================ */
+
+/* ── Focus visible (2.4.7 / 2.4.11 Focus Appearance) ──────── */
+/* Anneau de focus net et cohérent au clavier sur tout élément interactif.
+   :focus-visible n'apparaît pas au clic souris → pas de bruit visuel. */
+:root { --focus-ring: #1d4ed8; }
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.form-control:focus-visible,
+[tabindex]:focus-visible,
+.nav-item:focus-visible,
+.tab:focus-visible,
+summary:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+}
+/* Sur le sidebar sombre, l'anneau bleu manque de contraste → blanc */
+.sidebar a:focus-visible,
+.sidebar button:focus-visible { outline-color: #ffffff; }
+/* #main-content reçoit le focus via le lien d'évitement mais ne doit pas
+   afficher d'anneau (ce n'est pas un contrôle). */
+.main:focus-visible { outline: none; }
+/* Mode contraste forcé (Windows) : garder un focus visible */
+@media (forced-colors: active) {
+    a:focus-visible, button:focus-visible, input:focus-visible,
+    select:focus-visible, textarea:focus-visible, .nav-item:focus-visible {
+        outline: 2px solid Highlight;
+    }
+}
+
+/* ── Lien d'évitement de bloc (2.4.1 Bypass Blocks) ───────── */
+.skip-link {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 1000;
+    transform: translateY(-150%);
+    transition: transform var(--transition);
+    background: var(--blue);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: var(--shadow);
+}
+.skip-link:focus { transform: translateY(0); text-decoration: none; color: #fff; }
+[dir="rtl"] .skip-link { left: auto; right: 8px; }
+
+/* ── Réservé aux lecteurs d'écran (1.3.1 / 4.1.2) ─────────── */
+.sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ── Taille de cible (2.5.8 Target Size, min 24×24) ───────── */
+.lang-switch a,
+.login-lang a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    min-width: 24px;
+    justify-content: center;
+}
+
+/* ── Mouvement réduit (2.3.3 / respect des préférences OS) ── */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .001ms !important;
+        scroll-behavior: auto !important;
+    }
 }

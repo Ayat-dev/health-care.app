@@ -114,13 +114,13 @@
         <p th:text="#{app.tagline}">Système de gestion de clinique</p>
     </div>
     <div class="login-card">
-        <div class="alert-error" th:if="${param.error}" th:text="#{login.error}">
+        <div class="alert-error" role="alert" th:if="${param.error}" th:text="#{login.error}">
             Identifiant ou mot de passe incorrect.
         </div>
-        <div class="alert-error" th:if="${param.locked}" th:text="#{login.locked}">
+        <div class="alert-error" role="alert" th:if="${param.locked}" th:text="#{login.locked}">
             Compte verrouillé après trop de tentatives. Réessayez dans 15 minutes.
         </div>
-        <div class="alert-success" th:if="${param.logout}" th:text="#{login.logout_success}">
+        <div class="alert-success" role="status" th:if="${param.logout}" th:text="#{login.logout_success}">
             Vous avez été déconnecté.
         </div>
         <form th:action="@{/login}" method="post">
@@ -137,14 +137,17 @@
             <button type="submit" class="btn-login" th:text="#{login.submit}">Se connecter</button>
         </form>
     </div>
-    <div class="login-lang">
+    <nav class="login-lang" th:aria-label="#{lang.label}">
         <a th:href="@{/login(lang='fr')}" th:text="#{lang.fr}"
-           th:classappend="${#locale.language == 'fr'} ? 'active'">Français</a>
+           th:classappend="${#locale.language == 'fr'} ? 'active'"
+           th:aria-current="${#locale.language == 'fr'} ? 'true' : null">Français</a>
         <a th:href="@{/login(lang='en')}" th:text="#{lang.en}"
-           th:classappend="${#locale.language == 'en'} ? 'active'">English</a>
+           th:classappend="${#locale.language == 'en'} ? 'active'"
+           th:aria-current="${#locale.language == 'en'} ? 'true' : null">English</a>
         <a th:href="@{/login(lang='ar')}" th:text="#{lang.ar}"
-           th:classappend="${#locale.language == 'ar'} ? 'active'">العربية</a>
-    </div>
+           th:classappend="${#locale.language == 'ar'} ? 'active'"
+           th:aria-current="${#locale.language == 'ar'} ? 'true' : null">العربية</a>
+    </nav>
 </div>
 </body>
 </html>

@@ -16,14 +16,16 @@
     <script th:src="@{/js/pwa.js}" defer></script>
 </head>
 <body>
+<!-- Évitement de bloc (WCAG 2.4.1) — 1er élément focusable -->
+<a class="skip-link" href="#main-content" th:text="#{a11y.skip_to_content}">Aller au contenu principal</a>
 <div class="layout">
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-brand">
-            <span class="brand-icon">⚕</span>
+            <span class="brand-icon" aria-hidden="true">⚕</span>
             <span class="brand-name">ClinicApp</span>
         </div>
-        <nav class="sidebar-nav">
+        <nav class="sidebar-nav" th:aria-label="#{a11y.main_nav}">
 
             <!-- ── PRINCIPAL ─────────────────────────────────────── -->
             <th:block th:if="${!principalModules.isEmpty()}">
@@ -33,8 +35,9 @@
                     <!-- Notifications : traitement spécial pour le badge -->
                     <th:block th:if="${navMod.name() == 'NOTIFICATIONS'}">
                         <a th:href="${navMod.urlPrefix}" class="nav-item"
-                           th:classappend="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'active'">
-                            <span th:text="${navMod.icon}">🔔</span>
+                           th:classappend="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'active'"
+                           th:aria-current="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'page' : null">
+                            <span th:text="${navMod.icon}" aria-hidden="true">🔔</span>
                             <span th:text="#{${navMod.labelKey}}">Notifications</span>
                             <span th:if="${unreadNotifications > 0}"
                                   class="badge badge-red"
@@ -46,8 +49,9 @@
                     <!-- Tous les autres modules PRINCIPAL -->
                     <th:block th:unless="${navMod.name() == 'NOTIFICATIONS'}">
                         <a th:href="${navMod.urlPrefix}" class="nav-item"
-                           th:classappend="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'active'">
-                            <span th:text="${navMod.icon}"></span>
+                           th:classappend="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'active'"
+                           th:aria-current="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'page' : null">
+                            <span th:text="${navMod.icon}" aria-hidden="true"></span>
                             <span th:text="#{${navMod.labelKey}}"></span>
                         </a>
                     </th:block>
@@ -60,8 +64,9 @@
                 <div class="nav-section" th:text="#{nav.section.soins}">SOINS</div>
                 <th:block th:each="navMod : ${soinsModules}">
                     <a th:href="${navMod.urlPrefix}" class="nav-item"
-                       th:classappend="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'active'">
-                        <span th:text="${navMod.icon}"></span>
+                       th:classappend="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'active'"
+                       th:aria-current="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'page' : null">
+                        <span th:text="${navMod.icon}" aria-hidden="true"></span>
                         <span th:text="#{${navMod.labelKey}}"></span>
                     </a>
                 </th:block>
@@ -72,8 +77,9 @@
                 <div class="nav-section" th:text="#{nav.section.gestion}">GESTION</div>
                 <th:block th:each="navMod : ${gestionModules}">
                     <a th:href="${navMod.urlPrefix}" class="nav-item"
-                       th:classappend="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'active'">
-                        <span th:text="${navMod.icon}"></span>
+                       th:classappend="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'active'"
+                       th:aria-current="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'page' : null">
+                        <span th:text="${navMod.icon}" aria-hidden="true"></span>
                         <span th:text="#{${navMod.labelKey}}"></span>
                     </a>
                 </th:block>
@@ -84,8 +90,9 @@
                 <div class="nav-section" th:text="#{nav.section.admin}">ADMIN</div>
                 <th:block th:each="navMod : ${adminModules}">
                     <a th:href="${navMod.urlPrefix}" class="nav-item"
-                       th:classappend="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'active'">
-                        <span th:text="${navMod.icon}"></span>
+                       th:classappend="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'active'"
+                       th:aria-current="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'page' : null">
+                        <span th:text="${navMod.icon}" aria-hidden="true"></span>
                         <span th:text="#{${navMod.labelKey}}"></span>
                     </a>
                 </th:block>
@@ -101,19 +108,22 @@
     </aside>
 
     <!-- Contenu principal -->
-    <main class="main">
+    <main class="main" id="main-content" tabindex="-1">
         <div class="topbar">
             <h1 class="topbar-title" th:text="${title}">Page</h1>
             <div class="topbar-actions">
                 <!-- Sélecteur de langue (P3.2) — bascule ?lang=, conserve la page courante -->
-                <div class="lang-switch" th:aria-label="#{lang.label}">
+                <nav class="lang-switch" th:aria-label="#{lang.label}">
                     <a th:href="@{${currentUri}(lang='fr')}" th:text="#{lang.fr}"
-                       th:classappend="${#locale.language == 'fr'} ? 'active'">FR</a>
+                       th:classappend="${#locale.language == 'fr'} ? 'active'"
+                       th:aria-current="${#locale.language == 'fr'} ? 'true' : null">FR</a>
                     <a th:href="@{${currentUri}(lang='en')}" th:text="#{lang.en}"
-                       th:classappend="${#locale.language == 'en'} ? 'active'">EN</a>
+                       th:classappend="${#locale.language == 'en'} ? 'active'"
+                       th:aria-current="${#locale.language == 'en'} ? 'true' : null">EN</a>
                     <a th:href="@{${currentUri}(lang='ar')}" th:text="#{lang.ar}"
-                       th:classappend="${#locale.language == 'ar'} ? 'active'">AR</a>
-                </div>
+                       th:classappend="${#locale.language == 'ar'} ? 'active'"
+                       th:aria-current="${#locale.language == 'ar'} ? 'true' : null">AR</a>
+                </nav>
                 <span class="badge badge-blue" sec:authentication="name">User</span>
             </div>
         </div>
