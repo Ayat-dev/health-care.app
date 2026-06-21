@@ -41,7 +41,8 @@
 
 <!-- Onglets -->
 <div class="tabs">
-    <button class="tab active" onclick="showTab('info')">Informations</button>
+    <button class="tab active" onclick="showTab('overview')">Aperçu</button>
+    <button class="tab" onclick="showTab('info')">Informations</button>
     <button class="tab" onclick="showTab('medical')">Médical</button>
     <button class="tab" onclick="showTab('consultations')">Consultations</button>
     <button class="tab" onclick="showTab('lab')">Laboratoire</button>
@@ -51,8 +52,85 @@
     <button class="tab" onclick="showTab('billing')">Facturation</button>
 </div>
 
+<!-- Onglet Aperçu (coup d'œil + timeline) — P3.6 -->
+<div id="tab-overview" class="tab-content active panel">
+
+    <!-- Alertes -->
+    <div th:if="${!overview.alerts.isEmpty()}" class="overview-alerts">
+        <span th:each="al : ${overview.alerts}" class="ov-alert"
+              th:classappend="'ov-' + ${al.level}">
+            <span aria-hidden="true" th:text="${al.icon}">⚠️</span>
+            <span th:text="${al.message}">message</span>
+        </span>
+    </div>
+
+    <!-- Cartes synthèse -->
+    <div class="overview-grid">
+        <div class="ov-card">
+            <div class="detail-label">Âge</div>
+            <div class="ov-value" th:text="${overview.ageYears != null ? overview.ageYears + ' ans' : '—'}">—</div>
+        </div>
+        <div class="ov-card">
+            <div class="detail-label">Groupe sanguin</div>
+            <div class="ov-value" th:text="${overview.bloodType ?: '—'}">—</div>
+        </div>
+        <div class="ov-card ov-card-wide">
+            <div class="detail-label">Allergies</div>
+            <div class="ov-value" th:classappend="${overview.hasAllergies} ? 'ov-danger'"
+                 th:text="${overview.hasAllergies ? overview.allergies : 'Aucune allergie connue'}">—</div>
+        </div>
+    </div>
+
+    <!-- Dernières constantes -->
+    <div th:if="${overview.hasVitals}" style="margin-top:18px;">
+        <div class="detail-label">Dernières constantes
+            <span class="text-muted"
+                  th:text="'· ' + ${#temporals.format(overview.vitalsDate,'dd/MM/yyyy')}">· 01/01</span>
+        </div>
+        <div class="vitals-row">
+            <span class="vital" th:if="${overview.bloodPressure != null}">
+                <strong th:text="${overview.bloodPressure}">120/80</strong> mmHg</span>
+            <span class="vital" th:if="${overview.temperatureC != null}">
+                <strong th:text="${overview.temperatureC}">37</strong> °C</span>
+            <span class="vital" th:if="${overview.pulseBpm != null}">
+                <strong th:text="${overview.pulseBpm}">70</strong> bpm</span>
+            <span class="vital" th:if="${overview.spo2Percent != null}">
+                SpO₂ <strong th:text="${overview.spo2Percent}">98</strong> %</span>
+            <span class="vital" th:if="${overview.weightKg != null}">
+                <strong th:text="${overview.weightKg}">70</strong> kg</span>
+        </div>
+    </div>
+
+    <!-- Chronologie unifiée -->
+    <div style="margin-top:24px;">
+        <div class="detail-label">Chronologie du dossier</div>
+        <div th:if="${overview.timeline.isEmpty()}" class="empty-state">
+            Aucun évènement enregistré pour ce patient.
+        </div>
+        <ul th:unless="${overview.timeline.isEmpty()}" class="timeline">
+            <li th:each="e : ${overview.timeline}" class="tl-item">
+                <span class="tl-icon" aria-hidden="true" th:text="${e.icon}">🩺</span>
+                <div class="tl-body">
+                    <div class="tl-head">
+                        <a th:href="@{${e.url}}" class="tl-title" th:text="${e.title}">Titre</a>
+                        <span th:if="${e.status != null}" class="badge"
+                              th:classappend="'badge-' + ${e.status}" th:text="${e.status}">STATUT</span>
+                    </div>
+                    <div class="tl-sub">
+                        <span class="tl-cat" th:text="${e.category}">Catégorie</span>
+                        <span th:if="${e.subtitle != null and !e.subtitle.isEmpty()}"
+                              th:text="'· ' + ${e.subtitle}">· détail</span>
+                    </div>
+                </div>
+                <time class="tl-date"
+                      th:text="${#temporals.format(e.dateTime,'dd/MM/yyyy HH:mm')}">01/01 09:00</time>
+            </li>
+        </ul>
+    </div>
+</div>
+
 <!-- Onglet Informations -->
-<div id="tab-info" class="tab-content active panel">
+<div id="tab-info" class="tab-content panel" style="display:none">
     <div class="form-grid-2">
         <div><span class="detail-label">Téléphone</span>
              <span th:text="${patient.phone ?: '—'}">—</span></div>

@@ -2,6 +2,7 @@ package com.clinic.backend.controller.web;
 
 import com.clinic.backend.dto.PatientDto;
 import com.clinic.backend.patient.Patient;
+import com.clinic.backend.patient.PatientOverviewService;
 import com.clinic.backend.patient.PatientService;
 import com.clinic.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class PatientWebController {
 
     private final PatientService patientService;
+    private final PatientOverviewService patientOverviewService;
     private final UserRepository userRepository;
     private final com.clinic.backend.consultation.ConsultationService consultationService;
     private final com.clinic.backend.lab.LabService labService;
@@ -51,16 +53,31 @@ public class PatientWebController {
     @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','INFIRMIER','SECRETAIRE','PHARMACIEN','LABORANTIN','CAISSIER')")
     public String detail(@PathVariable Long id, Model model) {
         Patient patient = patientService.getByIdWithDoctor(id);
-        model.addAttribute("patient", patient);
-        model.addAttribute("consultations", consultationService.findForPatient(id));
-        model.addAttribute("labRequests", labService.findForPatient(id));
-        model.addAttribute("radiologyRequests", radiologyService.findForPatient(id));
-        model.addAttribute("hospitalizations", hospitalizationService.findForPatient(id));
-        model.addAttribute("invoices", billingService.findForPatient(id));
+
+        var consultations = consultationService.findForPatient(id);
+        var labRequests = labService.findForPatient(id);
+        var radiologyRequests = radiologyService.findForPatient(id);
+        var hospitalizations = hospitalizationService.findForPatient(id);
+        var invoices = billingService.findForPatient(id);
         // Dossier maternité — pertinent uniquement pour les patientes.
-        if ("F".equalsIgnoreCase(patient.getGender())) {
-            model.addAttribute("maternityRecord", maternityService.findForPatient(id));
+        var maternityRecord = "F".equalsIgnoreCase(patient.getGender())
+                ? maternityService.findForPatient(id) : null;
+
+        model.addAttribute("patient", patient);
+        model.addAttribute("consultations", consultations);
+        model.addAttribute("labRequests", labRequests);
+        model.addAttribute("radiologyRequests", radiologyRequests);
+        model.addAttribute("hospitalizations", hospitalizations);
+        model.addAttribute("invoices", invoices);
+        if (maternityRecord != null) {
+            model.addAttribute("maternityRecord", maternityRecord);
         }
+
+        // Coup d'œil + timeline (P3.6) — agrégat en mémoire, zéro requête de plus.
+        model.addAttribute("overview", patientOverviewService.build(
+                patient, consultations, labRequests, radiologyRequests,
+                hospitalizations, invoices, maternityRecord));
+
         return "patients/detail";
     }
 

@@ -1350,3 +1350,70 @@ summary:focus-visible {
     color: var(--text-400);
 }
 [dir="rtl"] .cmdk-item-body { text-align: right; }
+
+/* ============================================================
+   Coup d'œil patient + timeline (P3.6)
+   ============================================================ */
+
+/* ── Alertes ──────────────────────────────────────────────── */
+.overview-alerts { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.ov-alert {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid transparent;
+}
+.ov-RED    { background: var(--red-light);    color: #991b1b; border-color: #fecaca; }
+.ov-ORANGE { background: var(--orange-light); color: #9a3412; border-color: #fed7aa; }
+.ov-INFO   { background: var(--blue-light);   color: #1e40af; border-color: var(--blue-mid); }
+
+/* ── Cartes synthèse ──────────────────────────────────────── */
+.overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+}
+.ov-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    background: var(--surface);
+}
+.ov-card-wide { grid-column: span 2; }
+.ov-value { font-size: 16px; font-weight: 600; color: var(--text-900); margin-top: 4px; }
+.ov-value.ov-danger { color: var(--red); }
+
+/* ── Constantes ───────────────────────────────────────────── */
+.vitals-row { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 8px; }
+.vital { font-size: 14px; color: var(--text-500); }
+.vital strong { color: var(--text-900); font-size: 16px; }
+
+/* ── Timeline ─────────────────────────────────────────────── */
+.timeline { list-style: none; margin: 10px 0 0; padding: 0; }
+.tl-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-2);
+}
+.tl-item:last-child { border-bottom: none; }
+.tl-icon {
+    flex: none;
+    width: 32px; height: 32px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--bg); border-radius: 50%;
+    font-size: 16px;
+}
+.tl-body { flex: 1; min-width: 0; }
+.tl-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tl-title { font-weight: 600; color: var(--text-900); }
+.tl-title:hover { color: var(--blue); }
+.tl-sub { font-size: 12px; color: var(--text-500); margin-top: 2px; }
+.tl-cat { font-weight: 500; color: var(--text-700); }
+.tl-date { flex: none; font-size: 12px; color: var(--text-400); white-space: nowrap; }
+[dir="rtl"] .tl-date { text-align: left; }

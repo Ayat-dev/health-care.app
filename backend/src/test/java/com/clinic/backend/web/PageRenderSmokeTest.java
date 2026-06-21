@@ -8,7 +8,9 @@ import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -42,6 +44,14 @@ class PageRenderSmokeTest {
     @Test
     void appointments_rend_200() throws Exception {
         mvc.perform(get("/appointments")).andExpect(status().isOk());
+    }
+
+    /** Dossier patient : exerce l'agrégat coup d'œil + timeline (P3.6). */
+    @Test
+    void patient_detail_rend_apercu_et_timeline() throws Exception {
+        mvc.perform(get("/patients/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Chronologie du dossier")));
     }
 
     @Test
