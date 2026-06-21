@@ -58,6 +58,9 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
         """)
     List<Invoice> findByPatient(@Param("patientId") Long patientId);
 
+    /** Recherche exacte par numéro de facture (webhook Mobile Money P3.3). */
+    Optional<Invoice> findByInvoiceNumber(String invoiceNumber);
+
     /** Recherche globale (P3.5) : factures dont le numéro contient {@code q}, patient chargé (OSIV off). */
     @Query("""
         SELECT inv FROM Invoice inv

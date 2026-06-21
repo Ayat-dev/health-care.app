@@ -51,6 +51,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/login").permitAll()
                 .requestMatchers("/fhir/metadata").permitAll()
+                // Webhooks Mobile Money (P3.3) : authentifiés par signature HMAC, pas par JWT.
+                .requestMatchers("/api/payments/webhook/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
