@@ -178,6 +178,18 @@ public class AppointmentWebController {
         return redirectToDay(id);
     }
 
+    // ── Télémédecine (P3.7) ────────────────────────────────────────────────
+    @PostMapping("/{id}/teleconsultation")
+    public String enableTeleconsultation(@PathVariable Long id, RedirectAttributes ra) {
+        try {
+            appointmentService.enableTeleconsultation(id);
+            ra.addFlashAttribute("success", "Téléconsultation activée : lien de visio généré.");
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
+        return redirectToDay(id);
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────
     private String redirectToDay(Long id) {
         LocalDate d = appointmentService.getById(id).getStartTime().toLocalDate();

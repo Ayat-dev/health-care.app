@@ -24,6 +24,10 @@ public class AppointmentDto {
     private String reason;
     private String notes;
 
+    // Télémédecine (P3.7)
+    private String teleconsultationRoom;
+    private String teleconsultationUrl;   // lien de jonction complet (lecture)
+
     // Read-only display fields (populated when mapping entity → DTO)
     private String patientName;
     private String doctorName;

@@ -58,6 +58,13 @@
                 <td><span class="badge" th:classappend="'badge-' + ${a.status}" th:text="${a.status}">PLANIFIE</span></td>
                 <td style="white-space:nowrap;">
                     <a th:href="@{/appointments/{id}/edit(id=${a.id})}" class="btn btn-ghost btn-sm">Modifier</a>
+                    <!-- Télémédecine (P3.7) -->
+                    <a th:if="${a.type == 'TELECONSULTATION'}" th:href="@{/teleconsultation/{id}(id=${a.id})}"
+                       target="_blank" class="btn btn-success btn-sm">📹 Rejoindre</a>
+                    <form th:if="${a.type != 'TELECONSULTATION' and a.status != 'ANNULE' and a.status != 'TERMINE'}"
+                          method="post" th:action="@{/appointments/{id}/teleconsultation(id=${a.id})}" style="display:inline;">
+                        <button class="btn btn-ghost btn-sm">📹 Téléconsultation</button>
+                    </form>
                     <form th:if="${a.status == 'PLANIFIE'}" method="post"
                           th:action="@{/appointments/{id}/confirm(id=${a.id})}" style="display:inline;">
                         <button class="btn btn-ghost btn-sm">Confirmer</button>

@@ -17,7 +17,7 @@
         <div th:unless="${appointments.isEmpty()}" class="table-wrap">
             <table class="table">
                 <thead>
-                <tr><th>Date</th><th>Médecin</th><th>Type</th><th>Motif</th><th>Statut</th></tr>
+                <tr><th>Date</th><th>Médecin</th><th>Type</th><th>Motif</th><th>Statut</th><th></th></tr>
                 </thead>
                 <tbody>
                 <tr th:each="a : ${appointments}">
@@ -26,6 +26,11 @@
                     <td th:text="${a.type}">—</td>
                     <td th:text="${a.reason}">—</td>
                     <td><span class="badge" th:classappend="'badge-' + ${a.status}" th:text="${a.status}">—</span></td>
+                    <td>
+                        <a th:if="${a.type == 'TELECONSULTATION' and a.status != 'ANNULE'}"
+                           th:href="@{/teleconsultation/{id}(id=${a.id})}" target="_blank"
+                           class="btn btn-success btn-sm">📹 Rejoindre</a>
+                    </td>
                 </tr>
                 </tbody>
             </table>

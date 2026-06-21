@@ -43,6 +43,10 @@ public class Appointment {
     @Column(length = 30)
     private String type; // CONSULTATION, SUIVI, URGENCE, TELECONSULTATION
 
+    /** Identifiant de salle visio (télémédecine P3.7) — non devinable, présent si type TELECONSULTATION. */
+    @Column(name = "teleconsultation_room", length = 64)
+    private String teleconsultationRoom;
+
     @Column(columnDefinition = "TEXT")
     private String reason;
 

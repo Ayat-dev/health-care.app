@@ -10,6 +10,7 @@ import com.clinic.backend.patient.Patient;
 import com.clinic.backend.patient.PatientRepository;
 import com.clinic.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -30,11 +32,17 @@ public class AppointmentService {
     private static final LocalTime DAY_START = LocalTime.of(7, 0);
     private static final LocalTime DAY_END   = LocalTime.of(20, 0);
 
+    private static final String TELECONSULTATION = "TELECONSULTATION";
+
     private final AppointmentRepository appointmentRepository;
     private final PatientRepository patientRepository;
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
     private final NotificationService notificationService;
+
+    /** Base de l'URL des salles visio (P3.7) — Jitsi Meet public par défaut (sans compte, sans IA). */
+    @Value("${app.telemedicine.base-url:https://meet.jit.si/}")
+    private String telemedicineBaseUrl;
 
     // ── Listes / recherche ────────────────────────────────────────────────
     @Transactional(readOnly = true)
@@ -196,6 +204,35 @@ public class AppointmentService {
         a.setType(dto.getType());
         a.setReason(dto.getReason());
         a.setNotes(dto.getNotes());
+        // Télémédecine : une salle visio est générée dès qu'un RDV est en téléconsultation.
+        if (TELECONSULTATION.equals(dto.getType()) && a.getTeleconsultationRoom() == null) {
+            a.setTeleconsultationRoom(generateRoom());
+        }
+    }
+
+    // ── Télémédecine (P3.7) ───────────────────────────────────────────────
+    /** Bascule un RDV existant en téléconsultation et génère sa salle si absente. */
+    public Appointment enableTeleconsultation(Long id) {
+        Appointment a = getById(id);
+        if ("ANNULE".equals(a.getStatus())) {
+            throw new IllegalArgumentException("Un rendez-vous annulé ne peut pas passer en téléconsultation");
+        }
+        a.setType(TELECONSULTATION);
+        if (a.getTeleconsultationRoom() == null) {
+            a.setTeleconsultationRoom(generateRoom());
+        }
+        return appointmentRepository.save(a);
+    }
+
+    /** Lien de jonction complet, ou {@code null} si aucune salle n'est associée. */
+    public String joinUrl(Appointment a) {
+        if (a == null || a.getTeleconsultationRoom() == null) return null;
+        return telemedicineBaseUrl + a.getTeleconsultationRoom();
+    }
+
+    /** Identifiant de salle non devinable (préfixe lisible + UUID compact). */
+    private String generateRoom() {
+        return "clinic-" + UUID.randomUUID().toString().replace("-", "");
     }
 
     // ── Utilitaires sécurité ──────────────────────────────────────────────
@@ -224,6 +261,8 @@ public class AppointmentService {
         dto.setType(a.getType());
         dto.setReason(a.getReason());
         dto.setNotes(a.getNotes());
+        dto.setTeleconsultationRoom(a.getTeleconsultationRoom());
+        dto.setTeleconsultationUrl(joinUrl(a));
         dto.setPatientName(a.getPatient() != null ? a.getPatient().getFullName() : null);
         dto.setDoctorName(a.getDoctor() != null ? a.getDoctor().getFullName() : null);
         dto.setDepartmentName(a.getDepartment() != null ? a.getDepartment().getName() : null);
