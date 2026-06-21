@@ -12,8 +12,10 @@ import com.clinic.backend.dto.PrescriptionItemDto;
 import com.clinic.backend.model.User;
 import com.clinic.backend.patient.PatientService;
 import com.clinic.backend.repository.UserRepository;
+import com.clinic.backend.scribe.ScribeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +24,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/consultations")
@@ -35,6 +38,7 @@ public class ConsultationWebController {
     private final DepartmentService departmentService;
     private final UserRepository userRepository;
     private final Icd10Service icd10Service;
+    private final ScribeService scribeService;
 
     // ── Liste ───────────────────────────────────────────────────────────────
     @GetMapping
@@ -183,11 +187,33 @@ public class ConsultationWebController {
         return icd10Service.search(q);
     }
 
+    // ── Scribe IA ambiant (P4.2 → tranche étage 2 : texte → note) ───────────────
+    /**
+     * Structure une transcription libre en pré-remplissage de note clinique via
+     * un modèle Claude. Servi sous la chaîne web (session), comme l'auto-complétion
+     * CIM-10 — {@code /api/**} étant en JWT stateless. La sortie est une proposition :
+     * le médecin relit et enregistre lui-même.
+     */
+    @PostMapping("/scribe")
+    @ResponseBody
+    public ResponseEntity<?> scribe(@RequestBody ScribeRequest req) {
+        try {
+            return ResponseEntity.ok(scribeService.structure(req.transcript()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(503).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    public record ScribeRequest(String transcript) {}
+
     // ── Helpers ────────────────────────────────────────────────────────────────
     private void populateFormOptions(Model model) {
         model.addAttribute("patients", patientService.search("", 0, 500).getContent());
         model.addAttribute("doctors", doctors());
         model.addAttribute("departments", departmentService.listActive());
+        model.addAttribute("scribeEnabled", scribeService.isEnabled());
     }
 
     private List<User> doctors() {
