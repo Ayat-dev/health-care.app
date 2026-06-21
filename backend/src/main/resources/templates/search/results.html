@@ -1,0 +1,32 @@
+<html th:replace="~{layouts/base :: layout(#{search.title}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div class="panel">
+    <div class="panel-header">
+        <h2 class="panel-title">
+            <span th:text="#{search.results_for}">Résultats pour</span>
+            <strong th:text="'« ' + ${q} + ' »'">« … »</strong>
+        </h2>
+    </div>
+
+    <div th:if="${results.isEmpty()}" class="empty-state" th:text="#{search.no_results}">
+        Aucun résultat
+    </div>
+
+    <ul th:unless="${results.isEmpty()}" class="cmdk-results" style="max-height:none;">
+        <li th:each="r,stat : ${results}">
+            <div th:if="${stat.first or r.category != results[stat.index - 1].category}"
+                 class="cmdk-cat" th:text="${r.category}">Catégorie</div>
+            <a class="cmdk-item" th:href="@{${r.url}}" style="text-decoration:none;">
+                <span class="cmdk-item-icon" aria-hidden="true" th:text="${r.icon}">•</span>
+                <span class="cmdk-item-body">
+                    <span class="cmdk-item-label" th:text="${r.label}">Libellé</span>
+                    <span class="cmdk-item-sub" th:if="${r.sublabel}" th:text="${r.sublabel}">Sous-libellé</span>
+                </span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+</th:block></body>
+</html>

@@ -112,6 +112,13 @@
         <div class="topbar">
             <h1 class="topbar-title" th:text="${title}">Page</h1>
             <div class="topbar-actions">
+                <!-- Recherche globale (P3.5) — ouvre la palette (clic ou Ctrl/⌘+K) -->
+                <button type="button" class="topbar-search" id="global-search-trigger"
+                        th:aria-label="#{search.aria_label}" aria-haspopup="dialog">
+                    <span aria-hidden="true">🔍</span>
+                    <span class="topbar-search-text" th:text="#{search.open}">Rechercher</span>
+                    <kbd class="topbar-search-kbd" aria-hidden="true">Ctrl K</kbd>
+                </button>
                 <!-- Sélecteur de langue (P3.2) — bascule ?lang=, conserve la page courante -->
                 <nav class="lang-switch" th:aria-label="#{lang.label}">
                     <a th:href="@{${currentUri}(lang='fr')}" th:text="#{lang.fr}"
@@ -132,5 +139,23 @@
         </div>
     </main>
 </div>
+
+<!-- Palette de recherche globale (P3.5) — pilotée par js/search.js -->
+<div class="cmdk-overlay" id="cmdk-overlay" hidden
+     th:data-suggest-url="@{/search/suggest}"
+     th:data-search-url="@{/search}">
+    <div class="cmdk-panel" role="dialog" aria-modal="true" th:aria-label="#{search.aria_label}">
+        <div class="cmdk-input-row">
+            <span class="cmdk-input-icon" aria-hidden="true">🔍</span>
+            <input type="text" class="cmdk-input" id="cmdk-input" autocomplete="off" spellcheck="false"
+                   role="combobox" aria-expanded="false" aria-controls="cmdk-results" aria-autocomplete="list"
+                   th:placeholder="#{search.placeholder}"/>
+        </div>
+        <ul class="cmdk-results" id="cmdk-results" role="listbox" th:aria-label="#{search.aria_label}"
+            th:data-prompt="#{search.prompt}" th:data-empty="#{search.no_results}"></ul>
+        <div class="cmdk-footer" th:text="#{search.hint_nav}">↑↓ · Entrée · Échap</div>
+    </div>
+</div>
+<script th:src="@{/js/search.js}" defer></script>
 </body>
 </html>

@@ -1,5 +1,6 @@
 package com.clinic.backend.billing;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -56,6 +57,15 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
         ORDER BY inv.createdAt DESC
         """)
     List<Invoice> findByPatient(@Param("patientId") Long patientId);
+
+    /** Recherche globale (P3.5) : factures dont le numéro contient {@code q}, patient chargé (OSIV off). */
+    @Query("""
+        SELECT inv FROM Invoice inv
+        LEFT JOIN FETCH inv.patient
+        WHERE LOWER(inv.invoiceNumber) LIKE LOWER(CONCAT('%', :q, '%'))
+        ORDER BY inv.createdAt DESC
+        """)
+    List<Invoice> searchByNumber(@Param("q") String q, Pageable pageable);
 
     /** Highest sequence used for a numbering prefix (e.g. "FAC-2026-"); 0 if none. */
     @Query("SELECT COALESCE(MAX(CAST(SUBSTRING(inv.invoiceNumber, :start) AS int)), 0) " +
