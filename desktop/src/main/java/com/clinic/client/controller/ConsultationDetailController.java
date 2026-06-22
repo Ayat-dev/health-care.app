@@ -6,15 +6,19 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.stage.Stage;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.awt.Desktop;
+import java.io.File;
+import java.nio.file.Files;
 import java.time.LocalDate;
 
 public class ConsultationDetailController extends BaseController {
 
     @FXML private Label patientLabel, statusBadge, rxNumberLabel, rxStatusLabel, statusLabel;
-    @FXML private Button saveBtn, completeBtn, saveRxBtn;
+    @FXML private Button saveBtn, completeBtn, saveRxBtn, printRxBtn;
 
     @FXML private TextField weightKg, heightCm, temperatureC, bpSystolic, bpDiastolic,
             pulseBpm, spo2Percent, respiratoryRate, chiefComplaint, icd10Codes;
@@ -27,7 +31,17 @@ public class ConsultationDetailController extends BaseController {
     private long consultationId;
     private JSONObject loaded;                 // consultation JSON telle que renvoyée par l'API
     private long prescriptionId = 0;           // > 0 si une ordonnance existe déjà → PUT plutôt que POST
+    private Stage dialogStage;                 // fenêtre modale hôte (cf. initModal)
     private final ObservableList<JSONObject> rxItems = FXCollections.observableArrayList();
+
+    /** Reçoit la fenêtre modale qui héberge cette fiche, pour pouvoir la fermer. */
+    public void initModal(Stage stage) { this.dialogStage = stage; }
+
+    /** Ferme la fenêtre modale (bouton ✕ Fermer / après clôture). */
+    @FXML
+    public void close() {
+        if (dialogStage != null) dialogStage.close();
+    }
 
     @FXML
     public void initialize() {
@@ -66,6 +80,8 @@ public class ConsultationDetailController extends BaseController {
                 } else {
                     prescriptionId = 0;
                 }
+                // Impression possible seulement si l'ordonnance est enregistrée (PDF rendu côté serveur).
+                printRxBtn.setDisable(prescriptionId <= 0);
             });
         });
     }
@@ -97,9 +113,7 @@ public class ConsultationDetailController extends BaseController {
     }
 
     // ── Enregistrer la consultation ───────────────────────────────────────
-    @FXML
-    public void save() {
-        if (loaded == null) return;
+    private JSONObject buildConsultationBody() {
         JSONObject body = new JSONObject();
         // Le service exige patient + médecin : on les conserve depuis la consultation chargée.
         body.put("patientId", loaded.optLong("patientId"));
@@ -121,7 +135,13 @@ public class ConsultationDetailController extends BaseController {
         body.put("diagnosis", diagnosis.getText());
         body.put("icd10Codes", icd10Codes.getText());
         body.put("treatmentPlan", treatmentPlan.getText());
+        return body;
+    }
 
+    @FXML
+    public void save() {
+        if (loaded == null) return;
+        JSONObject body = buildConsultationBody();
         statusLabel.setText("Enregistrement…");
         async(() -> {
             ApiClient.Response r = ApiClient.put("/api/consultations/" + consultationId, body);
@@ -135,19 +155,39 @@ public class ConsultationDetailController extends BaseController {
     // ── Clôturer ──────────────────────────────────────────────────────────
     @FXML
     public void complete() {
+        if (loaded == null) return;
         if (diagnosis.getText() == null || diagnosis.getText().isBlank()) {
             error("Diagnostic requis", "Le diagnostic est obligatoire pour clôturer la consultation.");
             return;
         }
-        // On enregistre d'abord les saisies, puis on clôture.
-        save();
+        if (!confirm("Clôturer la consultation ?",
+                "Une fois clôturée, elle ne sera plus modifiable. Cette fenêtre se fermera.")) {
+            return;
+        }
+        completeBtn.setDisable(true);
         statusLabel.setText("Clôture…");
+        JSONObject body = buildConsultationBody();
         async(() -> {
+            // 1. enregistrer les saisies (séquentiel — le backend exige le diagnostic persisté pour clôturer)
+            ApiClient.Response saveResp = ApiClient.put("/api/consultations/" + consultationId, body);
+            if (!saveResp.ok()) {
+                ui(() -> {
+                    completeBtn.setDisable(false);
+                    error("Clôture impossible", "Échec de l'enregistrement préalable (code " + saveResp.status() + ").");
+                });
+                return;
+            }
+            // 2. clôturer
             ApiClient.Response r = ApiClient.patch("/api/consultations/" + consultationId + "/complete", null);
             ui(() -> {
-                if (r.ok()) { fillForm(r.asObject()); info("Consultation clôturée", "La consultation est désormais terminée."); }
-                else error("Clôture impossible", "Le serveur a répondu : " + r.status()
-                        + (r.status() == 500 ? "\n(Vérifiez que le diagnostic est renseigné.)" : ""));
+                if (r.ok()) {
+                    info("Consultation clôturée", "La consultation est désormais terminée.");
+                    close();   // ferme la fenêtre → la liste se rafraîchit (cf. ConsultationsController)
+                } else {
+                    completeBtn.setDisable(false);
+                    error("Clôture impossible", "Le serveur a répondu : " + r.status()
+                            + (r.status() == 409 ? "\n(Vérifiez que le diagnostic est renseigné.)" : ""));
+                }
             });
         });
     }
@@ -191,12 +231,56 @@ public class ConsultationDetailController extends BaseController {
                     prescriptionId = rx.optLong("id");
                     rxNumberLabel.setText("N° " + rx.optString("prescriptionNumber"));
                     rxStatusLabel.setText("Ordonnance enregistrée.");
+                    printRxBtn.setDisable(false);   // impression désormais possible
                 } else {
                     error("Ordonnance refusée", "Le serveur a répondu : " + r.status());
                     rxStatusLabel.setText("");
                 }
             });
         });
+    }
+
+    // ── Imprimer l'ordonnance (PDF rendu côté serveur, ouvert dans le lecteur OS) ──
+    @FXML
+    public void printRx() {
+        if (prescriptionId <= 0) { rxStatusLabel.setText("Enregistrez d'abord l'ordonnance."); return; }
+        printRxBtn.setDisable(true);
+        rxStatusLabel.setText("Préparation du PDF…");
+        async(() -> {
+            ApiClient.BinaryResponse r = ApiClient.getBinary("/api/prescriptions/" + prescriptionId + "/pdf");
+            if (r.ok() && r.body() != null && r.body().length > 0) {
+                try {
+                    File f = File.createTempFile("ordonnance-" + prescriptionId + "-", ".pdf");
+                    f.deleteOnExit();
+                    Files.write(f.toPath(), r.body());
+                    openInSystemViewer(f);   // bloquant léger → hors thread UI
+                    ui(() -> {
+                        rxStatusLabel.setText("Ordonnance ouverte (imprimez depuis le lecteur PDF).");
+                        printRxBtn.setDisable(false);
+                    });
+                } catch (Exception ex) {
+                    ui(() -> {
+                        error("Impression impossible", "Ouverture du PDF échouée : " + ex.getMessage());
+                        printRxBtn.setDisable(false);
+                    });
+                }
+            } else {
+                ui(() -> {
+                    error("Impression impossible", "Le serveur a répondu : " + r.status());
+                    rxStatusLabel.setText("");
+                    printRxBtn.setDisable(false);
+                });
+            }
+        });
+    }
+
+    /** Ouvre un fichier avec l'application par défaut du système (AWT Desktop). */
+    private void openInSystemViewer(File f) throws java.io.IOException {
+        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
+            Desktop.getDesktop().open(f);
+        } else {
+            throw new java.io.IOException("ouverture de fichier non supportée sur ce système");
+        }
     }
 
     private void putNumber(JSONObject body, String key, TextField f, boolean integer) {

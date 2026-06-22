@@ -8,7 +8,7 @@
 
     <top>
         <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding:14 16; -fx-background-color:white; -fx-border-color:#e2e8f0; -fx-border-width:0 0 1 0;">
-            <Button text="← Consultations" onAction="#goConsultations" style="-fx-cursor:hand;"/>
+            <Button text="✕ Fermer" onAction="#close" style="-fx-cursor:hand;"/>
             <Label fx:id="patientLabel" text="Consultation" style="-fx-font-size:16px; -fx-font-weight:bold;"/>
             <Label fx:id="statusBadge" style="-fx-background-color:#dbeafe; -fx-text-fill:#1d4ed8; -fx-padding:3 10; -fx-background-radius:999; -fx-font-size:11px; -fx-font-weight:bold;"/>
             <HBox HBox.hgrow="ALWAYS"/>
@@ -85,6 +85,7 @@
                     </HBox>
                     <HBox spacing="8" alignment="CENTER_LEFT">
                         <Button fx:id="saveRxBtn" text="Enregistrer l'ordonnance" onAction="#saveRx" style="-fx-background-color:#2563eb; -fx-text-fill:white; -fx-cursor:hand; -fx-background-radius:6;"/>
+                        <Button fx:id="printRxBtn" text="🖨 Imprimer l'ordonnance" onAction="#printRx" disable="true" style="-fx-cursor:hand; -fx-background-radius:6;"/>
                         <Label fx:id="rxStatusLabel" style="-fx-text-fill:#64748b; -fx-font-size:12px;"/>
                     </HBox>
                 </VBox>

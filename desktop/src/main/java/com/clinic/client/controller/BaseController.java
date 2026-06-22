@@ -63,4 +63,13 @@ public abstract class BaseController {
         a.setContentText(content);
         a.showAndWait();
     }
+
+    /** Demande confirmation (OK/Annuler) ; renvoie true si l'utilisateur confirme. */
+    protected boolean confirm(String header, String content) {
+        Alert a = new Alert(Alert.AlertType.CONFIRMATION);
+        a.setTitle("Confirmation");
+        a.setHeaderText(header);
+        a.setContentText(content);
+        return a.showAndWait().filter(b -> b == javafx.scene.control.ButtonType.OK).isPresent();
+    }
 }

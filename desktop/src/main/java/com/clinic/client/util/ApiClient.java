@@ -39,6 +39,11 @@ public class ApiClient {
         }
     }
 
+    /** Réponse binaire (téléchargement de fichier : PDF d'ordonnance, etc.). */
+    public record BinaryResponse(int status, byte[] body) {
+        public boolean ok() { return status >= 200 && status < 300; }
+    }
+
     /** Sérialise la rotation du refresh token (cf. {@link #tryRefresh}). */
     private static final Object REFRESH_LOCK = new Object();
 
@@ -47,6 +52,22 @@ public class ApiClient {
     public static Response post(String path, JSONObject body, boolean auth) { return send("POST", path, body, auth); }
     public static Response put(String path, JSONObject body)       { return send("PUT", path, body, true); }
     public static Response patch(String path, JSONObject body)     { return send("PATCH", path, body, true); }
+
+    /**
+     * Télécharge une ressource binaire authentifiée (ex: PDF d'ordonnance).
+     * Même rotation transparente du token que {@link #send} (cf. {@link #tryRefresh}).
+     */
+    public static BinaryResponse getBinary(String path) {
+        String tokenUsed = AuthState.get().getToken();
+        BinaryResponse resp = exchangeBinary(path, tokenUsed);
+        if ((resp.status() == 401 || resp.status() == 403)
+                && AuthState.get().getRefreshToken() != null
+                && accessTokenExpired(tokenUsed)
+                && tryRefresh(tokenUsed)) {
+            resp = exchangeBinary(path, AuthState.get().getToken());
+        }
+        return resp;
+    }
 
     /**
      * Déconnexion côté serveur : révoque le refresh token fourni (best-effort).
@@ -156,6 +177,22 @@ public class ApiClient {
             return new Response(r.statusCode(), r.body());
         } catch (Exception e) {
             return new Response(-1, null);
+        }
+    }
+
+    private static BinaryResponse exchangeBinary(String path, String token) {
+        try {
+            HttpRequest.Builder b = HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL + path))
+                    .timeout(Duration.ofSeconds(30))
+                    .GET();
+            if (token != null) {
+                b.header("Authorization", "Bearer " + token);
+            }
+            HttpResponse<byte[]> r = HTTP.send(b.build(), HttpResponse.BodyHandlers.ofByteArray());
+            return new BinaryResponse(r.statusCode(), r.body());
+        } catch (Exception e) {
+            return new BinaryResponse(-1, null);
         }
     }
 }

@@ -84,10 +84,14 @@ public class ConsultationsController extends BaseController {
 
     private void openConsultation(long id) {
         try {
-            ConsultationDetailController c = SceneManager.navigateTo("consultation-detail.fxml");
-            c.load(id);
+            SceneManager.Modal<ConsultationDetailController> m =
+                    SceneManager.loadModal("consultation-detail.fxml", "Consultation");
+            m.controller().initModal(m.stage());
+            m.controller().load(id);
+            m.stage().showAndWait();   // bloque jusqu'à fermeture (clôture / ✕)
+            load();                    // rafraîchit la liste (statut mis à jour)
         } catch (Exception e) {
-            error("Navigation impossible", e.getMessage());
+            error("Ouverture impossible", e.getMessage());
         }
     }
 }
