@@ -16,6 +16,7 @@ public class AuthState {
 
     private static AuthState instance;
     private String token;
+    private String refreshToken;
     private String username;
     private String role;
     private String fullName;
@@ -48,16 +49,31 @@ public class AuthState {
         return instance;
     }
 
-    public void login(String token, String username, String role, String fullName) {
-        this.token = token; this.username = username;
+    public void login(String token, String refreshToken, String username, String role, String fullName) {
+        this.token = token; this.refreshToken = refreshToken;
+        this.username = username;
         this.role = role;   this.fullName = fullName;
     }
 
-    public void logout() { token = null; username = null; role = null; fullName = null; }
+    /**
+     * Met à jour le couple de jetons après une rotation via /api/auth/refresh.
+     * Le refresh token est rotatif : on doit conserver le nouveau, l'ancien étant
+     * révoqué côté serveur (le rejouer déclencherait la détection de réutilisation).
+     */
+    public void updateTokens(String token, String refreshToken) {
+        this.token = token;
+        this.refreshToken = refreshToken;
+    }
 
-    public String getToken()    { return token; }
-    public String getUsername() { return username; }
-    public String getRole()     { return role; }
-    public String getFullName() { return fullName; }
-    public boolean isLoggedIn() { return token != null; }
+    public void logout() {
+        token = null; refreshToken = null;
+        username = null; role = null; fullName = null;
+    }
+
+    public String getToken()        { return token; }
+    public String getRefreshToken() { return refreshToken; }
+    public String getUsername()     { return username; }
+    public String getRole()         { return role; }
+    public String getFullName()     { return fullName; }
+    public boolean isLoggedIn()     { return token != null; }
 }

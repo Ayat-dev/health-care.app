@@ -53,6 +53,7 @@ public class LoginController {
                     }
                     AuthState.get().login(
                         o.getString("token"),
+                        o.getString("refreshToken"),
                         o.getString("username"),
                         role,
                         o.getString("fullName")

@@ -1,6 +1,7 @@
 package com.clinic.client.controller;
 
 import com.clinic.client.model.AuthState;
+import com.clinic.client.util.ApiClient;
 import com.clinic.client.util.SceneManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -23,6 +24,14 @@ public abstract class BaseController {
     @FXML public void goReference()     throws IOException { SceneManager.navigateTo("reference.fxml"); }
 
     @FXML public void logout() throws IOException {
+        // Révoque le refresh token côté serveur (best-effort, hors thread UI) avant
+        // d'effacer la session locale — le jeton est capturé puis passé explicitement.
+        final String refreshToken = AuthState.get().getRefreshToken();
+        if (refreshToken != null) {
+            Thread t = new Thread(() -> ApiClient.revokeRefreshToken(refreshToken));
+            t.setDaemon(true);
+            t.start();
+        }
         AuthState.get().logout();
         SceneManager.navigateTo("login.fxml");
     }

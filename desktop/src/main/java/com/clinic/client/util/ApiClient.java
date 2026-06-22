@@ -39,21 +39,82 @@ public class ApiClient {
         }
     }
 
+    /** Sérialise la rotation du refresh token (cf. {@link #tryRefresh}). */
+    private static final Object REFRESH_LOCK = new Object();
+
     // ── Méthodes pratiques ────────────────────────────────────────────────
     public static Response get(String path)                       { return send("GET", path, null, true); }
     public static Response post(String path, JSONObject body, boolean auth) { return send("POST", path, body, auth); }
     public static Response put(String path, JSONObject body)       { return send("PUT", path, body, true); }
     public static Response patch(String path, JSONObject body)     { return send("PATCH", path, body, true); }
 
+    /**
+     * Déconnexion côté serveur : révoque le refresh token fourni (best-effort).
+     * À appeler avant d'effacer la session locale, sinon le refresh token reste
+     * valide 7 jours. Le jeton est passé explicitement (et non lu depuis AuthState)
+     * pour éviter toute course avec l'effacement de la session.
+     */
+    public static void revokeRefreshToken(String refreshToken) {
+        if (refreshToken == null) return;
+        JSONObject body = new JSONObject();
+        body.put("refreshToken", refreshToken);
+        exchange("POST", "/api/auth/logout", body, null); // public, ignore le résultat
+    }
+
     private static Response send(String method, String path, JSONObject body, boolean auth) {
+        String tokenUsed = auth ? AuthState.get().getToken() : null;
+        Response resp = exchange(method, path, body, tokenUsed);
+
+        // P4.4 : l'access token est court (15 min). Sur 401, tenter une rotation
+        // transparente via /api/auth/refresh puis rejouer la requête une seule fois.
+        if (auth && resp.status() == 401 && AuthState.get().getRefreshToken() != null
+                && tryRefresh(tokenUsed)) {
+            resp = exchange(method, path, body, AuthState.get().getToken());
+        }
+        return resp;
+    }
+
+    /**
+     * Rotation transparente de l'access token. Sérialisée par {@link #REFRESH_LOCK} :
+     * si un autre thread a déjà rafraîchi pendant l'attente du verrou (le token courant
+     * diffère de celui qui a échoué), on ne rejoue PAS le refresh — le refresh token est
+     * rotatif et le rejouer déclencherait la détection de réutilisation côté serveur,
+     * qui révoquerait toute la session.
+     *
+     * @return true si un access token valide est désormais disponible.
+     */
+    private static boolean tryRefresh(String failedToken) {
+        synchronized (REFRESH_LOCK) {
+            String current = AuthState.get().getToken();
+            if (current != null && !current.equals(failedToken)) {
+                return true; // un autre thread a déjà rafraîchi
+            }
+            String refreshToken = AuthState.get().getRefreshToken();
+            if (refreshToken == null) return false;
+
+            JSONObject body = new JSONObject();
+            body.put("refreshToken", refreshToken);
+            Response resp = exchange("POST", "/api/auth/refresh", body, null);
+            if (resp.ok()) {
+                JSONObject o = resp.asObject();
+                AuthState.get().updateTokens(o.getString("accessToken"), o.getString("refreshToken"));
+                return true;
+            }
+            // Refresh refusé (expiré/révoqué/réutilisé) → session terminée côté serveur.
+            AuthState.get().logout();
+            return false;
+        }
+    }
+
+    private static Response exchange(String method, String path, JSONObject body, String token) {
         try {
             HttpRequest.Builder b = HttpRequest.newBuilder()
                     .uri(URI.create(BASE_URL + path))
                     .timeout(Duration.ofSeconds(20))
                     .header("Accept", "application/json");
 
-            if (auth && AuthState.get().getToken() != null) {
-                b.header("Authorization", "Bearer " + AuthState.get().getToken());
+            if (token != null) {
+                b.header("Authorization", "Bearer " + token);
             }
 
             HttpRequest.BodyPublisher publisher;
