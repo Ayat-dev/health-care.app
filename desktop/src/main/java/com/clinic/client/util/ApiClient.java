@@ -65,13 +65,39 @@ public class ApiClient {
         String tokenUsed = auth ? AuthState.get().getToken() : null;
         Response resp = exchange(method, path, body, tokenUsed);
 
-        // P4.4 : l'access token est court (15 min). Sur 401, tenter une rotation
-        // transparente via /api/auth/refresh puis rejouer la requête une seule fois.
-        if (auth && resp.status() == 401 && AuthState.get().getRefreshToken() != null
+        // P4.4 : l'access token est court (15 min). Quand il expire, le backend rejette
+        // la requête — et la chaîne API stateless n'ayant pas d'authenticationEntryPoint
+        // dédié, un token périmé tombe en utilisateur anonyme → AccessDenied → **403**
+        // (pas 401). On déclenche donc la rotation transparente sur 401 OU 403, mais
+        // uniquement si l'access token est réellement expiré (décodage du claim `exp`),
+        // afin de ne pas gaspiller une rotation sur un vrai refus d'autorisation (rôle).
+        if (auth && (resp.status() == 401 || resp.status() == 403)
+                && AuthState.get().getRefreshToken() != null
+                && accessTokenExpired(tokenUsed)
                 && tryRefresh(tokenUsed)) {
             resp = exchange(method, path, body, AuthState.get().getToken());
         }
         return resp;
+    }
+
+    /**
+     * L'access token JWT est-il expiré (ou illisible) ? Décode le claim {@code exp}
+     * (epoch secondes) du payload. Un token absent/malformé est traité comme expiré :
+     * on tente alors le refresh (sans danger — un échec renvoie l'erreur d'origine).
+     */
+    private static boolean accessTokenExpired(String jwt) {
+        if (jwt == null) return true;
+        try {
+            String[] parts = jwt.split("\\.");
+            if (parts.length < 2) return true;
+            String payload = new String(
+                    java.util.Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
+            JSONObject o = new JSONObject(payload);
+            if (!o.has("exp")) return true;
+            return System.currentTimeMillis() / 1000L >= o.getLong("exp");
+        } catch (Exception e) {
+            return true;
+        }
     }
 
     /**
