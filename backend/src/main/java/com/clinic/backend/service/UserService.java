@@ -5,6 +5,7 @@ import com.clinic.backend.dto.UserDto;
 import com.clinic.backend.model.Role;
 import com.clinic.backend.model.User;
 import com.clinic.backend.repository.UserRepository;
+import com.clinic.backend.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,9 +29,15 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     // ── Liste (non supprimés) ──────────────────────────────────────────────
+    // Multi-tenant (P4.2) : un ADMIN de clinique ne gère que les comptes de SA clinique.
+    // Le SUPER_ADMIN (clinique courante = null) voit tout. users n'est pas @TenantId
+    // (la connexion par username doit rester globale) → filtrage applicatif explicite.
     @Transactional(readOnly = true)
     public List<User> listActive() {
-        return userRepository.findByDeletedAtIsNullOrderByUsernameAsc();
+        Long clinic = TenantContext.currentClinicId();
+        return clinic == null
+                ? userRepository.findByDeletedAtIsNullOrderByUsernameAsc()
+                : userRepository.findByDeletedAtIsNullAndClinicIdOrderByUsernameAsc(clinic);
     }
 
     @Transactional(readOnly = true)
@@ -39,12 +46,16 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable : " + id));
         if (u.getDeletedAt() != null)
             throw new IllegalArgumentException("Utilisateur supprimé : " + id);
+        // Cloisonnement tenant : pas d'accès à un compte d'une autre clinique.
+        Long clinic = TenantContext.currentClinicId();
+        if (clinic != null && !clinic.equals(u.getClinicId()))
+            throw new ResourceNotFoundException("Utilisateur introuvable : " + id);
         return u;
     }
 
-    /** Rôles assignables, pour alimenter le sélecteur du formulaire. */
+    /** Rôles assignables (hors SUPER_ADMIN, transverse et non créable ici). */
     public List<Role> assignableRoles() {
-        return Arrays.asList(Role.values());
+        return Arrays.stream(Role.values()).filter(r -> r != Role.SUPER_ADMIN).toList();
     }
 
     // ── Création ────────────────────────────────────────────────────────────
@@ -60,6 +71,8 @@ public class UserService {
         User u = new User(username, passwordEncoder.encode(dto.getPassword()),
                 dto.getFullName(), dto.getRole());
         u.setActive(dto.isActive());
+        // Le nouveau compte hérite de la clinique de l'admin créateur (multi-tenant P4.2).
+        u.setClinicId(TenantContext.currentClinicId());
         User saved = userRepository.save(u);
         log.info("Utilisateur créé : {} (rôle {})", saved.getUsername(), saved.getRole());
         return saved;
@@ -110,7 +123,9 @@ public class UserService {
 
     // ── Validation ────────────────────────────────────────────────────────────
     private void validateRole(String role) {
-        if (role == null || Arrays.stream(Role.values()).noneMatch(r -> r.name().equals(role)))
+        // SUPER_ADMIN est transverse : non assignable via la gestion des utilisateurs (P4.2).
+        if (role == null || Role.SUPER_ADMIN.name().equals(role)
+                || Arrays.stream(Role.values()).noneMatch(r -> r.name().equals(role)))
             throw new IllegalArgumentException("Rôle invalide : " + role);
     }
 

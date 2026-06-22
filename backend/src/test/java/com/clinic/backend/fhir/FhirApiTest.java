@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -27,7 +27,7 @@ class FhirApiTest {
     @Autowired MockMvc mvc;
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUserDetails(value = "admin", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void patient_read_renvoie_une_ressource_fhir_valide() throws Exception {
         mvc.perform(get("/fhir/Patient/1"))
            .andExpect(status().isOk())
@@ -38,7 +38,7 @@ class FhirApiTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUserDetails(value = "admin", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void patient_search_renvoie_un_bundle() throws Exception {
         mvc.perform(get("/fhir/Patient").param("name", "Diallo"))
            .andExpect(status().isOk())
@@ -48,7 +48,7 @@ class FhirApiTest {
     }
 
     @Test
-    @WithMockUser(username = "doc", roles = "MEDECIN")
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void encounter_read_reference_le_patient() throws Exception {
         mvc.perform(get("/fhir/Encounter/1"))
            .andExpect(status().isOk())
@@ -57,7 +57,7 @@ class FhirApiTest {
     }
 
     @Test
-    @WithMockUser(username = "doc", roles = "MEDECIN")
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void observation_search_combine_constantes_et_labo() throws Exception {
         // c1 (p1) porte des constantes ; lr1 (p1) porte des résultats labo (glycémie anormale).
         mvc.perform(get("/fhir/Observation").param("patient", "1"))
@@ -68,7 +68,7 @@ class FhirApiTest {
     }
 
     @Test
-    @WithMockUser(username = "doc", roles = "MEDECIN")
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void medicationrequest_search_liste_les_lignes_ordonnance() throws Exception {
         mvc.perform(get("/fhir/MedicationRequest").param("patient", "1"))
            .andExpect(status().isOk())
@@ -91,7 +91,7 @@ class FhirApiTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithUserDetails(value = "admin", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void ressource_inexistante_renvoie_404_operationoutcome() throws Exception {
         mvc.perform(get("/fhir/Patient/99999"))
            .andExpect(status().isNotFound())
@@ -100,7 +100,7 @@ class FhirApiTest {
     }
 
     @Test
-    @WithMockUser(username = "doc", roles = "MEDECIN")
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void parametre_patient_manquant_renvoie_400_operationoutcome() throws Exception {
         mvc.perform(get("/fhir/Observation"))
            .andExpect(status().isBadRequest())

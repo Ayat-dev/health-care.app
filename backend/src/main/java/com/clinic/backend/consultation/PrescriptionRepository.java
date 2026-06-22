@@ -41,8 +41,11 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, Long
         """)
     java.util.List<Prescription> findByPatientWithItems(@Param("patientId") Long patientId);
 
-    /** Highest sequence used for a numbering prefix (e.g. "ORD-2026-"); 0 if none. */
-    @Query("SELECT COALESCE(MAX(CAST(SUBSTRING(p.prescriptionNumber, 10) AS int)), 0) " +
-           "FROM Prescription p WHERE p.prescriptionNumber LIKE :prefix%")
+    /**
+     * Highest sequence used for a numbering prefix (e.g. "ORD-2026-"); 0 if none.
+     * Native + GLOBAL (non filtré par @TenantId, P4.2) : numéros d'ordonnance uniques entre cliniques.
+     */
+    @Query(value = "SELECT COALESCE(MAX(CAST(SUBSTR(prescription_number, 10) AS INTEGER)), 0) " +
+                   "FROM prescriptions WHERE prescription_number LIKE CONCAT(:prefix, '%')", nativeQuery = true)
     int findMaxSequence(@Param("prefix") String prefix);
 }

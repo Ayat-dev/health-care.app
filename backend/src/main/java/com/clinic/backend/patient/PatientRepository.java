@@ -45,7 +45,11 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
     /** Dossier patient lié à un compte portail (rôle PATIENT) — pour {@code /portal/**}. */
     Optional<Patient> findByPortalUserIdAndDeletedAtIsNull(Long userId);
 
-    @Query("SELECT COALESCE(MAX(CAST(SUBSTRING(p.recordNumber, 10) AS int)), 0) FROM Patient p WHERE p.recordNumber LIKE :prefix%")
+    // Numérotation GLOBALE (requête native → non filtrée par @TenantId, P4.2) : garantit l'unicité
+    // de record_number entre cliniques malgré la contrainte UNIQUE globale. La séquence est donc
+    // partagée et monotone toutes cliniques confondues.
+    @Query(value = "SELECT COALESCE(MAX(CAST(SUBSTR(record_number, 10) AS INTEGER)), 0) " +
+                   "FROM patients WHERE record_number LIKE CONCAT(:prefix, '%')", nativeQuery = true)
     int findMaxSequence(@Param("prefix") String prefix);
 
     // ── Agrégats reporting (module 14) ─────────────────────────────────────────

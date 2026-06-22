@@ -22,6 +22,15 @@ public class User implements UserDetails {
     private String fullName;
     private String role;
 
+    /**
+     * Clinique d'appartenance (multi-tenant P4.2). {@code null} = compte transverse
+     * (SUPER_ADMIN). C'est la source de résolution du tenant courant ({@code TenantContext}),
+     * d'où l'absence de {@code @TenantId} sur {@code users} (sinon la connexion par
+     * username serait filtrée avant de connaître le tenant).
+     */
+    @Column(name = "clinic_id")
+    private Long clinicId;
+
     private boolean active = true;
 
     // Anti-brute-force (P1.3) : échecs consécutifs + verrou temporaire.
@@ -75,6 +84,10 @@ public class User implements UserDetails {
     public boolean isEnabled() { return active; }
 
     public Long getId() { return id; }
+
+    public Long getClinicId() { return clinicId; }
+
+    public void setClinicId(Long clinicId) { this.clinicId = clinicId; }
 
     public String getFullName() { return fullName; }
 

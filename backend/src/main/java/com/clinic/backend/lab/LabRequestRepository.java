@@ -73,9 +73,12 @@ public interface LabRequestRepository extends JpaRepository<LabRequest, Long> {
         """)
     List<LabRequest> findByPatient(@Param("patientId") Long patientId);
 
-    /** Highest sequence used for a numbering prefix (e.g. "LAB-2026-"); 0 if none. */
-    @Query("SELECT COALESCE(MAX(CAST(SUBSTRING(r.requestNumber, 10) AS int)), 0) " +
-           "FROM LabRequest r WHERE r.requestNumber LIKE :prefix%")
+    /**
+     * Highest sequence used for a numbering prefix (e.g. "LAB-2026-"); 0 if none.
+     * Native + GLOBAL (non filtré par @TenantId, P4.2) : numéros de demande uniques entre cliniques.
+     */
+    @Query(value = "SELECT COALESCE(MAX(CAST(SUBSTR(request_number, 10) AS INTEGER)), 0) " +
+                   "FROM lab_requests WHERE request_number LIKE CONCAT(:prefix, '%')", nativeQuery = true)
     int findMaxSequence(@Param("prefix") String prefix);
 
     // ── Agrégats reporting (module 14) ─────────────────────────────────────────

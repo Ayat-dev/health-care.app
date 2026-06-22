@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(${clinic.id == null ? 'Nouvelle clinique' : 'Modifier clinique'}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="form-card">
+    <form th:action="${clinic.id == null ? '/admin/clinics/new' : '/admin/clinics/' + clinic.id + '/edit'}"
+          method="post">
+
+        <div class="form-section">
+            <h3 class="form-section-title">Identité</h3>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label">Code *</label>
+                    <input type="text" name="code" th:value="${clinic.code}"
+                           class="form-control" required
+                           th:readonly="${clinic.id != null}"/>
+                    <small class="form-hint">Identifiant court et stable (ex. CENTRALE). Non modifiable après création.</small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nom *</label>
+                    <input type="text" name="name" th:value="${clinic.name}"
+                           class="form-control" required/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Téléphone</label>
+                    <input type="text" name="phone" th:value="${clinic.phone}" class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" th:value="${clinic.email}" class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Adresse</label>
+                    <input type="text" name="address" th:value="${clinic.address}" class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Statut</label>
+                    <select name="active" class="form-control">
+                        <option value="true"  th:selected="${clinic.active}">Active</option>
+                        <option value="false" th:selected="${!clinic.active}">Désactivée</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a th:href="@{/admin/clinics}" class="btn btn-ghost">Annuler</a>
+            <button type="submit" class="btn btn-primary">
+                <span th:text="${clinic.id == null ? 'Créer la clinique' : 'Enregistrer'}">Créer</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+</th:block></body>
+</html>

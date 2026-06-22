@@ -40,6 +40,8 @@ import com.clinic.backend.pharmacy.StockItemRepository;
 import com.clinic.backend.notification.Notification;
 import com.clinic.backend.notification.NotificationRepository;
 import com.clinic.backend.repository.UserRepository;
+import com.clinic.backend.tenant.ClinicRepository;
+import com.clinic.backend.tenant.TenantContext;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -76,28 +78,43 @@ public class DataInitializer {
                                MaternityRecordRepository maternityRecordRepository,
                                InvoiceRepository invoiceRepository,
                                NotificationRepository notificationRepository,
+                               ClinicRepository clinicRepository,
                                PasswordEncoder passwordEncoder) {
         return args -> {
             if (userRepository.count() > 0) return;
 
-            // Utilisateurs
-            User admin = userRepository.save(new User("admin",
-                    passwordEncoder.encode("admin123"), "Administrateur", "ADMIN"));
-            User doctor = userRepository.save(new User("dr.martin",
-                    passwordEncoder.encode("medecin123"), "Dr. Martin", "MEDECIN"));
-            userRepository.save(new User("secretaire",
-                    passwordEncoder.encode("secretaire123"), "Secrétaire", "SECRETAIRE"));
-            userRepository.save(new User("pharmacien",
-                    passwordEncoder.encode("pharmacien123"), "Pharmacien", "PHARMACIEN"));
-            User laborantin = userRepository.save(new User("laborantin",
-                    passwordEncoder.encode("laborantin123"), "Laborantin", "LABORANTIN"));
-            User radiologue = userRepository.save(new User("radiologue",
-                    passwordEncoder.encode("radiologue123"), "Dr. Sow (Radiologie)", "MEDECIN"));
-            User caissier = userRepository.save(new User("caissier",
-                    passwordEncoder.encode("caissier123"), "Caissier", "CAISSIER"));
+            // Cliniques (tenants) amorcées par la migration V20 (multi-tenant P4.2).
+            Long clinic1Id = clinicRepository.findByCodeIgnoreCase("CENTRALE").orElseThrow().getId();
+            Long clinic2Id = clinicRepository.findByCodeIgnoreCase("PLATEAU").orElseThrow().getId();
+
+            // Compte transverse : gère le registre des cliniques, n'appartient à aucun tenant.
+            userRepository.save(withClinic(new User("superadmin",
+                    passwordEncoder.encode("superadmin123"), "Super Administrateur", "SUPER_ADMIN"), null));
+
+            // Utilisateurs de la Clinique Centrale (clinic1)
+            User admin = userRepository.save(withClinic(new User("admin",
+                    passwordEncoder.encode("admin123"), "Administrateur", "ADMIN"), clinic1Id));
+            User doctor = userRepository.save(withClinic(new User("dr.martin",
+                    passwordEncoder.encode("medecin123"), "Dr. Martin", "MEDECIN"), clinic1Id));
+            userRepository.save(withClinic(new User("secretaire",
+                    passwordEncoder.encode("secretaire123"), "Secrétaire", "SECRETAIRE"), clinic1Id));
+            userRepository.save(withClinic(new User("pharmacien",
+                    passwordEncoder.encode("pharmacien123"), "Pharmacien", "PHARMACIEN"), clinic1Id));
+            User laborantin = userRepository.save(withClinic(new User("laborantin",
+                    passwordEncoder.encode("laborantin123"), "Laborantin", "LABORANTIN"), clinic1Id));
+            User radiologue = userRepository.save(withClinic(new User("radiologue",
+                    passwordEncoder.encode("radiologue123"), "Dr. Sow (Radiologie)", "MEDECIN"), clinic1Id));
+            User caissier = userRepository.save(withClinic(new User("caissier",
+                    passwordEncoder.encode("caissier123"), "Caissier", "CAISSIER"), clinic1Id));
             // Compte portail patient (P2.4) — rattaché ci-dessous au dossier de p1.
-            User patientUser = userRepository.save(new User("patient",
-                    passwordEncoder.encode("patient123"), "Aminata Diallo", "PATIENT"));
+            User patientUser = userRepository.save(withClinic(new User("patient",
+                    passwordEncoder.encode("patient123"), "Aminata Diallo", "PATIENT"), clinic1Id));
+
+            LocalDate today = LocalDate.now();
+
+            // ════ Données cliniques de la Clinique Centrale (tenant clinic1) ════
+            // Hibernate estampille clinic_id=clinic1 sur tout ce qui est sauvé dans ce bloc.
+            TenantContext.runAs(clinic1Id, () -> {
 
             // Patients de test
             Patient p1 = new Patient();
@@ -129,7 +146,6 @@ public class DataInitializer {
             patientRepository.save(p3);
 
             // Rendez-vous de test (aujourd'hui + cette semaine, pour dr.martin)
-            LocalDate today = LocalDate.now();
             seedAppointment(appointmentRepository, p1, doctor, admin,
                     today.atTime(9, 0), "CONSULTATION", "PLANIFIE", "Douleurs abdominales");
             seedAppointment(appointmentRepository, p2, doctor, admin,
@@ -361,7 +377,34 @@ public class DataInitializer {
                     p1.getPhone(), "Facture en attente",
                     "[ClinicApp] Facture FAC-" + today.getYear() + "-00001 en attente de règlement (12000 XOF).",
                     "EN_ATTENTE", null, null));
+
+            }); // ── fin du tenant clinic1 ──
+
+            // ════ Clinique 2 (Cabinet du Plateau) — preuve de cloisonnement ════
+            // Un admin, un médecin et un patient propres au tenant clinic2. Le patient ne doit
+            // JAMAIS apparaître côté clinic1 (et inversement) → vérifié par MultiTenancyTest.
+            userRepository.save(withClinic(new User("admin.plateau",
+                    passwordEncoder.encode("plateau123"), "Admin Plateau", "ADMIN"), clinic2Id));
+            User docPlateau = userRepository.save(withClinic(new User("dr.kone",
+                    passwordEncoder.encode("medecin123"), "Dr. Koné", "MEDECIN"), clinic2Id));
+
+            TenantContext.runAs(clinic2Id, () -> {
+                Patient p = new Patient();
+                p.setRecordNumber("PAT-PLT-00001");
+                p.setFirstName("Awa"); p.setLastName("Bah");
+                p.setBirthDate(LocalDate.of(1995, 6, 10));
+                p.setGender("F"); p.setPhone("+225 07 00 00 00");
+                p.setCity("Abidjan"); p.setBloodType("B+");
+                p.setAssignedDoctor(docPlateau);
+                patientRepository.save(p);
+            });
         };
+    }
+
+    /** Affecte la clinique (multi-tenant P4.2) et renvoie l'entité, pour un save en une affectation. */
+    private User withClinic(User u, Long clinicId) {
+        u.setClinicId(clinicId);
+        return u;
     }
 
     /** Build a pre-stamped notification for seeding (status/sent_at/read_at set directly). */

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Cliniques', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="panel">
+    <div class="panel-header">
+        <span>Cliniques (tenants)</span>
+        <a th:href="@{/admin/clinics/new}" class="btn btn-primary btn-sm">+ Nouvelle clinique</a>
+    </div>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Code</th>
+                <th>Nom</th>
+                <th>Téléphone</th>
+                <th>Email</th>
+                <th>Statut</th>
+                <th>Créée le</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${clinics.isEmpty()}">
+                <td colspan="7" class="empty-state">Aucune clinique.</td>
+            </tr>
+            <tr th:each="c : ${clinics}">
+                <td><code th:text="${c.code}">CODE</code></td>
+                <td th:text="${c.name}">Nom</td>
+                <td th:text="${c.phone != null ? c.phone : '—'}">—</td>
+                <td th:text="${c.email != null ? c.email : '—'}">—</td>
+                <td>
+                    <span th:if="${c.active}" class="badge badge-green">Active</span>
+                    <span th:unless="${c.active}" class="badge badge-red">Désactivée</span>
+                </td>
+                <td th:text="${c.createdAt != null ? #temporals.format(c.createdAt,'dd/MM/yyyy') : '—'}">—</td>
+                <td>
+                    <a th:href="@{/admin/clinics/{id}/edit(id=${c.id})}" class="btn btn-ghost btn-sm">Modifier</a>
+                    <form th:action="@{/admin/clinics/{id}/toggle(id=${c.id})}" method="post" style="display:inline">
+                        <button type="submit" class="btn btn-ghost btn-sm"
+                                th:text="${c.active ? 'Désactiver' : 'Activer'}">Désactiver</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</th:block></body>
+</html>

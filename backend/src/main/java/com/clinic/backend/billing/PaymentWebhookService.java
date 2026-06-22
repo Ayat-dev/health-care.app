@@ -1,6 +1,7 @@
 package com.clinic.backend.billing;
 
 import com.clinic.backend.dto.PaymentDto;
+import com.clinic.backend.tenant.TenantContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -90,20 +91,24 @@ public class PaymentWebhookService {
             return reject(ev, "Montant invalide");
         }
 
+        // Lookup GLOBAL (le webhook n'a pas de contexte de tenant) → on récupère la facture
+        // toutes cliniques confondues, puis on applique l'encaissement sous SON tenant.
         Optional<Invoice> invoice = invoiceRepository.findByInvoiceNumber(invoiceNumber);
         if (invoice.isEmpty()) {
             return reject(ev, "Facture introuvable : " + invoiceNumber);
         }
-        ev.setInvoiceId(invoice.get().getId());
+        Invoice inv = invoice.get();
+        ev.setInvoiceId(inv.getId());
 
-        // 6. Encaissement (transaction propre de recordPayment). Échec métier → rejet journalisé.
+        // 6. Encaissement (transaction propre de recordPayment, sous le tenant de la facture).
+        //    Échec métier → rejet journalisé.
         try {
             PaymentDto dto = new PaymentDto();
             dto.setAmount(amount);
             dto.setMethod(provider);
             dto.setReference(transactionId);
             dto.setNotes("Encaissement Mobile Money (" + provider + ") — webhook " + transactionId);
-            billingService.recordPayment(invoice.get().getId(), dto);
+            TenantContext.runAs(inv.getClinicId(), () -> billingService.recordPayment(inv.getId(), dto));
 
             ev.setStatus(PaymentWebhookEvent.Status.PROCESSED.name());
             save(ev);

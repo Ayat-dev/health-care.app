@@ -2,6 +2,7 @@ package com.clinic.backend.lab;
 
 import com.clinic.backend.model.User;
 import jakarta.persistence.*;
+import org.hibernate.annotations.TenantId;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,6 +21,11 @@ public class LabResult {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /** Discriminant multi-tenant (P4.2) — renseigné par Hibernate via le resolver de tenant. */
+    @TenantId
+    @Column(name = "clinic_id")
+    private Long clinicId;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "lab_request_item_id", nullable = false, unique = true)

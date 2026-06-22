@@ -6,6 +6,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -47,7 +48,9 @@ class ApiErrorMappingTest {
     }
 
     @Test
-    @WithMockUser(username = "cash", roles = "CAISSIER")
+    // multi-tenant (P4.2) : la facture seedée (clinic1) n'est visible que sous un vrai
+    // utilisateur de cette clinique → @WithUserDetails (le mock n'a pas de clinique).
+    @WithUserDetails(value = "caissier", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void surpaiement_renvoie_400() throws Exception {
         String body = "{\"amount\":99999999,\"method\":\"ESPECES\"}";
         mvc.perform(post("/api/billing/invoices/1/pay")
@@ -56,7 +59,7 @@ class ApiErrorMappingTest {
     }
 
     @Test
-    @WithMockUser(username = "cash", roles = "CAISSIER")
+    @WithUserDetails(value = "caissier", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void paiement_sur_facture_soldee_renvoie_409() throws Exception {
         String body = "{\"amount\":100,\"method\":\"ESPECES\"}";
         mvc.perform(post("/api/billing/invoices/2/pay")

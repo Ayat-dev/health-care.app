@@ -58,8 +58,14 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
         """)
     List<Invoice> findByPatient(@Param("patientId") Long patientId);
 
-    /** Recherche exacte par numéro de facture (webhook Mobile Money P3.3). */
-    Optional<Invoice> findByInvoiceNumber(String invoiceNumber);
+    /**
+     * Recherche exacte par numéro de facture (webhook Mobile Money P3.3). Requête <b>native</b>
+     * volontairement GLOBALE (non filtrée par @TenantId, P4.2) : le webhook n'a pas de contexte
+     * de tenant ; il récupère la facture toutes cliniques confondues puis applique l'encaissement
+     * sous le tenant de la facture trouvée.
+     */
+    @Query(value = "SELECT * FROM invoices WHERE invoice_number = :invoiceNumber", nativeQuery = true)
+    Optional<Invoice> findByInvoiceNumber(@Param("invoiceNumber") String invoiceNumber);
 
     /** Recherche globale (P3.5) : factures dont le numéro contient {@code q}, patient chargé (OSIV off). */
     @Query("""
@@ -70,9 +76,12 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
         """)
     List<Invoice> searchByNumber(@Param("q") String q, Pageable pageable);
 
-    /** Highest sequence used for a numbering prefix (e.g. "FAC-2026-"); 0 if none. */
-    @Query("SELECT COALESCE(MAX(CAST(SUBSTRING(inv.invoiceNumber, :start) AS int)), 0) " +
-           "FROM Invoice inv WHERE inv.invoiceNumber LIKE :prefix%")
+    /**
+     * Highest sequence used for a numbering prefix (e.g. "FAC-2026-"); 0 if none.
+     * Native + GLOBAL (non filtré par @TenantId, P4.2) : numéros de facture uniques entre cliniques.
+     */
+    @Query(value = "SELECT COALESCE(MAX(CAST(SUBSTR(invoice_number, :start) AS INTEGER)), 0) " +
+                   "FROM invoices WHERE invoice_number LIKE CONCAT(:prefix, '%')", nativeQuery = true)
     int findMaxSequence(@Param("prefix") String prefix, @Param("start") int start);
 
     // ── Agrégats tableau de bord ────────────────────────────────────────────────

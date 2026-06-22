@@ -2,6 +2,7 @@ package com.clinic.backend.billing;
 
 import com.clinic.backend.model.User;
 import jakarta.persistence.*;
+import org.hibernate.annotations.TenantId;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,6 +23,11 @@ public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /** Discriminant multi-tenant (P4.2) — renseigné par Hibernate via le resolver de tenant. */
+    @TenantId
+    @Column(name = "clinic_id")
+    private Long clinicId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "invoice_id", nullable = false)

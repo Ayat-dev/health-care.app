@@ -2,6 +2,8 @@ package com.clinic.backend.config;
 
 import com.clinic.backend.model.User;
 import com.clinic.backend.repository.UserRepository;
+import com.clinic.backend.tenant.Clinic;
+import com.clinic.backend.tenant.ClinicRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -32,8 +34,12 @@ public class ProdDataInitializer {
     @Value("${clinic.admin.password:}")
     private String adminPassword;
 
+    @Value("${clinic.name:Clinique principale}")
+    private String clinicName;
+
     @Bean
     CommandLineRunner initProdAdmin(UserRepository userRepository,
+                                    ClinicRepository clinicRepository,
                                     PasswordEncoder passwordEncoder) {
         return args -> {
             if (userRepository.count() > 0) {
@@ -46,11 +52,18 @@ public class ProdDataInitializer {
                         + "puis redémarrez l'application.");
                 return;
             }
+            // Multi-tenant (P4.2) : une clinique par défaut, à laquelle l'admin est rattaché.
+            // Le provisionnement de cliniques supplémentaires / d'un SUPER_ADMIN se fait ensuite
+            // (registre /admin/clinics) — voir backlog.
+            Clinic clinic = clinicRepository.findByCodeIgnoreCase("PRINCIPALE")
+                    .orElseGet(() -> clinicRepository.save(new Clinic("PRINCIPALE", clinicName)));
+
             User admin = new User(
                     adminUsername,
                     passwordEncoder.encode(adminPassword),
                     "Administrateur",
                     "ADMIN");
+            admin.setClinicId(clinic.getId());
             userRepository.save(admin);
             log.info("Compte administrateur initial créé : {} (ADMIN). "
                     + "Pensez à changer le mot de passe après la première connexion.",

@@ -5,6 +5,7 @@ import com.clinic.backend.department.Department;
 import com.clinic.backend.model.User;
 import com.clinic.backend.patient.Patient;
 import jakarta.persistence.*;
+import org.hibernate.annotations.TenantId;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,6 +22,11 @@ public class Consultation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /** Discriminant multi-tenant (P4.2) — renseigné par Hibernate via le resolver de tenant. */
+    @TenantId
+    @Column(name = "clinic_id")
+    private Long clinicId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "appointment_id")

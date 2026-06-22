@@ -3,6 +3,10 @@ package com.clinic.backend.api;
 import com.clinic.backend.billing.Invoice;
 import com.clinic.backend.billing.InvoiceRepository;
 import com.clinic.backend.patient.PatientRepository;
+import com.clinic.backend.tenant.ClinicRepository;
+import com.clinic.backend.tenant.TenantContext;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -36,6 +40,20 @@ class PaymentWebhookTest {
     @Autowired MockMvc mvc;
     @Autowired InvoiceRepository invoiceRepository;
     @Autowired PatientRepository patientRepository;
+    @Autowired ClinicRepository clinicRepository;
+
+    // multi-tenant (P4.2) : les opérations du thread de test (création/relecture de factures,
+    // lecture du patient seedé) sont tenant-scopées → on se place dans la clinique CENTRALE.
+    // Le webhook côté serveur, lui, résout le tenant depuis la facture trouvée (lookup global).
+    @BeforeEach
+    void setTenant() {
+        TenantContext.set(clinicRepository.findByCodeIgnoreCase("CENTRALE").orElseThrow().getId());
+    }
+
+    @AfterEach
+    void clearTenant() {
+        TenantContext.clear();
+    }
 
     @Test
     void paiement_valide_encaisse_la_facture() throws Exception {

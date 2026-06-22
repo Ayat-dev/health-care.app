@@ -3,6 +3,7 @@ package com.clinic.backend.patient;
 import com.clinic.backend.crypto.PhiStringConverter;
 import com.clinic.backend.model.User;
 import jakarta.persistence.*;
+import org.hibernate.annotations.TenantId;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,6 +19,11 @@ public class Patient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /** Discriminant multi-tenant (P4.2) — renseigné par Hibernate via le resolver de tenant. */
+    @TenantId
+    @Column(name = "clinic_id")
+    private Long clinicId;
 
     @Column(name = "record_number", unique = true, nullable = false, length = 25)
     private String recordNumber;

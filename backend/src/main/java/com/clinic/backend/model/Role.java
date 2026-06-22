@@ -6,6 +6,8 @@ package com.clinic.backend.model;
  * selector and to validate role assignment.
  */
 public enum Role {
+    /** Tenant transverse (multi-tenant P4.2) : gère le registre des cliniques. Non assignable depuis /admin/users. */
+    SUPER_ADMIN,
     ADMIN,
     MEDECIN,
     INFIRMIER,

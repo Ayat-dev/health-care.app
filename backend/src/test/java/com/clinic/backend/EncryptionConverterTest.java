@@ -3,12 +3,16 @@ package com.clinic.backend;
 import com.clinic.backend.crypto.AesGcmCipher;
 import com.clinic.backend.patient.Patient;
 import com.clinic.backend.patient.PatientRepository;
+import com.clinic.backend.tenant.ClinicRepository;
+import com.clinic.backend.tenant.TenantContext;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.transaction.AfterTransaction;
+import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,6 +36,19 @@ class EncryptionConverterTest {
     @Autowired PatientRepository patientRepository;
     @Autowired JdbcTemplate jdbcTemplate;
     @Autowired EntityManager entityManager;
+    @Autowired ClinicRepository clinicRepository;
+
+    // multi-tenant (P4.2) : le tenant est résolu à l'ouverture de la session = au début de la
+    // transaction de test (avant tout @WithUserDetails). On le fixe donc AVANT la transaction.
+    @BeforeTransaction
+    void setTenant() {
+        TenantContext.set(clinicRepository.findByCodeIgnoreCase("CENTRALE").orElseThrow().getId());
+    }
+
+    @AfterTransaction
+    void clearTenant() {
+        TenantContext.clear();
+    }
 
     // ── AesGcmCipher (unitaire, sans Spring) ─────────────────────────────────
 

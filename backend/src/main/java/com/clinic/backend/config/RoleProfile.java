@@ -28,9 +28,20 @@ import static com.clinic.backend.config.Module.*;
  */
 public enum RoleProfile {
 
+    /**
+     * Tenant transverse (multi-tenant P4.2) : ne voit QUE le registre des cliniques.
+     * N'accède à aucune donnée clinique (qui est tenant-scopée et lui serait vide).
+     */
+    SUPER_ADMIN(
+        "/admin/clinics",
+        EnumSet.of(ADMIN_CLINICS),
+        Set.of()
+    ),
+
     ADMIN(
         "/dashboard",
-        EnumSet.allOf(Module.class),
+        // Tout sauf le registre des cliniques (réservé au SUPER_ADMIN).
+        EnumSet.complementOf(EnumSet.of(ADMIN_CLINICS)),
         Set.of("RAPPEL_RDV", "RESULTAT_LABO", "STOCK_ALERTE", "FACTURE_IMPAYEE", "SYSTEM")
     ),
 

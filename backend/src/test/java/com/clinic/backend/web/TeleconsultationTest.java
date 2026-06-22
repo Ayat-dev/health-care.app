@@ -2,6 +2,10 @@ package com.clinic.backend.web;
 
 import com.clinic.backend.appointment.AppointmentService;
 import com.clinic.backend.dto.AppointmentDto;
+import com.clinic.backend.tenant.ClinicRepository;
+import com.clinic.backend.tenant.TenantContext;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -29,6 +33,19 @@ class TeleconsultationTest {
 
     @Autowired MockMvc mvc;
     @Autowired AppointmentService appointmentService;
+    @Autowired ClinicRepository clinicRepository;
+
+    // multi-tenant (P4.2) : les appels directs au service (hors requête MockMvc, où le contexte
+    // de sécurité est purgé en fin de requête) résolvent le tenant via cet override explicite.
+    @BeforeEach
+    void setTenant() {
+        TenantContext.set(clinicRepository.findByCodeIgnoreCase("CENTRALE").orElseThrow().getId());
+    }
+
+    @AfterEach
+    void clearTenant() {
+        TenantContext.clear();
+    }
 
     @Test
     void activation_genere_une_salle_et_un_lien() throws Exception {

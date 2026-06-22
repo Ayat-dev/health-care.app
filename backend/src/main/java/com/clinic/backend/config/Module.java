@@ -29,6 +29,8 @@ public enum Module {
     REPORTS         ("/reports",          "Rapports",        "📊", "nav.reports",          Section.GESTION),
 
     // ── ADMIN ─────────────────────────────────────────────────────────────────────
+    // Transverse (SUPER_ADMIN uniquement) — registre des cliniques / tenants (P4.2).
+    ADMIN_CLINICS   ("/admin/clinics",    "Cliniques",       "🏛", "nav.admin_clinics",    Section.ADMIN),
     ADMIN_USERS     ("/admin/users",      "Utilisateurs",    "⚙",  "nav.admin_users",     Section.ADMIN),
     ADMIN_DEPTS     ("/admin/departments","Départements",    "🏢", "nav.admin_depts",      Section.ADMIN),
     ADMIN_INSURANCE ("/admin/insurance",  "Assureurs",       "🛡️", "nav.admin_insurance",  Section.ADMIN),

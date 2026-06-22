@@ -88,6 +88,22 @@ class SecurityMatrixTest {
         mvc.perform(get("/portal")).andExpect(status().isForbidden());
     }
 
+    // ── /admin/clinics : SUPER_ADMIN uniquement (registre des tenants, P4.2) ──
+
+    @Test
+    @WithMockUser(username = "root", roles = "SUPER_ADMIN")
+    void super_admin_accede_au_registre_des_cliniques() throws Exception {
+        mvc.perform(get("/admin/clinics"))
+           .andExpect(status().isOk())
+           .andExpect(content().string(containsString("CENTRALE")));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void admin_clinique_refuse_sur_registre_des_cliniques() throws Exception {
+        mvc.perform(get("/admin/clinics")).andExpect(status().isForbidden());
+    }
+
     // ── La page de login reste publique ──────────────────────────────────────
 
     @Test

@@ -7,11 +7,15 @@ import com.clinic.backend.pharmacy.Drug;
 import com.clinic.backend.pharmacy.PharmacyService;
 import com.clinic.backend.pharmacy.StockItem;
 import com.clinic.backend.pharmacy.StockItemRepository;
+import com.clinic.backend.tenant.ClinicRepository;
+import com.clinic.backend.tenant.TenantContext;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.transaction.AfterTransaction;
+import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -40,6 +44,20 @@ class BusinessInvariantTest {
     @Autowired BillingService billingService;
     @Autowired PharmacyService pharmacyService;
     @Autowired StockItemRepository stockItemRepository;
+    @Autowired ClinicRepository clinicRepository;
+
+    // multi-tenant (P4.2) : le tenant est figé à l'ouverture de la session = au début de la
+    // transaction de test (avant @WithUserDetails). On le fixe AVANT la transaction (clinic1,
+    // clinique des comptes seedés caissier/pharmacien).
+    @BeforeTransaction
+    void setTenant() {
+        TenantContext.set(clinicRepository.findByCodeIgnoreCase("CENTRALE").orElseThrow().getId());
+    }
+
+    @AfterTransaction
+    void clearTenant() {
+        TenantContext.clear();
+    }
 
     // ── Facturation ──────────────────────────────────────────────────────────
 
