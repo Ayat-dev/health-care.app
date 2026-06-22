@@ -39,6 +39,15 @@ public class User implements UserDetails {
 
     private LocalDateTime lockedUntil;
 
+    /**
+     * Version de token (révocation JWT, P4.4). Embarquée comme claim {@code tv} dans
+     * chaque access token ; {@code JwtFilter} rejette tout token dont le {@code tv} ne
+     * correspond plus. L'incrémenter (logout-all, désactivation, vol détecté) invalide
+     * INSTANTANÉMENT tous les access tokens en cours, sans attendre leur expiration.
+     */
+    @Column(name = "token_version", nullable = false)
+    private int tokenVersion = 0;
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
@@ -98,6 +107,13 @@ public class User implements UserDetails {
     public int getFailedAttempts() { return failedAttempts; }
 
     public LocalDateTime getLockedUntil() { return lockedUntil; }
+
+    public int getTokenVersion() { return tokenVersion; }
+
+    public void setTokenVersion(int tokenVersion) { this.tokenVersion = tokenVersion; }
+
+    /** Invalide tous les access tokens en cours (révocation JWT, P4.4). */
+    public void bumpTokenVersion() { this.tokenVersion++; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
 

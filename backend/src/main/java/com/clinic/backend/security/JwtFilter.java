@@ -48,12 +48,26 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             var userDetails = userDetailsService.loadUserByUsername(username);
-            var auth = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.getAuthorities());
-            auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(auth);
+
+            // Révocation JWT (P4.4) : un compte désactivé/verrouillé, ou un token dont la
+            // version « tv » ne correspond plus (logout-all, vol détecté), est rejeté
+            // immédiatement — sans attendre l'expiration. Le contexte reste vide → 401/403.
+            if (authenticatable(userDetails, jwtService.extractTokenVersion(token))) {
+                var auth = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    /** Vrai si le porteur du token peut être authentifié (actif, non verrouillé, bonne version). */
+    private boolean authenticatable(org.springframework.security.core.userdetails.UserDetails userDetails,
+                                    int tokenVersion) {
+        if (!userDetails.isEnabled() || !userDetails.isAccountNonLocked()) return false;
+        return !(userDetails instanceof com.clinic.backend.model.User user)
+                || user.getTokenVersion() == tokenVersion;
     }
 }

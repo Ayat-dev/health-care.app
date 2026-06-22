@@ -98,6 +98,10 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/login").permitAll()
+                // P4.4 : refresh/logout appelables sans access token valide (il peut être
+                // expiré) — le refresh token EST la pièce d'authentification. logout-all reste
+                // authentifié (il agit sur l'utilisateur courant).
+                .requestMatchers("/api/auth/refresh", "/api/auth/logout").permitAll()
                 .requestMatchers("/fhir/metadata").permitAll()
                 // Webhooks Mobile Money (P3.3) : authentifiés par signature HMAC, pas par JWT.
                 .requestMatchers("/api/payments/webhook/**").permitAll()

@@ -5,6 +5,7 @@ import com.clinic.backend.dto.UserDto;
 import com.clinic.backend.model.Role;
 import com.clinic.backend.model.User;
 import com.clinic.backend.repository.UserRepository;
+import com.clinic.backend.security.RefreshTokenService;
 import com.clinic.backend.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenService refreshTokenService;
 
     // ── Liste (non supprimés) ──────────────────────────────────────────────
     // Multi-tenant (P4.2) : un ADMIN de clinique ne gère que les comptes de SA clinique.
@@ -89,7 +91,12 @@ public class UserService {
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
             validatePassword(dto.getPassword());
             u.setPassword(passwordEncoder.encode(dto.getPassword()));
+            // Révocation JWT (P4.4) : un reset de mot de passe coupe les sessions en cours.
+            refreshTokenService.revokeAllForUser(u);
             log.info("Mot de passe réinitialisé pour {}", u.getUsername());
+        } else if (!u.isActive()) {
+            // Désactivé via l'édition → on coupe ses sessions.
+            refreshTokenService.revokeAllForUser(u);
         }
         return userRepository.save(u);
     }
@@ -98,6 +105,8 @@ public class UserService {
     public void toggleActive(Long id) {
         User u = getById(id);
         u.setActive(!u.isActive());
+        // Révocation JWT (P4.4) : une désactivation coupe immédiatement les sessions.
+        if (!u.isActive()) refreshTokenService.revokeAllForUser(u);
         log.info("Utilisateur {} : actif = {}", u.getUsername(), u.isActive());
     }
 
@@ -106,6 +115,8 @@ public class UserService {
         User u = getById(id);
         u.setDeletedAt(LocalDateTime.now());
         u.setActive(false); // un compte supprimé ne peut plus se connecter
+        // Révocation JWT (P4.4) : plus aucune session après suppression.
+        refreshTokenService.revokeAllForUser(u);
         log.info("Utilisateur supprimé (logique) : {}", u.getUsername());
     }
 
