@@ -1,9 +1,19 @@
 package com.clinic.backend.security;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
+import org.springframework.boot.actuate.health.HealthEndpoint;
+import org.springframework.boot.actuate.info.InfoEndpoint;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.authentication.AuthenticationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
@@ -32,6 +42,44 @@ public class SecurityConfig {
         this.jwtFilter      = jwtFilter;
         this.successHandler = successHandler;
         this.failureHandler = failureHandler;
+    }
+
+    // ─── Chaîne 0 : Actuator — monitoring (P4.3) ────────────────────────────
+    // health + info publics (sondes UptimeRobot / load-balancer, anonymes) ;
+    // prometheus + metrics + tout le reste sous HTTP Basic avec un compte de
+    // scraping DÉDIÉ EN MÉMOIRE, découplé des utilisateurs métier (rotation
+    // indépendante, aucune dépendance à la base). Mot de passe fail-fast en prod.
+    @Bean
+    @Order(0)
+    public SecurityFilterChain actuatorFilterChain(
+            HttpSecurity http,
+            PasswordEncoder passwordEncoder,
+            @Value("${app.monitoring.username}") String monitoringUsername,
+            @Value("${app.monitoring.password}") String monitoringPassword) throws Exception {
+
+        UserDetails monitor = User.withUsername(monitoringUsername)
+                .password(passwordEncoder.encode(monitoringPassword))
+                .authorities("ENDPOINT_ADMIN")
+                .build();
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(new InMemoryUserDetailsManager(monitor));
+        provider.setPasswordEncoder(passwordEncoder);
+
+        http
+            // Matcher littéral (et non EndpointRequest.toAnyEndpoint()) : capte TOUT
+            // /actuator/** quel que soit l'enregistrement des endpoints → pas de
+            // retombée vers la chaîne web (302 login) pour prometheus & co.
+            .securityMatcher("/actuator/**")
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authenticationManager(new ProviderManager(provider))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(EndpointRequest.to(HealthEndpoint.class, InfoEndpoint.class)).permitAll()
+                .anyRequest().hasAuthority("ENDPOINT_ADMIN")
+            )
+            .httpBasic(Customizer.withDefaults());
+
+        return http.build();
     }
 
     // ─── Chaîne 1 : API REST — stateless, JWT ───────────────────────────────

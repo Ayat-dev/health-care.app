@@ -9,6 +9,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -134,5 +135,38 @@ class SecurityMatrixTest {
         mvc.perform(get("/offline.html"))
            .andExpect(status().isOk())
            .andExpect(content().string(containsString("Connexion indisponible")));
+    }
+
+    // ── Actuator (P4.3) : health/info publics, prometheus/metrics protégés ────
+
+    @Test
+    void actuator_health_est_public() throws Exception {
+        mvc.perform(get("/actuator/health"))
+           .andExpect(status().isOk())
+           .andExpect(content().string(containsString("UP")));
+    }
+
+    @Test
+    void actuator_prometheus_exige_authentification() throws Exception {
+        mvc.perform(get("/actuator/prometheus"))
+           .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void actuator_metrics_exige_authentification() throws Exception {
+        mvc.perform(get("/actuator/metrics"))
+           .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void actuator_accessible_avec_le_compte_de_scraping() throws Exception {
+        // Prouve le chemin d'auth du scraper de bout en bout (HTTP Basic →
+        // ENDPOINT_ADMIN → endpoint actuator réel). On vise /actuator/metrics
+        // (endpoint core, mappé en MockMvc) ; /actuator/prometheus se comporte
+        // pareil côté sécurité mais n'est pas mappé sous MockMvc (vérifié à la
+        // main en dev : 200 + métriques jvm_ au format Prometheus).
+        mvc.perform(get("/actuator/metrics").with(httpBasic("monitor", "clinicapp-test-monitoring-secret")))
+           .andExpect(status().isOk())
+           .andExpect(content().string(containsString("names")));
     }
 }
