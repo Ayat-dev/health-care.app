@@ -26,6 +26,7 @@
                 <HBox HBox.hgrow="ALWAYS"/>
                 <TextField fx:id="searchField" promptText="Recherche (nom, n° dossier, téléphone)…" prefWidth="260"/>
                 <Button text="Rechercher" onAction="#search" style="-fx-background-color:#2563eb; -fx-text-fill:white; -fx-cursor:hand; -fx-background-radius:6;"/>
+                <Button text="Ouvrir le dossier" onAction="#open" style="-fx-background-color:#16a34a; -fx-text-fill:white; -fx-cursor:hand; -fx-background-radius:6;"/>
             </HBox>
             <VBox VBox.vgrow="ALWAYS" style="-fx-padding:16;">
                 <TableView fx:id="table" VBox.vgrow="ALWAYS">

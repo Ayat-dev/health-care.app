@@ -27,6 +27,13 @@ public class MaternityApiController {
         return maternityService.getDtoById(id);
     }
 
+    /** Dossier de maternité d'une patiente (un seul par patiente) ; 204 si aucun. */
+    @GetMapping("/by-patient/{patientId}")
+    public ResponseEntity<MaternityRecordDto> byPatient(@PathVariable Long patientId) {
+        MaternityRecordDto dto = maternityService.findForPatient(patientId);
+        return dto != null ? ResponseEntity.ok(dto) : ResponseEntity.noContent().build();
+    }
+
     @PostMapping
     @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER','ADMIN')")
     public ResponseEntity<MaternityRecordDto> create(@RequestBody MaternityRecordDto dto) {

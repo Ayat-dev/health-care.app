@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.clinic.client.controller.PatientDetailController"
+            prefWidth="980" prefHeight="660">
+
+    <top>
+        <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding:14 16; -fx-background-color:white; -fx-border-color:#e2e8f0; -fx-border-width:0 0 1 0;">
+            <Button text="← Patients" onAction="#back" style="-fx-cursor:hand;"/>
+            <Label fx:id="patientNameLabel" text="Dossier patient" style="-fx-font-size:16px; -fx-font-weight:bold;"/>
+            <Label fx:id="recordLabel" style="-fx-text-fill:#2563eb; -fx-font-weight:bold;"/>
+            <HBox HBox.hgrow="ALWAYS"/>
+            <Label fx:id="statusLabel" style="-fx-text-fill:#64748b; -fx-font-size:12px;"/>
+        </HBox>
+    </top>
+
+    <center>
+        <TabPane fx:id="tabs" tabClosingPolicy="UNAVAILABLE" style="-fx-background-color:#f1f5f9;">
+
+            <!-- Fiche : identité (lecture seule) + médical (éditable) -->
+            <Tab text="Fiche">
+                <ScrollPane fitToWidth="true" style="-fx-background-color:#f1f5f9;">
+                    <VBox spacing="16" style="-fx-padding:18;">
+
+                        <VBox spacing="10" style="-fx-background-color:white; -fx-padding:18; -fx-background-radius:10;">
+                            <Label text="Identité" style="-fx-font-weight:bold; -fx-font-size:14px;"/>
+                            <GridPane hgap="14" vgap="8">
+                                <Label text="Naissance" GridPane.rowIndex="0" GridPane.columnIndex="0" style="-fx-text-fill:#64748b;"/>
+                                <Label fx:id="idBirth" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                                <Label text="Sexe" GridPane.rowIndex="0" GridPane.columnIndex="2" style="-fx-text-fill:#64748b;"/>
+                                <Label fx:id="idGender" GridPane.rowIndex="0" GridPane.columnIndex="3"/>
+                                <Label text="Nationalité" GridPane.rowIndex="0" GridPane.columnIndex="4" style="-fx-text-fill:#64748b;"/>
+                                <Label fx:id="idNationality" GridPane.rowIndex="0" GridPane.columnIndex="5"/>
+
+                                <Label text="Téléphone" GridPane.rowIndex="1" GridPane.columnIndex="0" style="-fx-text-fill:#64748b;"/>
+                                <Label fx:id="idPhone" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                                <Label text="Tél. secondaire" GridPane.rowIndex="1" GridPane.columnIndex="2" style="-fx-text-fill:#64748b;"/>
+                                <Label fx:id="idPhoneAlt" GridPane.rowIndex="1" GridPane.columnIndex="3"/>
+                                <Label text="Email" GridPane.rowIndex="1" GridPane.columnIndex="4" style="-fx-text-fill:#64748b;"/>
+                                <Label fx:id="idEmail" GridPane.rowIndex="1" GridPane.columnIndex="5"/>
+
+                                <Label text="Adresse" GridPane.rowIndex="2" GridPane.columnIndex="0" style="-fx-text-fill:#64748b;"/>
+                                <Label fx:id="idAddress" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                                <Label text="Ville" GridPane.rowIndex="2" GridPane.columnIndex="2" style="-fx-text-fill:#64748b;"/>
+                                <Label fx:id="idCity" GridPane.rowIndex="2" GridPane.columnIndex="3"/>
+                                <Label text="CNI" GridPane.rowIndex="2" GridPane.columnIndex="4" style="-fx-text-fill:#64748b;"/>
+                                <Label fx:id="idNationalId" GridPane.rowIndex="2" GridPane.columnIndex="5"/>
+
+                                <Label text="Contact urgence" GridPane.rowIndex="3" GridPane.columnIndex="0" style="-fx-text-fill:#64748b;"/>
+                                <Label fx:id="idEmergency" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+                                <Label text="N° assurance" GridPane.rowIndex="3" GridPane.columnIndex="2" style="-fx-text-fill:#64748b;"/>
+                                <Label fx:id="idInsurance" GridPane.rowIndex="3" GridPane.columnIndex="3"/>
+                            </GridPane>
+                        </VBox>
+
+                        <VBox spacing="10" style="-fx-background-color:white; -fx-padding:18; -fx-background-radius:10;">
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Label text="Informations médicales" style="-fx-font-weight:bold; -fx-font-size:14px;"/>
+                                <HBox HBox.hgrow="ALWAYS"/>
+                                <Button text="Enregistrer" onAction="#saveMedical" style="-fx-background-color:#2563eb; -fx-text-fill:white; -fx-cursor:hand; -fx-background-radius:6;"/>
+                                <Label fx:id="medicalStatus" style="-fx-text-fill:#64748b; -fx-font-size:12px;"/>
+                            </HBox>
+                            <HBox spacing="8" alignment="CENTER_LEFT">
+                                <Label text="Groupe sanguin" prefWidth="110"/>
+                                <TextField fx:id="bloodType" prefWidth="100" promptText="ex: O+"/>
+                            </HBox>
+                            <Label text="Allergies"/>
+                            <TextArea fx:id="allergies" prefRowCount="2" wrapText="true"/>
+                            <Label text="Conditions chroniques"/>
+                            <TextArea fx:id="chronicConditions" prefRowCount="2" wrapText="true"/>
+                            <Label text="Antécédents médicaux"/>
+                            <TextArea fx:id="medicalHistory" prefRowCount="3" wrapText="true"/>
+                            <Label text="Notes"/>
+                            <TextArea fx:id="notes" prefRowCount="2" wrapText="true"/>
+                        </VBox>
+                    </VBox>
+                </ScrollPane>
+            </Tab>
+
+            <Tab text="Consultations">
+                <VBox style="-fx-padding:12;">
+                    <Label text="Double-cliquez une consultation pour l'ouvrir." style="-fx-text-fill:#64748b; -fx-font-size:12px; -fx-padding:0 0 8 0;"/>
+                    <TableView fx:id="consultTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="cDate" text="Date" prefWidth="140"/>
+                            <TableColumn fx:id="cReason" text="Motif" prefWidth="220"/>
+                            <TableColumn fx:id="cDiag" text="Diagnostic" prefWidth="240"/>
+                            <TableColumn fx:id="cDoctor" text="Médecin" prefWidth="160"/>
+                            <TableColumn fx:id="cStatus" text="Statut" prefWidth="110"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </Tab>
+
+            <Tab text="Laboratoire">
+                <VBox style="-fx-padding:12;">
+                    <TableView fx:id="labTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="lDate" text="Date" prefWidth="150"/>
+                            <TableColumn fx:id="lNum" text="N°" prefWidth="180"/>
+                            <TableColumn fx:id="lPrio" text="Priorité" prefWidth="120"/>
+                            <TableColumn fx:id="lStatus" text="Statut" prefWidth="140"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </Tab>
+
+            <Tab text="Imagerie">
+                <VBox style="-fx-padding:12;">
+                    <TableView fx:id="radioTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="iDate" text="Date" prefWidth="150"/>
+                            <TableColumn fx:id="iNum" text="N°" prefWidth="170"/>
+                            <TableColumn fx:id="iPrio" text="Priorité" prefWidth="110"/>
+                            <TableColumn fx:id="iStatus" text="Statut" prefWidth="130"/>
+                            <TableColumn fx:id="iReport" text="Compte-rendu" prefWidth="120"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </Tab>
+
+            <Tab text="Séjours">
+                <VBox style="-fx-padding:12;">
+                    <TableView fx:id="stayTable" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="sIn" text="Admission" prefWidth="140"/>
+                            <TableColumn fx:id="sOut" text="Sortie" prefWidth="140"/>
+                            <TableColumn fx:id="sRoom" text="Chambre" prefWidth="100"/>
+                            <TableColumn fx:id="sReason" text="Motif" prefWidth="260"/>
+                            <TableColumn fx:id="sStatus" text="Statut" prefWidth="110"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </Tab>
+
+            <Tab fx:id="maternityTab" text="Maternité">
+                <VBox spacing="12" style="-fx-padding:18;">
+                    <VBox spacing="10" style="-fx-background-color:white; -fx-padding:18; -fx-background-radius:10;">
+                        <Label text="Dossier de maternité" style="-fx-font-weight:bold; -fx-font-size:14px;"/>
+                        <GridPane hgap="14" vgap="8">
+                            <Label text="Gestité / Parité" GridPane.rowIndex="0" GridPane.columnIndex="0" style="-fx-text-fill:#64748b;"/>
+                            <Label fx:id="matGravidity" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                            <Label text="DDR" GridPane.rowIndex="1" GridPane.columnIndex="0" style="-fx-text-fill:#64748b;"/>
+                            <Label fx:id="matLmp" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                            <Label text="DPA" GridPane.rowIndex="2" GridPane.columnIndex="0" style="-fx-text-fill:#64748b;"/>
+                            <Label fx:id="matEdd" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                            <Label text="Âge gestationnel" GridPane.rowIndex="3" GridPane.columnIndex="0" style="-fx-text-fill:#64748b;"/>
+                            <Label fx:id="matGestation" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+                            <Label text="CPN effectuées" GridPane.rowIndex="4" GridPane.columnIndex="0" style="-fx-text-fill:#64748b;"/>
+                            <Label fx:id="matVisits" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+                            <Label text="Statut" GridPane.rowIndex="5" GridPane.columnIndex="0" style="-fx-text-fill:#64748b;"/>
+                            <Label fx:id="matStatus" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+                        </GridPane>
+                    </VBox>
+                </VBox>
+            </Tab>
+
+        </TabPane>
+    </center>
+</BorderPane>

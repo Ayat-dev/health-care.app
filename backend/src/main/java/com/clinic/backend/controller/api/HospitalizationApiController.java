@@ -60,7 +60,9 @@ public class HospitalizationApiController {
 
     // ── Hospitalisations ──────────────────────────────────────────────────────────
     @GetMapping("/hospitalizations")
-    public List<HospitalizationDto> list(@RequestParam(required = false) String status) {
+    public List<HospitalizationDto> list(@RequestParam(required = false) String status,
+                                         @RequestParam(required = false) Long patientId) {
+        if (patientId != null) return hospitalizationService.findForPatient(patientId);
         return hospitalizationService.searchDto(status);
     }
 

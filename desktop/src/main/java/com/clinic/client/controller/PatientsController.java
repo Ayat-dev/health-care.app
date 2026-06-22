@@ -1,6 +1,7 @@
 package com.clinic.client.controller;
 
 import com.clinic.client.util.ApiClient;
+import com.clinic.client.util.SceneManager;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -34,12 +35,38 @@ public class PatientsController extends BaseController {
         colPhone.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().optString("phone")));
         colCity.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().optString("city")));
         table.setItems(data);
+
+        table.setRowFactory(tv -> {
+            TableRow<JSONObject> row = new TableRow<>();
+            row.setOnMouseClicked(e -> {
+                if (e.getClickCount() == 2 && !row.isEmpty()) openPatient(row.getItem().optLong("id"));
+            });
+            return row;
+        });
+
         loadPatients("");
     }
 
     @FXML
     public void search() {
         loadPatients(searchField.getText().trim());
+    }
+
+    /** Ouvre le dossier du patient sélectionné (bouton « Ouvrir le dossier »). */
+    @FXML
+    public void open() {
+        JSONObject sel = table.getSelectionModel().getSelectedItem();
+        if (sel == null) { info("Aucune sélection", "Sélectionnez un patient."); return; }
+        openPatient(sel.optLong("id"));
+    }
+
+    private void openPatient(long id) {
+        try {
+            PatientDetailController c = SceneManager.navigateTo("patient-detail.fxml");
+            c.load(id);
+        } catch (Exception e) {
+            error("Ouverture impossible", e.getMessage());
+        }
     }
 
     private void loadPatients(String q) {
