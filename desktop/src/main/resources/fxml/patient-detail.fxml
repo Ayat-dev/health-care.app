@@ -13,6 +13,10 @@
             <Label fx:id="recordLabel" style="-fx-text-fill:#2563eb; -fx-font-weight:bold;"/>
             <HBox HBox.hgrow="ALWAYS"/>
             <Label fx:id="statusLabel" style="-fx-text-fill:#64748b; -fx-font-size:12px;"/>
+            <Button text="+ Nouvelle consultation" onAction="#newConsultation"
+                    style="-fx-background-color:#2563eb; -fx-text-fill:white; -fx-cursor:hand; -fx-background-radius:6;"/>
+            <Button fx:id="examRequestBtn" text="+ Demander un examen" onAction="#requestExam"
+                    style="-fx-background-color:#0ea5e9; -fx-text-fill:white; -fx-cursor:hand; -fx-background-radius:6;"/>
         </HBox>
     </top>
 

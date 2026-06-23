@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.clinic.client.controller.ExamRequestController"
+      prefWidth="480" prefHeight="540" spacing="12"
+      style="-fx-padding:18; -fx-background-color:white;">
+
+    <Label text="Demander un examen" style="-fx-font-size:16px; -fx-font-weight:bold;"/>
+
+    <HBox spacing="16" alignment="CENTER_LEFT">
+        <VBox spacing="4">
+            <Label text="Type" style="-fx-text-fill:#64748b;"/>
+            <ComboBox fx:id="examType" prefWidth="180"/>
+        </VBox>
+        <VBox spacing="4">
+            <Label text="Priorité" style="-fx-text-fill:#64748b;"/>
+            <ComboBox fx:id="priority" prefWidth="140"/>
+        </VBox>
+    </HBox>
+
+    <Label text="Sélectionnez les actes (cochez)" style="-fx-text-fill:#64748b;"/>
+    <ListView fx:id="catalogList" VBox.vgrow="ALWAYS"/>
+
+    <Label text="Renseignements cliniques (optionnel)" style="-fx-text-fill:#64748b;"/>
+    <TextArea fx:id="notes" prefRowCount="2" wrapText="true"/>
+
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label fx:id="statusLabel" style="-fx-text-fill:#64748b; -fx-font-size:12px;"/>
+        <HBox HBox.hgrow="ALWAYS"/>
+        <Button text="Annuler" onAction="#cancel" style="-fx-cursor:hand;"/>
+        <Button fx:id="submitBtn" text="Demander" onAction="#submit"
+                style="-fx-background-color:#2563eb; -fx-text-fill:white; -fx-cursor:hand; -fx-background-radius:6;"/>
+    </HBox>
+</VBox>

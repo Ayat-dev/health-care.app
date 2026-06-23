@@ -17,6 +17,7 @@ public class AuthState {
     private static AuthState instance;
     private String token;
     private String refreshToken;
+    private long userId;
     private String username;
     private String role;
     private String fullName;
@@ -49,8 +50,9 @@ public class AuthState {
         return instance;
     }
 
-    public void login(String token, String refreshToken, String username, String role, String fullName) {
+    public void login(String token, String refreshToken, long userId, String username, String role, String fullName) {
         this.token = token; this.refreshToken = refreshToken;
+        this.userId = userId;
         this.username = username;
         this.role = role;   this.fullName = fullName;
     }
@@ -67,11 +69,13 @@ public class AuthState {
 
     public void logout() {
         token = null; refreshToken = null;
+        userId = 0;
         username = null; role = null; fullName = null;
     }
 
     public String getToken()        { return token; }
     public String getRefreshToken() { return refreshToken; }
+    public long getUserId()         { return userId; }
     public String getUsername()     { return username; }
     public String getRole()         { return role; }
     public String getFullName()     { return fullName; }

@@ -82,6 +82,7 @@ public class AuthController {
         body.put("token", accessToken); // rétro-compat : ancien nom du champ
         body.put("refreshToken", refreshToken);
         body.put("tokenType", "Bearer");
+        body.put("userId", String.valueOf(user.getId()));
         body.put("username", user.getUsername());
         body.put("role", user.getRole());
         body.put("fullName", user.getFullName() != null ? user.getFullName() : "");

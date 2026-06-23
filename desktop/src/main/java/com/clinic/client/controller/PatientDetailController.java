@@ -1,5 +1,6 @@
 package com.clinic.client.controller;
 
+import com.clinic.client.model.AuthState;
 import com.clinic.client.util.ApiClient;
 import com.clinic.client.util.SceneManager;
 import javafx.beans.property.SimpleStringProperty;
@@ -18,6 +19,7 @@ import org.json.JSONObject;
 public class PatientDetailController extends BaseController {
 
     @FXML private Label patientNameLabel, recordLabel, statusLabel;
+    @FXML private Button examRequestBtn;
 
     // Identité (lecture seule)
     @FXML private Label idBirth, idGender, idPhone, idPhoneAlt, idEmail,
@@ -82,6 +84,12 @@ public class PatientDetailController extends BaseController {
         sReason.setCellValueFactory(c -> str(c.getValue().optString("admissionReason")));
         sStatus.setCellValueFactory(c -> str(c.getValue().optString("status")));
         stayTable.setItems(stays);
+
+        // Prescrire un examen est réservé aux médecins (le backend rejette les autres rôles).
+        boolean canPrescribe = "MEDECIN".equals(AuthState.get().getRole())
+                || "ADMIN".equals(AuthState.get().getRole());
+        examRequestBtn.setVisible(canPrescribe);
+        examRequestBtn.setManaged(canPrescribe);
     }
 
     @FXML public void back() {
@@ -185,6 +193,59 @@ public class PatientDetailController extends BaseController {
                 else error("Enregistrement impossible", "Le serveur a répondu : " + r.status());
             });
         });
+    }
+
+    // ── Actions cliniques directes ────────────────────────────────────────
+    /** Crée une consultation pour ce patient (prescripteur = utilisateur courant)
+     *  puis ouvre la fiche pour la renseigner. */
+    @FXML
+    public void newConsultation() {
+        if (loaded == null) return;
+        long doctorId = AuthState.get().getUserId();
+        if (doctorId <= 0) { error("Action impossible", "Utilisateur non identifié."); return; }
+        if (!confirm("Nouvelle consultation", "Créer une nouvelle consultation pour ce patient ?")) return;
+
+        JSONObject body = new JSONObject();
+        body.put("patientId", patientId);
+        body.put("doctorId", doctorId);
+        body.put("status", "EN_COURS");   // la date est posée par défaut côté serveur
+
+        statusLabel.setText("Création de la consultation…");
+        async(() -> {
+            ApiClient.Response r = ApiClient.post("/api/consultations", body, true);
+            ui(() -> {
+                statusLabel.setText("");
+                if (r.ok()) {
+                    openConsultation(r.asObject().optLong("id"));   // ouvre la fiche + rafraîchit la liste
+                } else {
+                    error("Création impossible", "Le serveur a répondu : " + r.status());
+                }
+            });
+        });
+    }
+
+    /** Ouvre la fenêtre de demande d'examen (labo / imagerie) pour ce patient. */
+    @FXML
+    public void requestExam() {
+        if (loaded == null) return;
+        long doctorId = AuthState.get().getUserId();
+        if (doctorId <= 0) { error("Action impossible", "Utilisateur non identifié."); return; }
+        try {
+            SceneManager.Modal<ExamRequestController> m =
+                    SceneManager.loadModal("exam-request.fxml", "Demander un examen");
+            m.controller().initModal(m.stage());
+            m.controller().init(patientId, doctorId, null);
+            m.stage().showAndWait();
+            if (m.controller().isCreated()) {
+                async(() -> {
+                    ApiClient.Response lr = ApiClient.get("/api/lab/requests?patientId=" + patientId);
+                    ApiClient.Response rr = ApiClient.get("/api/radiology/requests?patientId=" + patientId);
+                    ui(() -> { fillTable(labs, lr); fillTable(radios, rr); });
+                });
+            }
+        } catch (Exception e) {
+            error("Ouverture impossible", e.getMessage());
+        }
     }
 
     private void openConsultation(long id) {
