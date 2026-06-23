@@ -55,14 +55,16 @@ public enum RoleProfile {
 
     INFIRMIER(
         "/appointments",
-        EnumSet.of(DASHBOARD, PATIENTS, APPOINTMENTS, NOTIFICATIONS,
+        // Pas de DASHBOARD : le tableau de bord KPI est réservé à ADMIN/MEDECIN.
+        EnumSet.of(PATIENTS, APPOINTMENTS, NOTIFICATIONS,
                    CONSULTATIONS, MATERNITY, HOSPITALIZATION),
         Set.of("RAPPEL_RDV")
     ),
 
     SECRETAIRE(
         "/appointments",
-        EnumSet.of(DASHBOARD, PATIENTS, APPOINTMENTS, NOTIFICATIONS,
+        // Pas de DASHBOARD : le tableau de bord KPI est réservé à ADMIN/MEDECIN.
+        EnumSet.of(PATIENTS, APPOINTMENTS, NOTIFICATIONS,
                    BILLING, REPORTS),
         Set.of("RAPPEL_RDV", "FACTURE_IMPAYEE")
     ),

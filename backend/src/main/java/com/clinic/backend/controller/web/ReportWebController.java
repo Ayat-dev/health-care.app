@@ -38,13 +38,32 @@ public class ReportWebController {
     private final ExcelExportService excelExportService;
     private final com.clinic.backend.export.PdfExportService pdfExportService;
 
-    // ── Tableau de bord (KPIs direction) ───────────────────────────────────────
+    // ── Hub Rapports ─────────────────────────────────────────────────────────────
+    // Point d'entrée du lien « Rapports » de la sidebar. Chaque rôle est dirigé vers
+    // le rapport qu'il a le droit de consulter (évite un 403 sur la page de direction
+    // pour le caissier/secrétaire qui ont le module REPORTS mais pas le dashboard direction).
     @GetMapping({"", "/dashboard"})
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN')")
-    public String dashboard(Model model) {
-        model.addAttribute("dashboard", reportService.adminDashboard());
-        model.addAttribute("config", clinicConfigService.getConfig());
-        return "reports/dashboard";
+    public String dashboard(Model model, org.springframework.security.core.Authentication auth) {
+        if (hasAnyRole(auth, "ADMIN", "MEDECIN")) {
+            model.addAttribute("dashboard", reportService.adminDashboard());
+            model.addAttribute("config", clinicConfigService.getConfig());
+            return "reports/dashboard";
+        }
+        if (hasAnyRole(auth, "CAISSIER")) return "redirect:/reports/financial";
+        if (hasAnyRole(auth, "SECRETAIRE")) return "redirect:/reports/outstanding";
+        // Tout autre rôle atterrissant ici (pas de rapport accessible) → page d'accueil.
+        return "redirect:/";
+    }
+
+    private static boolean hasAnyRole(org.springframework.security.core.Authentication auth, String... roles) {
+        if (auth == null) return false;
+        for (String r : roles) {
+            String authority = "ROLE_" + r;
+            if (auth.getAuthorities().stream().anyMatch(a -> authority.equals(a.getAuthority()))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // ── Bilan financier mensuel ─────────────────────────────────────────────────

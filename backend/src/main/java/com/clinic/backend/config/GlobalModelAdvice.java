@@ -40,6 +40,14 @@ public class GlobalModelAdvice {
         return uri != null ? uri : "";
     }
 
+    // ── Page d'accueil du rôle (ex. bouton « retour » des pages d'erreur) ────────
+
+    @ModelAttribute("homeUrl")
+    public String homeUrl() {
+        String role = currentRole();
+        return role == null ? "/login" : RoleProfile.fromRole(role).homepage;
+    }
+
     // ── Modules par section (zéro DB, tout en mémoire) ───────────────────────────
 
     @ModelAttribute("principalModules")

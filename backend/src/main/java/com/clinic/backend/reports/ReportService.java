@@ -117,6 +117,25 @@ public class ReportService {
         return d;
     }
 
+    // ══════════════════════════ RÉSUMÉ D'ACCUEIL (tableau de bord simple) ═══════
+
+    /** Compteurs en un coup d'œil pour la page d'accueil (tableau de bord admin). */
+    public record LandingSummary(long patients, long appointmentsToday,
+                                 long consultationsToday, long pendingInvoices) {}
+
+    public LandingSummary landingSummary() {
+        LocalDate today = LocalDate.now();
+        LocalDateTime start = today.atStartOfDay();
+        LocalDateTime end = today.plusDays(1).atStartOfDay();
+        long pending = invoiceRepository.countByStatus("EN_ATTENTE")
+                + invoiceRepository.countByStatus("PARTIEL");
+        return new LandingSummary(
+                patientRepository.countActive(),
+                appointmentRepository.countBetween(start, end),
+                consultationRepository.countBetween(start, end),
+                pending);
+    }
+
     // ══════════════════════════ TABLEAU DE BORD MÉDECIN ════════════════════════
 
     public DoctorDashboardDto doctorDashboard() {

@@ -1,0 +1,101 @@
+<html th:replace="~{layouts/base :: layout(#{dashboard.title}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-card-label">Consultations du jour</div>
+        <div class="stat-card-value" th:text="${#lists.size(dashboard.todayConsultations)}">—</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-label">Rendez-vous (7 jours)</div>
+        <div class="stat-card-value" th:text="${#lists.size(dashboard.weekAppointments)}">—</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-label">Résultats labo à valider</div>
+        <div class="stat-card-value" th:text="${dashboard.labPendingValidationCount}">—</div>
+    </div>
+</div>
+
+<!-- Mes consultations du jour -->
+<div class="panel" style="margin-top:24px;">
+    <div class="panel-header">
+        <h2 class="panel-title">Mes consultations du jour</h2>
+    </div>
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr><th>Heure</th><th>Patient</th><th>Motif</th><th>Diagnostic</th><th>Statut</th></tr>
+            </thead>
+            <tbody>
+                <tr th:each="c : ${dashboard.todayConsultations}"
+                    style="cursor:pointer;"
+                    th:onclick="|window.location.href='@{/consultations/{id}(id=${c.id})}'|">
+                    <td th:text="${c.consultationDate != null} ? ${#temporals.format(c.consultationDate, 'HH:mm')} : '—'">—</td>
+                    <td th:text="${c.patientName}">—</td>
+                    <td th:text="${c.chiefComplaint}">—</td>
+                    <td th:text="${c.diagnosis}">—</td>
+                    <td><span class="badge" th:classappend="'badge-' + ${c.status}" th:text="${c.status}">—</span></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(dashboard.todayConsultations)}">
+                    <td colspan="5" class="empty-state" style="padding:24px;">Aucune consultation aujourd'hui.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Résultats labo à valider -->
+<div class="panel" style="margin-top:24px;">
+    <div class="panel-header">
+        <h2 class="panel-title">Résultats de laboratoire à valider</h2>
+    </div>
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr><th>N°</th><th>Patient</th><th>Priorité</th><th>Statut</th></tr>
+            </thead>
+            <tbody>
+                <tr th:each="l : ${dashboard.labPendingValidation}"
+                    style="cursor:pointer;"
+                    th:onclick="|window.location.href='@{/lab/requests/{id}(id=${l.id})}'|">
+                    <td th:text="${l.requestNumber}">—</td>
+                    <td th:text="${l.patientName}">—</td>
+                    <td><span class="badge" th:classappend="${l.priority == 'URGENT'} ? 'badge-red' : 'badge-yellow'" th:text="${l.priority}">—</span></td>
+                    <td><span class="badge" th:classappend="'badge-' + ${l.status}" th:text="${l.status}">—</span></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(dashboard.labPendingValidation)}">
+                    <td colspan="4" class="empty-state" style="padding:24px;">Aucun résultat en attente de validation.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Mes rendez-vous de la semaine -->
+<div class="panel" style="margin-top:24px;">
+    <div class="panel-header">
+        <h2 class="panel-title">Mes rendez-vous (7 jours)</h2>
+        <a th:href="@{/appointments/week}" class="btn btn-ghost btn-sm">Voir l'agenda</a>
+    </div>
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr><th>Date</th><th>Patient</th><th>Motif</th><th>Statut</th></tr>
+            </thead>
+            <tbody>
+                <tr th:each="a : ${dashboard.weekAppointments}">
+                    <td th:text="${a.startTime != null} ? ${#temporals.format(a.startTime, 'dd/MM HH:mm')} : '—'">—</td>
+                    <td th:text="${a.patientName}">—</td>
+                    <td th:text="${a.reason}">—</td>
+                    <td><span class="badge" th:classappend="'badge-' + ${a.status}" th:text="${a.status}">—</span></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(dashboard.weekAppointments)}">
+                    <td colspan="4" class="empty-state" style="padding:24px;">Aucun rendez-vous cette semaine.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</th:block></body>
+</html>

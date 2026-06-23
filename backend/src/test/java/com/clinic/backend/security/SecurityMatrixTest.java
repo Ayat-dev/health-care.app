@@ -53,7 +53,8 @@ class SecurityMatrixTest {
         mvc.perform(get("/admin/audit")).andExpect(status().isForbidden());
     }
 
-    // ── /reports/dashboard : ADMIN + MEDECIN ─────────────────────────────────
+    // ── Hub /reports : ADMIN + MEDECIN voient la direction ; les autres rôles ──
+    // porteurs du module REPORTS sont redirigés vers le rapport qu'ils peuvent ouvrir.
 
     @Test
     @WithMockUser(username = "doc", roles = "MEDECIN")
@@ -63,8 +64,43 @@ class SecurityMatrixTest {
 
     @Test
     @WithMockUser(username = "cash", roles = "CAISSIER")
-    void caissier_refuse_sur_dashboard_rapports() throws Exception {
-        mvc.perform(get("/reports/dashboard")).andExpect(status().isForbidden());
+    void caissier_redirige_du_hub_rapports_vers_financier() throws Exception {
+        // Avant : 403 (le lien « Rapports » de la sidebar menait à une impasse).
+        // Désormais : redirigé vers le rapport financier qu'il a le droit de consulter.
+        mvc.perform(get("/reports/dashboard"))
+           .andExpect(status().is3xxRedirection())
+           .andExpect(redirectedUrl("/reports/financial"));
+    }
+
+    @Test
+    @WithMockUser(username = "sec", roles = "SECRETAIRE")
+    void secretaire_redirige_du_hub_rapports_vers_impayes() throws Exception {
+        mvc.perform(get("/reports/dashboard"))
+           .andExpect(status().is3xxRedirection())
+           .andExpect(redirectedUrl("/reports/outstanding"));
+    }
+
+    // ── /dashboard : KPI réservé ADMIN ; MEDECIN a sa vue dédiée ; autres redirigés ──
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void admin_voit_le_tableau_de_bord_kpi() throws Exception {
+        mvc.perform(get("/dashboard")).andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = "doc", roles = "MEDECIN")
+    void medecin_voit_son_tableau_de_bord_dedie() throws Exception {
+        mvc.perform(get("/dashboard")).andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = "cash", roles = "CAISSIER")
+    void caissier_sur_dashboard_redirige_vers_son_accueil() throws Exception {
+        // Pas de tableau de bord KPI pour le caissier → renvoyé vers sa page métier (facturation).
+        mvc.perform(get("/dashboard"))
+           .andExpect(status().is3xxRedirection())
+           .andExpect(redirectedUrl("/billing"));
     }
 
     // ── /reports/financial : ADMIN + CAISSIER ────────────────────────────────

@@ -36,6 +36,20 @@ class PageRenderSmokeTest {
         mvc.perform(get("/dashboard")).andExpect(status().isOk());
     }
 
+    /**
+     * Tableau de bord médecin (vue dédiée) rendu avec un VRAI médecin seedé : ses
+     * consultations/RDV/labos réels remplissent les boucles {@code th:each}, ce qui
+     * exerce les expressions de ligne (dates, badges) qu'un principal mocké — dont
+     * le dashboard serait vide — ne testerait pas.
+     */
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void dashboard_medecin_rend_200_avec_donnees() throws Exception {
+        mvc.perform(get("/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Mes consultations du jour")));
+    }
+
     @Test
     void patients_rend_200() throws Exception {
         mvc.perform(get("/patients")).andExpect(status().isOk());
