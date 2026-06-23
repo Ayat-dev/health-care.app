@@ -111,24 +111,24 @@
             </div>
         </div>
 
-        <!-- Paiement mobile (QR marchand : Amanty / MyNITA) -->
+        <!-- Paiement mobile (QR marchand : AmanaTa / MyNITA) -->
         <div class="form-section">
             <div class="form-section-title">Paiement mobile — QR marchand</div>
             <p style="color:#64748b; font-size:13px; margin:0 0 12px;">
-                Téléversez le QR marchand de votre compte Amanty / MyNITA. Il sera affiché
+                Téléversez le QR marchand de votre compte AmanaTa / MyNITA. Il sera affiché
                 à l'encaissement pour que le patient le scanne et paie. La confirmation reste
                 manuelle (le caissier vérifie la réception puis enregistre le paiement).
             </p>
             <div class="form-grid-2">
                 <div class="form-group">
-                    <label class="form-label">QR marchand Amanty</label>
-                    <img th:if="${config.amantyQrUrl}" th:src="@{${config.amantyQrUrl}}" alt="QR Amanty"
+                    <label class="form-label">QR marchand AmanaTa</label>
+                    <img th:if="${config.amanataQrUrl}" th:src="@{${config.amanataQrUrl}}" alt="QR AmanaTa"
                          style="width:120px;height:120px;object-fit:contain;border:1px solid #e2e8f0;border-radius:8px;display:block;margin-bottom:8px;"/>
-                    <input type="file" name="amantyQrFile" accept="image/png,image/jpeg,image/webp" class="form-control"/>
+                    <input type="file" name="amanataQrFile" accept="image/png,image/jpeg,image/webp" class="form-control"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Identifiant marchand Amanty (optionnel)</label>
-                    <input type="text" name="amantyMerchantId" th:value="${config.amantyMerchantId}" class="form-control"
+                    <label class="form-label">Identifiant marchand AmanaTa (optionnel)</label>
+                    <input type="text" name="amanataMerchantId" th:value="${config.amanataMerchantId}" class="form-control"
                            placeholder="code marchand affiché au patient"/>
                 </div>
                 <div class="form-group">

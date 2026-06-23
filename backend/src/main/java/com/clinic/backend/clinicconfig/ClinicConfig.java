@@ -47,7 +47,7 @@ public class ClinicConfig {
     private String currency = "XOF";
 
     @Column(nullable = false, length = 50)
-    private String timezone = "Africa/Dakar";
+    private String timezone = "Africa/Niamey";
 
     @Column(name = "default_language", nullable = false, length = 10)
     private String defaultLanguage = "fr";
@@ -82,11 +82,11 @@ public class ClinicConfig {
     private boolean insuranceEnabled = false;
 
     // QR marchand pour le paiement mobile (confirmation manuelle, pas d'API).
-    @Column(name = "amanty_qr_url", length = 255)
-    private String amantyQrUrl;
+    @Column(name = "amanata_qr_url", length = 255)
+    private String amanataQrUrl;
 
-    @Column(name = "amanty_merchant_id", length = 60)
-    private String amantyMerchantId;
+    @Column(name = "amanata_merchant_id", length = 60)
+    private String amanataMerchantId;
 
     @Column(name = "mynita_qr_url", length = 255)
     private String mynitaQrUrl;

@@ -20,7 +20,7 @@ public class ClinicConfigDto {
     private String website;
     private String logoUrl;
     private String currency = "XOF";
-    private String timezone = "Africa/Dakar";
+    private String timezone = "Africa/Niamey";
     private String defaultLanguage = "fr";
     // Modules
     private boolean modulePharmacy;
@@ -33,9 +33,9 @@ public class ClinicConfigDto {
     private boolean mobileMoneyEnabled;
     private String mobileMoneyProvider;
     private boolean insuranceEnabled;
-    // QR marchand paiement mobile (Amanty / MyNITA)
-    private String amantyQrUrl;
-    private String amantyMerchantId;
+    // QR marchand paiement mobile (AmanaTa / MyNITA)
+    private String amanataQrUrl;
+    private String amanataMerchantId;
     private String mynitaQrUrl;
     private String mynitaMerchantId;
     // Numérotation

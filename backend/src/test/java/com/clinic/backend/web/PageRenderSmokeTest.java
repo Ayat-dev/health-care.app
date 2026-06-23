@@ -78,7 +78,7 @@ class PageRenderSmokeTest {
         mvc.perform(get("/reports")).andExpect(status().isOk());
     }
 
-    /** Config clinique : exerce la nouvelle section QR marchand (Amanty / MyNITA). */
+    /** Config clinique : exerce la nouvelle section QR marchand (AmanaTa / MyNITA). */
     @Test
     void config_rend_200_avec_section_qr_marchand() throws Exception {
         mvc.perform(get("/admin/config"))
@@ -88,10 +88,10 @@ class PageRenderSmokeTest {
 
     /** Encaissement : exerce la liste de modes mise à jour + le bloc QR togglable. */
     @Test
-    void encaissement_rend_200_avec_modes_amanty_mynita() throws Exception {
+    void encaissement_rend_200_avec_modes_amanata_mynita() throws Exception {
         mvc.perform(get("/billing/invoices/1/pay"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Amanty")))
+                .andExpect(content().string(containsString("AmanaTa")))
                 .andExpect(content().string(containsString("MyNITA")));
     }
 

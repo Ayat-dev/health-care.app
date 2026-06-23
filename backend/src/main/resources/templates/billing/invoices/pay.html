@@ -34,7 +34,7 @@
                 <label class="form-label">Mode de paiement *</label>
                 <select name="method" id="method" class="form-control" required>
                     <option value="ESPECES">Espèces</option>
-                    <option value="AMANTY">Amanty (mobile)</option>
+                    <option value="AMANATA">AmanaTa (mobile)</option>
                     <option value="MYNITA">MyNITA (mobile)</option>
                     <option value="VIREMENT">Virement bancaire</option>
                     <option value="CARTE">Carte bancaire</option>
@@ -52,16 +52,16 @@
             </div>
         </div>
 
-        <!-- QR marchand : affiché quand le mode est Amanty / MyNITA -->
-        <div id="qr-amanty" class="alert alert-info" style="display:none; text-align:center;">
-            <div style="font-weight:600; margin-bottom:8px;">Faire scanner ce QR Amanty au patient</div>
-            <img th:if="${config.amantyQrUrl}" th:src="@{${config.amantyQrUrl}}" alt="QR Amanty"
+        <!-- QR marchand : affiché quand le mode est AmanaTa / MyNITA -->
+        <div id="qr-amanata" class="alert alert-info" style="display:none; text-align:center;">
+            <div style="font-weight:600; margin-bottom:8px;">Faire scanner ce QR AmanaTa au patient</div>
+            <img th:if="${config.amanataQrUrl}" th:src="@{${config.amanataQrUrl}}" alt="QR AmanaTa"
                  style="width:200px;height:200px;object-fit:contain;background:#fff;padding:8px;border-radius:8px;"/>
-            <div th:unless="${config.amantyQrUrl}" style="color:#b91c1c;">
-                Aucun QR Amanty configuré — voir Administration → Configuration.
+            <div th:unless="${config.amanataQrUrl}" style="color:#b91c1c;">
+                Aucun QR AmanaTa configuré — voir Administration → Configuration.
             </div>
-            <div th:if="${config.amantyMerchantId}" style="margin-top:8px;">
-                Ou code marchand : <strong th:text="${config.amantyMerchantId}">—</strong>
+            <div th:if="${config.amanataMerchantId}" style="margin-top:8px;">
+                Ou code marchand : <strong th:text="${config.amanataMerchantId}">—</strong>
             </div>
         </div>
         <div id="qr-mynita" class="alert alert-info" style="display:none; text-align:center;">
@@ -86,10 +86,10 @@
 <script th:inline="none">
     (function () {
         var sel = document.getElementById('method');
-        var amanty = document.getElementById('qr-amanty');
+        var amanata = document.getElementById('qr-amanata');
         var mynita = document.getElementById('qr-mynita');
         function toggle() {
-            amanty.style.display = sel.value === 'AMANTY' ? 'block' : 'none';
+            amanata.style.display = sel.value === 'AMANATA' ? 'block' : 'none';
             mynita.style.display = sel.value === 'MYNITA' ? 'block' : 'none';
         }
         sel.addEventListener('change', toggle);

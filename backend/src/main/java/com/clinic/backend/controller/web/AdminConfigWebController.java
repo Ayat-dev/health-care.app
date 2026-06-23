@@ -33,7 +33,7 @@ public class AdminConfigWebController {
 
     @PostMapping
     public String save(@ModelAttribute("config") ClinicConfigDto dto,
-                       @RequestParam(value = "amantyQrFile", required = false) MultipartFile amantyQrFile,
+                       @RequestParam(value = "amanataQrFile", required = false) MultipartFile amanataQrFile,
                        @RequestParam(value = "mynitaQrFile", required = false) MultipartFile mynitaQrFile,
                        Model model, RedirectAttributes ra) {
         try {
@@ -41,7 +41,7 @@ public class AdminConfigWebController {
             // téléversé, sinon on conserve celle déjà enregistrée (les champs ne sont
             // pas dans le formulaire texte).
             ClinicConfig current = clinicConfigService.getConfig();
-            dto.setAmantyQrUrl(storeOrKeep(amantyQrFile, current.getAmantyQrUrl()));
+            dto.setAmanataQrUrl(storeOrKeep(amanataQrFile, current.getAmanataQrUrl()));
             dto.setMynitaQrUrl(storeOrKeep(mynitaQrFile, current.getMynitaQrUrl()));
 
             clinicConfigService.update(dto);

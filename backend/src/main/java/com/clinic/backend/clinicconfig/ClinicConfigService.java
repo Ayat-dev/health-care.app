@@ -55,8 +55,8 @@ public class ClinicConfigService {
         c.setMobileMoneyProvider(dto.getMobileMoneyProvider());
         c.setInsuranceEnabled(dto.isInsuranceEnabled());
         // QR marchand paiement mobile
-        c.setAmantyQrUrl(dto.getAmantyQrUrl());
-        c.setAmantyMerchantId(dto.getAmantyMerchantId());
+        c.setAmanataQrUrl(dto.getAmanataQrUrl());
+        c.setAmanataMerchantId(dto.getAmanataMerchantId());
         c.setMynitaQrUrl(dto.getMynitaQrUrl());
         c.setMynitaMerchantId(dto.getMynitaMerchantId());
         // Numérotation
@@ -89,8 +89,8 @@ public class ClinicConfigService {
         dto.setMobileMoneyEnabled(c.isMobileMoneyEnabled());
         dto.setMobileMoneyProvider(c.getMobileMoneyProvider());
         dto.setInsuranceEnabled(c.isInsuranceEnabled());
-        dto.setAmantyQrUrl(c.getAmantyQrUrl());
-        dto.setAmantyMerchantId(c.getAmantyMerchantId());
+        dto.setAmanataQrUrl(c.getAmanataQrUrl());
+        dto.setAmanataMerchantId(c.getAmanataMerchantId());
         dto.setMynitaQrUrl(c.getMynitaQrUrl());
         dto.setMynitaMerchantId(c.getMynitaMerchantId());
         dto.setPatientRecordPrefix(c.getPatientRecordPrefix());
