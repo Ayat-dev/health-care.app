@@ -1,7 +1,9 @@
 package com.clinic.backend.controller.web;
 
+import com.clinic.backend.clinicconfig.ClinicConfig;
 import com.clinic.backend.clinicconfig.ClinicConfigService;
 import com.clinic.backend.dto.ClinicConfigDto;
+import com.clinic.backend.storage.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -10,6 +12,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -19,6 +23,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AdminConfigWebController {
 
     private final ClinicConfigService clinicConfigService;
+    private final FileStorageService fileStorageService;
 
     @GetMapping
     public String view(Model model) {
@@ -28,8 +33,17 @@ public class AdminConfigWebController {
 
     @PostMapping
     public String save(@ModelAttribute("config") ClinicConfigDto dto,
+                       @RequestParam(value = "amantyQrFile", required = false) MultipartFile amantyQrFile,
+                       @RequestParam(value = "mynitaQrFile", required = false) MultipartFile mynitaQrFile,
                        Model model, RedirectAttributes ra) {
         try {
+            // QR marchands : on remplace l'URL uniquement si un nouveau fichier est
+            // téléversé, sinon on conserve celle déjà enregistrée (les champs ne sont
+            // pas dans le formulaire texte).
+            ClinicConfig current = clinicConfigService.getConfig();
+            dto.setAmantyQrUrl(storeOrKeep(amantyQrFile, current.getAmantyQrUrl()));
+            dto.setMynitaQrUrl(storeOrKeep(mynitaQrFile, current.getMynitaQrUrl()));
+
             clinicConfigService.update(dto);
             ra.addFlashAttribute("success", "Configuration enregistrée.");
             return "redirect:/admin/config";
@@ -37,5 +51,13 @@ public class AdminConfigWebController {
             model.addAttribute("error", e.getMessage());
             return "admin/config/form";
         }
+    }
+
+    /** Stocke le fichier s'il est présent et renvoie sa nouvelle URL, sinon garde l'URL existante. */
+    private String storeOrKeep(MultipartFile file, String existingUrl) {
+        if (file != null && !file.isEmpty()) {
+            return fileStorageService.storeImage(file, "config");
+        }
+        return existingUrl;
     }
 }

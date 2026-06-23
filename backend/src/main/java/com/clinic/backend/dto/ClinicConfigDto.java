@@ -33,6 +33,11 @@ public class ClinicConfigDto {
     private boolean mobileMoneyEnabled;
     private String mobileMoneyProvider;
     private boolean insuranceEnabled;
+    // QR marchand paiement mobile (Amanty / MyNITA)
+    private String amantyQrUrl;
+    private String amantyMerchantId;
+    private String mynitaQrUrl;
+    private String mynitaMerchantId;
     // Numérotation
     private String patientRecordPrefix = "PAT";
     private String invoicePrefix = "FAC";

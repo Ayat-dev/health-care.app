@@ -36,7 +36,8 @@ public class Payment {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount = BigDecimal.ZERO;
 
-    // ESPECES, CARTE, ORANGE_MONEY, MTN_MOMO, WAVE, VIREMENT, ASSURANCE
+    // ESPECES, AMANTY, MYNITA, VIREMENT, CARTE, ASSURANCE
+    // (AMANTY/MYNITA = paiement mobile par QR marchand, confirmation manuelle)
     @Column(nullable = false, length = 30)
     private String method;
 

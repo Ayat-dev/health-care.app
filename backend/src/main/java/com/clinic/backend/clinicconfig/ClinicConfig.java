@@ -81,6 +81,19 @@ public class ClinicConfig {
     @Column(name = "insurance_enabled", nullable = false)
     private boolean insuranceEnabled = false;
 
+    // QR marchand pour le paiement mobile (confirmation manuelle, pas d'API).
+    @Column(name = "amanty_qr_url", length = 255)
+    private String amantyQrUrl;
+
+    @Column(name = "amanty_merchant_id", length = 60)
+    private String amantyMerchantId;
+
+    @Column(name = "mynita_qr_url", length = 255)
+    private String mynitaQrUrl;
+
+    @Column(name = "mynita_merchant_id", length = 60)
+    private String mynitaMerchantId;
+
     // ── Numérotation ────────────────────────────────────────────────────────
     @Column(name = "patient_record_prefix", nullable = false, length = 10)
     private String patientRecordPrefix = "PAT";

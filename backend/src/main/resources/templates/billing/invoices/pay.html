@@ -32,13 +32,12 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Mode de paiement *</label>
-                <select name="method" class="form-control" required>
+                <select name="method" id="method" class="form-control" required>
                     <option value="ESPECES">Espèces</option>
-                    <option value="ORANGE_MONEY">Orange Money</option>
-                    <option value="WAVE">Wave</option>
-                    <option value="MTN_MOMO">MTN MoMo</option>
+                    <option value="AMANTY">Amanty (mobile)</option>
+                    <option value="MYNITA">MyNITA (mobile)</option>
+                    <option value="VIREMENT">Virement bancaire</option>
                     <option value="CARTE">Carte bancaire</option>
-                    <option value="VIREMENT">Virement</option>
                     <option value="ASSURANCE">Assurance / Tiers payant</option>
                 </select>
             </div>
@@ -53,12 +52,50 @@
             </div>
         </div>
 
+        <!-- QR marchand : affiché quand le mode est Amanty / MyNITA -->
+        <div id="qr-amanty" class="alert alert-info" style="display:none; text-align:center;">
+            <div style="font-weight:600; margin-bottom:8px;">Faire scanner ce QR Amanty au patient</div>
+            <img th:if="${config.amantyQrUrl}" th:src="@{${config.amantyQrUrl}}" alt="QR Amanty"
+                 style="width:200px;height:200px;object-fit:contain;background:#fff;padding:8px;border-radius:8px;"/>
+            <div th:unless="${config.amantyQrUrl}" style="color:#b91c1c;">
+                Aucun QR Amanty configuré — voir Administration → Configuration.
+            </div>
+            <div th:if="${config.amantyMerchantId}" style="margin-top:8px;">
+                Ou code marchand : <strong th:text="${config.amantyMerchantId}">—</strong>
+            </div>
+        </div>
+        <div id="qr-mynita" class="alert alert-info" style="display:none; text-align:center;">
+            <div style="font-weight:600; margin-bottom:8px;">Faire scanner ce QR MyNITA au patient</div>
+            <img th:if="${config.mynitaQrUrl}" th:src="@{${config.mynitaQrUrl}}" alt="QR MyNITA"
+                 style="width:200px;height:200px;object-fit:contain;background:#fff;padding:8px;border-radius:8px;"/>
+            <div th:unless="${config.mynitaQrUrl}" style="color:#b91c1c;">
+                Aucun QR MyNITA configuré — voir Administration → Configuration.
+            </div>
+            <div th:if="${config.mynitaMerchantId}" style="margin-top:8px;">
+                Ou code marchand : <strong th:text="${config.mynitaMerchantId}">—</strong>
+            </div>
+        </div>
+
         <div class="form-actions">
             <a th:href="@{/billing/invoices/{id}(id=${invoice.id})}" class="btn btn-ghost">Annuler</a>
             <button type="submit" class="btn btn-primary">Enregistrer le paiement</button>
         </div>
     </form>
 </div>
+
+<script th:inline="none">
+    (function () {
+        var sel = document.getElementById('method');
+        var amanty = document.getElementById('qr-amanty');
+        var mynita = document.getElementById('qr-mynita');
+        function toggle() {
+            amanty.style.display = sel.value === 'AMANTY' ? 'block' : 'none';
+            mynita.style.display = sel.value === 'MYNITA' ? 'block' : 'none';
+        }
+        sel.addEventListener('change', toggle);
+        toggle();
+    })();
+</script>
 
 </th:block></body>
 </html>
