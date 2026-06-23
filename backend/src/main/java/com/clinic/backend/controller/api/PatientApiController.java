@@ -3,8 +3,10 @@ package com.clinic.backend.controller.api;
 import com.clinic.backend.dto.PatientDto;
 import com.clinic.backend.patient.Patient;
 import com.clinic.backend.patient.PatientService;
+import com.clinic.backend.storage.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -57,6 +59,21 @@ public class PatientApiController {
     public PatientDto uploadPhoto(@PathVariable Long id,
                                   @RequestParam("file") MultipartFile file) {
         return patientService.toDto(patientService.uploadPhoto(id, file));
+    }
+
+    /**
+     * Sert la photo du patient (octets) pour le client lourd (JWT) — les fichiers
+     * {@code /uploads/**} ne sont sinon accessibles que sur la chaîne web/session.
+     * 404 si le patient n'a pas de photo.
+     */
+    @GetMapping("/{id}/photo")
+    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','INFIRMIER','SECRETAIRE','PHARMACIEN','LABORANTIN','CAISSIER')")
+    public ResponseEntity<byte[]> getPhoto(@PathVariable Long id) {
+        FileStorageService.StoredFile photo = patientService.loadPhoto(id);
+        if (photo == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(photo.contentType()))
+                .body(photo.content());
     }
 
     @DeleteMapping("/{id}")

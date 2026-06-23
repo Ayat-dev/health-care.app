@@ -70,6 +70,22 @@ public class ApiClient {
     }
 
     /**
+     * Téléverse une image (multipart/form-data, champ {@code file}) avec la même
+     * rotation transparente du token que {@link #send}. Utilisé pour la photo patient.
+     */
+    public static Response postImage(String path, java.io.File file) {
+        String tokenUsed = AuthState.get().getToken();
+        Response resp = exchangeMultipart(path, file, tokenUsed);
+        if ((resp.status() == 401 || resp.status() == 403)
+                && AuthState.get().getRefreshToken() != null
+                && accessTokenExpired(tokenUsed)
+                && tryRefresh(tokenUsed)) {
+            resp = exchangeMultipart(path, file, AuthState.get().getToken());
+        }
+        return resp;
+    }
+
+    /**
      * Déconnexion côté serveur : révoque le refresh token fourni (best-effort).
      * À appeler avant d'effacer la session locale, sinon le refresh token reste
      * valide 7 jours. Le jeton est passé explicitement (et non lu depuis AuthState)
@@ -178,6 +194,42 @@ public class ApiClient {
         } catch (Exception e) {
             return new Response(-1, null);
         }
+    }
+
+    /** Envoie un fichier en multipart/form-data (un seul champ {@code file}). */
+    private static Response exchangeMultipart(String path, java.io.File file, String token) {
+        try {
+            String boundary = "----ClinicBoundary" + System.currentTimeMillis();
+            String mime = guessImageMime(file.getName());
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            String header = "--" + boundary + "\r\n"
+                    + "Content-Disposition: form-data; name=\"file\"; filename=\"" + file.getName() + "\"\r\n"
+                    + "Content-Type: " + mime + "\r\n\r\n";
+            baos.write(header.getBytes(StandardCharsets.UTF_8));
+            baos.write(java.nio.file.Files.readAllBytes(file.toPath()));
+            baos.write(("\r\n--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8));
+
+            HttpRequest.Builder b = HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL + path))
+                    .timeout(Duration.ofSeconds(30))
+                    .header("Accept", "application/json")
+                    .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                    .POST(HttpRequest.BodyPublishers.ofByteArray(baos.toByteArray()));
+            if (token != null) {
+                b.header("Authorization", "Bearer " + token);
+            }
+            HttpResponse<String> r = HTTP.send(b.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            return new Response(r.statusCode(), r.body());
+        } catch (Exception e) {
+            return new Response(-1, null);
+        }
+    }
+
+    private static String guessImageMime(String filename) {
+        String n = filename.toLowerCase();
+        if (n.endsWith(".png")) return "image/png";
+        if (n.endsWith(".webp")) return "image/webp";
+        return "image/jpeg";
     }
 
     private static BinaryResponse exchangeBinary(String path, String token) {

@@ -70,6 +70,18 @@ public class PatientService {
         return patientRepository.save(p);
     }
 
+    /**
+     * Charge la photo du patient (octets + type MIME) pour la servir via l'API JWT
+     * — les fichiers {@code /uploads/**} ne sont sinon accessibles que sur la chaîne
+     * web/session. Renvoie {@code null} si le patient n'a pas de photo (ou fichier absent).
+     */
+    @Transactional(readOnly = true)
+    public FileStorageService.StoredFile loadPhoto(Long id) {
+        Patient p = getById(id);
+        if (p.getPhotoUrl() == null || p.getPhotoUrl().isBlank()) return null;
+        return fileStorageService.load(p.getPhotoUrl());
+    }
+
     // ── Suppression logique ───────────────────────────────────────────────
     public void delete(Long id) {
         Patient p = getById(id);

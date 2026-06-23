@@ -8,8 +8,14 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.stage.FileChooser;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
 
 /**
  * Dossier patient (poste de soin). Lecture du dossier clinique + édition du
@@ -20,6 +26,7 @@ public class PatientDetailController extends BaseController {
 
     @FXML private Label patientNameLabel, recordLabel, statusLabel;
     @FXML private Button examRequestBtn;
+    @FXML private ImageView photoView;
 
     // Identité (lecture seule)
     @FXML private Label idBirth, idGender, idPhone, idPhoneAlt, idEmail,
@@ -112,6 +119,7 @@ public class PatientDetailController extends BaseController {
                 loaded = pr.asObject();
                 fillIdentity(loaded);
                 fillMedical(loaded);
+                loadPhoto();
                 fillTable(consults, cr);
                 fillTable(labs, lr);
                 fillTable(radios, rr);
@@ -163,6 +171,49 @@ public class PatientDetailController extends BaseController {
         String emName = p.optString("emergencyContactName", "");
         String emPhone = p.optString("emergencyContactPhone", "");
         idEmergency.setText((emName + " " + emPhone).trim().isEmpty() ? "—" : (emName + " " + emPhone).trim());
+    }
+
+    // ── Photo patient ──────────────────────────────────────────────────────
+    /** Charge la photo via l'API JWT (GET /api/patients/{id}/photo). 404 → aucune photo. */
+    private void loadPhoto() {
+        async(() -> {
+            ApiClient.BinaryResponse r = ApiClient.getBinary("/api/patients/" + patientId + "/photo");
+            ui(() -> {
+                if (r.ok() && r.body() != null && r.body().length > 0) {
+                    photoView.setImage(new Image(new ByteArrayInputStream(r.body())));
+                } else {
+                    photoView.setImage(null);   // pas de photo (404) → cadre vide
+                }
+            });
+        });
+    }
+
+    /** Choisit un fichier image et le téléverse (POST multipart), puis recharge la photo. */
+    @FXML
+    public void changePhoto() {
+        if (loaded == null) return;
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Choisir une photo du patient");
+        fc.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Images (JPEG, PNG, WebP)", "*.jpg", "*.jpeg", "*.png", "*.webp"));
+        File file = fc.showOpenDialog(photoView.getScene().getWindow());
+        if (file == null) return;
+
+        statusLabel.setText("Téléversement de la photo…");
+        async(() -> {
+            ApiClient.Response r = ApiClient.postImage("/api/patients/" + patientId + "/photo", file);
+            ui(() -> {
+                if (r.ok()) {
+                    loaded = r.asObject();   // PatientDto à jour (base du PUT médical)
+                    statusLabel.setText("Photo mise à jour.");
+                    loadPhoto();
+                } else {
+                    statusLabel.setText("");
+                    error("Téléversement impossible", "Le serveur a répondu : " + r.status()
+                            + (r.status() == 400 ? "\n(Format accepté : JPEG, PNG ou WebP, 5 Mo max.)" : ""));
+                }
+            });
+        });
     }
 
     private void fillMedical(JSONObject p) {

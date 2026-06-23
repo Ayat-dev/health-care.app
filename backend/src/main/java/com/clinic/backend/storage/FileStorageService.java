@@ -66,4 +66,40 @@ public class FileStorageService {
             throw new UncheckedIOException("Échec de l'enregistrement du fichier.", e);
         }
     }
+
+    /** Contenu d'un fichier chargé depuis le disque + son type MIME. */
+    public record StoredFile(byte[] content, String contentType) {}
+
+    /**
+     * Charge le fichier désigné par son chemin web public ({@code /uploads/...}).
+     * Utilisé par l'API REST (chaîne JWT) pour servir des fichiers normalement
+     * exposés sous {@code /uploads/**} (chaîne web/session), inaccessibles au client
+     * lourd. Renvoie {@code null} si le fichier n'existe pas / plus.
+     *
+     * @throws IllegalArgumentException si le chemin sort du répertoire de stockage
+     */
+    public StoredFile load(String webPath) {
+        if (webPath == null || !webPath.startsWith("/uploads/")) {
+            throw new IllegalArgumentException("Chemin de fichier invalide.");
+        }
+        Path file = root.resolve(webPath.substring("/uploads/".length())).normalize();
+        if (!file.startsWith(root)) {
+            throw new IllegalArgumentException("Chemin de fichier invalide.");
+        }
+        if (!Files.exists(file) || !Files.isRegularFile(file)) {
+            return null;
+        }
+        try {
+            return new StoredFile(Files.readAllBytes(file), contentTypeFor(file));
+        } catch (IOException e) {
+            throw new UncheckedIOException("Échec de lecture du fichier.", e);
+        }
+    }
+
+    private String contentTypeFor(Path file) {
+        String name = file.getFileName().toString().toLowerCase();
+        if (name.endsWith(".png")) return "image/png";
+        if (name.endsWith(".webp")) return "image/webp";
+        return "image/jpeg";
+    }
 }
