@@ -311,6 +311,26 @@ public class BillingService {
         return invoiceRepository.save(inv);
     }
 
+    // ── Déclencheurs d'auto-facturation (P5.1 Lot B — appelés par les modules amont) ───
+    /**
+     * Facture l'acte de consultation (1 ligne {@code CONS_GEN}) sur la facture ouverte du
+     * patient. Appelé à la clôture d'une consultation. No-op si déjà facturé (idempotent).
+     */
+    public void chargeConsultation(Long patientId, Long consultationId) {
+        if (patientId == null || consultationId == null) return;
+        addCharge(patientId, "CONSULTATION", consultationId, List.of(consultationLine()));
+    }
+
+    /**
+     * Facture le séjour (1 ligne nuits×tarif) sur la facture ouverte du patient. Appelé à la
+     * sortie. Réutilise {@link #prefillFromHospitalization}. No-op si déjà facturé (idempotent).
+     */
+    public void chargeHospitalization(Long hospitalizationId) {
+        if (hospitalizationId == null) return;
+        InvoiceDto dto = prefillFromHospitalization(hospitalizationId);
+        addCharge(dto.getPatientId(), "HOSPITALIZATION", hospitalizationId, dto.getItems());
+    }
+
     /** Recompute subtotal/insurance/patient amounts from the lines + coverage %. */
     private void recompute(Invoice inv) {
         BigDecimal subtotal = inv.getItems().stream()

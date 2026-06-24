@@ -35,6 +35,7 @@ public class HospitalizationService {
     private final PatientRepository patientRepository;
     private final UserRepository userRepository;
     private final ConsultationRepository consultationRepository;
+    private final com.clinic.backend.billing.BillingService billingService;
 
     // ── Plan des lits (bed board) ─────────────────────────────────────────────
     @Transactional(readOnly = true)
@@ -213,7 +214,10 @@ public class HospitalizationService {
         h.setDischargeDate(LocalDateTime.now());
         h.setDiagnosisOnDischarge(diagnosis != null && !diagnosis.isBlank() ? diagnosis.trim() : null);
         h.setUpdatedAt(LocalDateTime.now());
-        return hospitalizationRepository.save(h);
+        Hospitalization saved = hospitalizationRepository.save(h);
+        // Auto-facturation (P5.1 Lot B) : à la sortie, le séjour (nuits×tarif) part sur la facture ouverte.
+        billingService.chargeHospitalization(saved.getId());
+        return saved;
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────────────

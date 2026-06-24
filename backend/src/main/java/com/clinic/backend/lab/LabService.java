@@ -2,8 +2,10 @@ package com.clinic.backend.lab;
 
 import com.clinic.backend.config.ResourceNotFoundException;
 import com.clinic.backend.audit.Audited;
+import com.clinic.backend.billing.BillingService;
 import com.clinic.backend.catalog.LabTestCatalog;
 import com.clinic.backend.catalog.LabTestCatalogRepository;
+import com.clinic.backend.dto.InvoiceItemDto;
 import com.clinic.backend.consultation.Consultation;
 import com.clinic.backend.consultation.ConsultationRepository;
 import com.clinic.backend.dto.LabRequestDto;
@@ -19,9 +21,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -38,6 +42,7 @@ public class LabService {
     private final LabTestCatalogRepository labTestCatalogRepository;
     private final ResultAbnormalityChecker abnormalityChecker;
     private final NotificationService notificationService;
+    private final BillingService billingService;
 
     // ── Listes / recherche ────────────────────────────────────────────────────
     @Transactional(readOnly = true)
@@ -192,6 +197,21 @@ public class LabService {
         }
         r.setStatus("VALIDE");
         LabRequest saved = labRequestRepository.save(r);
+
+        // Auto-facturation (P5.1 Lot B) : 1 ligne par analyse (prix du catalogue) sur la facture ouverte.
+        List<InvoiceItemDto> lines = new ArrayList<>();
+        for (LabRequestItem item : saved.getItems()) {
+            LabTestCatalog test = item.getTest();
+            if (test == null) continue;
+            InvoiceItemDto line = new InvoiceItemDto();
+            line.setDescription("Analyse — " + test.getName());
+            line.setQuantity(1);
+            line.setUnitPrice(test.getPrice() != null ? test.getPrice() : BigDecimal.ZERO);
+            lines.add(line);
+        }
+        Long patientId = saved.getPatient() != null ? saved.getPatient().getId() : null;
+        billingService.addCharge(patientId, "LAB", saved.getId(), lines);
+
         notificationService.notifyLabResultsValidated(saved); // SMS patient + in-app médecin
         return saved;
     }

@@ -31,6 +31,7 @@ public class ConsultationService {
     private final PatientRepository patientRepository;
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
+    private final com.clinic.backend.billing.BillingService billingService;
 
     // ── Listes / recherche ────────────────────────────────────────────────
     @Transactional(readOnly = true)
@@ -124,7 +125,11 @@ public class ConsultationService {
             throw new IllegalArgumentException("Le diagnostic est obligatoire pour clôturer la consultation");
         }
         c.setStatus("TERMINE");
-        return consultationRepository.save(c);
+        Consultation saved = consultationRepository.save(c);
+        // Auto-facturation (P5.1 Lot B) : la consultation clôturée alimente la facture ouverte du patient.
+        Long patientId = saved.getPatient() != null ? saved.getPatient().getId() : null;
+        billingService.chargeConsultation(patientId, saved.getId());
+        return saved;
     }
 
     public Consultation cancel(Long id) {

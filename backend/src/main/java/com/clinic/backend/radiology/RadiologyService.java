@@ -1,8 +1,10 @@
 package com.clinic.backend.radiology;
 
 import com.clinic.backend.config.ResourceNotFoundException;
+import com.clinic.backend.billing.BillingService;
 import com.clinic.backend.consultation.Consultation;
 import com.clinic.backend.consultation.ConsultationRepository;
+import com.clinic.backend.dto.InvoiceItemDto;
 import com.clinic.backend.dto.RadiologyImageDto;
 import com.clinic.backend.dto.RadiologyRequestDto;
 import com.clinic.backend.dto.RadiologyRequestItemDto;
@@ -18,9 +20,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -37,6 +41,7 @@ public class RadiologyService {
     private final PatientRepository patientRepository;
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
+    private final BillingService billingService;
 
     // ── Catalogue ────────────────────────────────────────────────────────────────
     @Transactional(readOnly = true)
@@ -205,7 +210,22 @@ public class RadiologyService {
         rep.setValidatedBy(currentUser());
         rep.setValidatedAt(LocalDateTime.now());
         r.setStatus("VALIDE");
-        return requestRepository.save(r);
+        RadiologyRequest saved = requestRepository.save(r);
+
+        // Auto-facturation (P5.1 Lot B) : 1 ligne par examen (prix du catalogue) sur la facture ouverte.
+        List<InvoiceItemDto> lines = new ArrayList<>();
+        for (RadiologyRequestItem item : saved.getItems()) {
+            RadiologyExamCatalog exam = item.getExam();
+            if (exam == null) continue;
+            InvoiceItemDto line = new InvoiceItemDto();
+            line.setDescription("Imagerie — " + exam.getName());
+            line.setQuantity(1);
+            line.setUnitPrice(exam.getPrice() != null ? exam.getPrice() : BigDecimal.ZERO);
+            lines.add(line);
+        }
+        Long patientId = saved.getPatient() != null ? saved.getPatient().getId() : null;
+        billingService.addCharge(patientId, "RADIOLOGY", saved.getId(), lines);
+        return saved;
     }
 
     /** VALIDE → LIVRE : le compte-rendu a été remis au médecin/patient. */

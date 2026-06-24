@@ -2,6 +2,7 @@ package com.clinic.backend.pharmacy;
 
 import com.clinic.backend.config.ResourceNotFoundException;
 import com.clinic.backend.audit.Audited;
+import com.clinic.backend.billing.BillingService;
 import com.clinic.backend.consultation.Prescription;
 import com.clinic.backend.consultation.PrescriptionItem;
 import com.clinic.backend.consultation.PrescriptionRepository;
@@ -41,6 +42,7 @@ public class PharmacyService {
     private final PrescriptionRepository prescriptionRepository;
     private final PatientRepository patientRepository;
     private final UserRepository userRepository;
+    private final BillingService billingService;
 
     // ══════════════════════════════ DRUGS ══════════════════════════════════
 
@@ -300,6 +302,20 @@ public class PharmacyService {
             prescription.setDispensedAt(LocalDateTime.now());
             prescriptionRepository.save(prescription);
         }
+
+        // Auto-facturation (P5.1 Lot B) : 1 ligne par item dispensé (prix de vente) sur la facture ouverte.
+        List<InvoiceItemDto> lines = new ArrayList<>();
+        for (DispensationItem it : saved.getItems()) {
+            String name = (it.getStockItem() != null && it.getStockItem().getDrug() != null)
+                    ? it.getStockItem().getDrug().getName() : "Médicament";
+            InvoiceItemDto line = new InvoiceItemDto();
+            line.setDescription("Médicament — " + name);
+            line.setQuantity(it.getQuantity());
+            line.setUnitPrice(it.getUnitPrice());
+            lines.add(line);
+        }
+        Long billPatientId = saved.getPatient() != null ? saved.getPatient().getId() : null;
+        billingService.addCharge(billPatientId, "DISPENSATION", saved.getId(), lines);
         return saved;
     }
 
