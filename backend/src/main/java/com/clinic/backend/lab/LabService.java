@@ -43,6 +43,7 @@ public class LabService {
     private final ResultAbnormalityChecker abnormalityChecker;
     private final NotificationService notificationService;
     private final BillingService billingService;
+    private final com.clinic.backend.realtime.WorklistEvents worklistEvents;
 
     // ── Listes / recherche ────────────────────────────────────────────────────
     @Transactional(readOnly = true)
@@ -137,7 +138,10 @@ public class LabService {
             item.setStatus("EN_ATTENTE");
             r.addItem(item);
         }
-        return labRequestRepository.save(r);
+        LabRequest saved = labRequestRepository.save(r);
+        // Temps réel (P5.1 Lot D) : la nouvelle demande apparaît en direct dans la file du laborantin.
+        worklistEvents.labChanged("Nouvelle demande d'analyses");
+        return saved;
     }
 
     // ── Saisie des résultats (laborantin) ────────────────────────────────────────

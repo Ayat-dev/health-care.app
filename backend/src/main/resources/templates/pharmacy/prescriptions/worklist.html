@@ -5,7 +5,7 @@
 <div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
 <div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
 
-<div class="panel">
+<div class="panel" data-worklist-topic="/topic/worklist/pharmacy">
     <div class="panel-header">
         <span>Ordonnances à dispenser — les plus anciennes d'abord</span>
         <div style="display:flex; gap:.5rem;">

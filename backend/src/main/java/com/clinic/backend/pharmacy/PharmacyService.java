@@ -43,6 +43,7 @@ public class PharmacyService {
     private final PatientRepository patientRepository;
     private final UserRepository userRepository;
     private final BillingService billingService;
+    private final com.clinic.backend.realtime.WorklistEvents worklistEvents;
 
     // ══════════════════════════════ DRUGS ══════════════════════════════════
 
@@ -316,6 +317,11 @@ public class PharmacyService {
         }
         Long billPatientId = saved.getPatient() != null ? saved.getPatient().getId() : null;
         billingService.addCharge(billPatientId, "DISPENSATION", saved.getId(), lines);
+
+        // Temps réel (P5.1 Lot D) : l'ordonnance servie quitte la file de dispensation.
+        if (prescription != null) {
+            worklistEvents.pharmacyChanged("Ordonnance dispensée");
+        }
         return saved;
     }
 

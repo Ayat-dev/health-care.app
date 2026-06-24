@@ -67,6 +67,18 @@
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
 
+        <!-- Temps réel (P5.1 Lot D) : WebSocket + STOMP pour pousser les mises à jour
+             des worklists (labo/radio/pharmacie/caisse). spring-security-messaging
+             apporte @EnableWebSocketSecurity + l'autorisation d'abonnement par rôle. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-messaging</artifactId>
+        </dependency>
+
         <!-- Monitoring (P4.3) : Actuator (health/info/metrics) + registre Micrometer
              Prometheus (expose /actuator/prometheus pour le scraping Grafana). -->
         <dependency>

@@ -28,6 +28,7 @@ public class PrescriptionService {
     private final PatientRepository patientRepository;
     private final UserRepository userRepository;
     private final ClinicConfigService clinicConfigService;
+    private final com.clinic.backend.realtime.WorklistEvents worklistEvents;
 
     // ── Détail ────────────────────────────────────────────────────────────
     @Transactional(readOnly = true)
@@ -66,7 +67,10 @@ public class PrescriptionService {
         p.setPrescriptionNumber(nextNumber());
         applyHeader(dto, p);
         replaceItems(p, dto.getItems());
-        return prescriptionRepository.save(p);
+        Prescription saved = prescriptionRepository.save(p);
+        // Temps réel (P5.1 Lot D) : la nouvelle ordonnance entre dans la file de dispensation.
+        worklistEvents.pharmacyChanged("Nouvelle ordonnance à dispenser");
+        return saved;
     }
 
     // ── Modification ────────────────────────────────────────────────────────

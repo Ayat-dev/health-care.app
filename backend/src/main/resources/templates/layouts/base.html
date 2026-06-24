@@ -7,6 +7,9 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <!-- CSRF (jeton envoyé au CONNECT STOMP par worklist-live.js, P5.1 Lot D) -->
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}"/>
     <title th:text="${title} + ' — ClinicApp'">ClinicApp</title>
     <link rel="stylesheet" th:href="@{/css/app.css}"/>
     <!-- PWA (P3.1) -->
@@ -157,5 +160,7 @@
     </div>
 </div>
 <script th:src="@{/js/search.js}" defer></script>
+<!-- Worklists temps réel (P5.1 Lot D) — actif uniquement si la page déclare [data-worklist-topic] -->
+<script th:src="@{/js/worklist-live.js}" defer></script>
 </body>
 </html>

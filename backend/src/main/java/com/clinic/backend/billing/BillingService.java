@@ -49,6 +49,7 @@ public class BillingService {
     private final ActCatalogRepository actCatalogRepository;
     private final UserRepository userRepository;
     private final ClinicConfigService clinicConfigService;
+    private final com.clinic.backend.realtime.WorklistEvents worklistEvents;
 
     // ── Listes / recherche ────────────────────────────────────────────────────
     @Transactional(readOnly = true)
@@ -173,7 +174,9 @@ public class BillingService {
         applyHeader(dto, inv);
         replaceItems(inv, dto.getItems());
         recompute(inv);
-        return invoiceRepository.save(inv);
+        Invoice saved = invoiceRepository.save(inv);
+        worklistEvents.billingQueueChanged("Nouvelle facture en caisse"); // temps réel (P5.1 Lot D)
+        return saved;
     }
 
     // ── Modification (uniquement EN_ATTENTE) ─────────────────────────────────────
@@ -308,7 +311,10 @@ public class BillingService {
         if (added == 0) return isNew ? null : inv; // aucune ligne valide → ne pas créer de facture vide
 
         recompute(inv);
-        return invoiceRepository.save(inv);
+        Invoice saved = invoiceRepository.save(inv);
+        // Temps réel (P5.1 Lot D) : la facture ouverte (nouvelle ou ré-alimentée) apparaît en caisse.
+        worklistEvents.billingQueueChanged("File caisse mise à jour");
+        return saved;
     }
 
     // ── Déclencheurs d'auto-facturation (P5.1 Lot B — appelés par les modules amont) ───
@@ -384,7 +390,10 @@ public class BillingService {
         inv.setOpen(false); // dès le 1er encaissement, la facture cesse d'accumuler de nouveaux actes (P5.1)
         inv.setPaidAmount(inv.getPaidAmount().add(amount).setScale(2, RoundingMode.HALF_UP));
         refreshStatus(inv);
-        return invoiceRepository.save(inv);
+        Invoice saved = invoiceRepository.save(inv);
+        // Temps réel (P5.1 Lot D) : encaissement → la facture soldée quitte la file caisse partout.
+        worklistEvents.billingQueueChanged("Encaissement enregistré");
+        return saved;
     }
 
     // ── Annulation (avec motif) ────────────────────────────────────────────────────
@@ -402,7 +411,9 @@ public class BillingService {
         String motif = reason != null && !reason.isBlank() ? reason.trim() : "Annulation";
         String existing = inv.getNotes() != null && !inv.getNotes().isBlank() ? inv.getNotes() + "\n" : "";
         inv.setNotes(existing + "[ANNULÉE] " + motif);
-        return invoiceRepository.save(inv);
+        Invoice saved = invoiceRepository.save(inv);
+        worklistEvents.billingQueueChanged("Facture annulée"); // temps réel (P5.1 Lot D)
+        return saved;
     }
 
     /** Status follows the money: paid≥patientAmount → PAYE, paid>0 → PARTIEL, else EN_ATTENTE. */

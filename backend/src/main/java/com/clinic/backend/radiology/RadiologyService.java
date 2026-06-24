@@ -42,6 +42,7 @@ public class RadiologyService {
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
     private final BillingService billingService;
+    private final com.clinic.backend.realtime.WorklistEvents worklistEvents;
 
     // ── Catalogue ────────────────────────────────────────────────────────────────
     @Transactional(readOnly = true)
@@ -147,7 +148,10 @@ public class RadiologyService {
             item.setExam(exam);
             r.addItem(item);
         }
-        return requestRepository.save(r);
+        RadiologyRequest saved = requestRepository.save(r);
+        // Temps réel (P5.1 Lot D) : la nouvelle demande apparaît en direct dans la file imagerie.
+        worklistEvents.radiologyChanged("Nouvelle demande d'imagerie");
+        return saved;
     }
 
     // ── Compte-rendu (radiologue) ───────────────────────────────────────────────────────
