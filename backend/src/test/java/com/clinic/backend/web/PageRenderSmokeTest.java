@@ -73,6 +73,12 @@ class PageRenderSmokeTest {
         mvc.perform(get("/billing")).andExpect(status().isOk());
     }
 
+    /** File d'attente caisse (P5.1) : exerce le template + le filtre JS inline. */
+    @Test
+    void file_attente_caisse_rend_200() throws Exception {
+        mvc.perform(get("/billing/queue")).andExpect(status().isOk());
+    }
+
     /** Détail facture : liste les paiements → exerce les libellés conviviaux
      *  ({@code @paymentMethods.label}), donc valide la résolution du bean en EL. */
     @Test

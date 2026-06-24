@@ -447,6 +447,7 @@ public class DataInitializer {
         inv.setSubtotal(subtotal);
         inv.setInsuranceAmount(insuranceAmount);
         inv.setPatientAmount(subtotal.subtract(insuranceAmount));
+        inv.setOpen(false); // factures de démo déjà finalisées : pas des accumulatrices (P5.1)
     }
 
     private Payment seedPayment(String amount, String method, String reference,

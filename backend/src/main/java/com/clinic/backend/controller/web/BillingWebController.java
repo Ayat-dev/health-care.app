@@ -48,6 +48,13 @@ public class BillingWebController {
         return "billing/dashboard";
     }
 
+    // ── File d'attente caisse (la « pile » par patient à encaisser) ──────────────────
+    @GetMapping("/queue")
+    public String queue(Model model) {
+        model.addAttribute("invoices", billingService.cashierQueue());
+        return "billing/queue";
+    }
+
     // ── Liste des factures ───────────────────────────────────────────────────────
     @GetMapping("/invoices")
     public String list(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,

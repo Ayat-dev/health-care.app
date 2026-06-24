@@ -6,7 +6,10 @@
 
 <div class="panel-header" style="padding:0 0 12px;">
     <span>Tableau de bord financier</span>
-    <a th:href="@{/billing/invoices}" class="btn btn-primary btn-sm">Toutes les factures</a>
+    <div style="display:flex; gap:.5rem;">
+        <a th:href="@{/billing/queue}" class="btn btn-primary btn-sm">🧾 File d'attente caisse</a>
+        <a th:href="@{/billing/invoices}" class="btn btn-ghost btn-sm">Toutes les factures</a>
+    </div>
 </div>
 
 <div class="stats-grid">

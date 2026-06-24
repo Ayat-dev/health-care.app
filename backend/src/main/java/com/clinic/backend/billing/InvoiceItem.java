@@ -41,4 +41,15 @@ public class InvoiceItem {
 
     @Column(name = "total_price", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalPrice = BigDecimal.ZERO;
+
+    /**
+     * Acte d'origine de la ligne (P5.1), pour l'idempotence de l'auto-facturation :
+     * type ({@code CONSULTATION|LAB|RADIOLOGY|HOSPITALIZATION|DISPENSATION}) + id de l'acte.
+     * {@code null} pour une ligne saisie manuellement.
+     */
+    @Column(name = "source_type", length = 20)
+    private String sourceType;
+
+    @Column(name = "source_id")
+    private Long sourceId;
 }

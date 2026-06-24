@@ -160,6 +160,84 @@
 
 ---
 
+## 🔵 P5 — Parcours patient automatisé (workflow transverse)
+
+> **Origine** : retours d'usage du 2026-06-24. Aujourd'hui le patient est suivi module par
+> module mais les actes **ne « remontent » pas** automatiquement : le caissier doit créer une
+> facture vide à la main, et le pharmacien n'a aucune file des ordonnances à servir. Cet axe
+> recâble le flux pour que **chaque acte clôturé alimente seul** la facture en attente du patient
+> et apparaisse en **temps réel** dans la file du service concerné.
+>
+> **Décisions verrouillées (utilisateur, 2026-06-24)** :
+> - Facture : **auto-alimentée à la clôture de chaque acte** → une seule facture « ouverte » par patient (la « pile » que le caissier sélectionne).
+> - Médicaments : **le pharmacien sert (déstocke) PUIS la ligne médicaments part en caisse**.
+> - Temps réel : **push WebSocket/STOMP** (le système évoluera vers ces technologies).
+>
+> **Principe directeur** : deux mécanismes distincts —
+> **(a) accumulation facture = synchrone, dans la même tx que la clôture de l'acte** (atomicité) ;
+> **(b) push worklist = après commit** (`@TransactionalEventListener(AFTER_COMMIT)`) pour que le
+> destinataire qui rafraîchit voie la ligne déjà commitée.
+>
+> **Constat de départ (audit code 2026-06-24)** :
+> - ✅ Labo/imagerie : les worklists `/lab` et `/radiology` montrent déjà les demandes (pull, URGENT en tête) — il manque le **push**.
+> - ⚠️ Pharmacie : ordonnance générée + imprimable, mais **aucune file d'ordonnances à dispenser** (`PrescriptionRepository` n'a pas de `findPendingDispensation`).
+> - ❌ Caisse : **rien ne crée la facture automatiquement** ; `prefillFromConsultation` existe mais n'est déclenché que par un bouton manuel ; **aucune pile par patient**.
+> - ℹ️ La **maternité n'est pas une cible de « demande d'examen »** (dossier longitudinal, pas une file de requêtes).
+> - Catalogues vérifiés : `LabTestCatalog.price` et `RadiologyExamCatalog.price` existent (sources de prix des lignes). Triggers en place : `ConsultationService.complete()`, `LabService.validate()`, `RadiologyService.validate()`, `HospitalizationService.discharge()`, `PharmacyService.dispense()`.
+
+### P5.1 — Auto-facturation (pile par patient) + worklist pharmacie + push temps réel
+- [~] Statut : **en cours** — **Lot A fait (2026-06-24)** : socle auto-facturation + file caisse (118 tests verts). Reste B (triggers), C (worklist pharmacie), D (WebSocket), E (desktop).
+- **Lot A réalisé (2026-06-24)** : `V24__billing_accumulation.sql` (`invoices.open` défaut TRUE + `UPDATE … SET open=FALSE` sur l'existant ; `invoice_items.source_type/source_id` + index ; index partiel unique prod commenté pour H2). `Invoice.open` / `InvoiceItem.sourceType/sourceId` ; `InvoiceDto.open`. `BillingService.addCharge(patientId, sourceType, sourceId, lines)` **idempotent** (`existsBilledSource` sur factures non annulées → no-op) + **find-or-create** (`findOpenByPatient` avec `@Lock(PESSIMISTIC_WRITE)`) ; `buildLine` extrait de `replaceItems` (partagé saisie manuelle / auto) ; `recordPayment` et `cancel` basculent `open=false`, `create()` (manuelle) naît `open=false` (bille autonome). `cashierQueue()` (`findCashierQueue` = EN_ATTENTE/PARTIEL, plus ancienne d'abord). Web : `GET /billing/queue` + `templates/billing/queue.html` (filtre patient JS instantané) ; **atterrissage CAISSIER = `/billing/queue`** (`RoleProfile`) ; liens croisés dashboard/liste. `DataInitializer.finalizeInvoice` → `open=false` (factures démo). Tests : `BillingAccumulationTest` (+4 : accumulation 1 facture, idempotence, paiement ferme + nouvel acte rouvre, présence en file) + render `/billing/queue` + maj test atterrissage caissier. **118 verts** (113→118).
+- **Pourquoi** : supprimer la double-saisie caisse + donner au pharmacien sa file ; faire du « parcours patient » un vrai flux automatisé de bout en bout.
+- **Où** : `billing`, `pharmacy`, `consultation`, `lab`, `radiology`, `hospitalization` + nouvelle config WebSocket.
+
+- **Modèle de données — migration `V{N}__billing_accumulation.sql`** :
+  - `ALTER TABLE invoices ADD COLUMN open BOOLEAN NOT NULL DEFAULT TRUE;` (facture « ouverte » = accumulatrice, au plus une par patient).
+  - `ALTER TABLE invoice_items ADD COLUMN source_type VARCHAR(20);` + `source_id BIGINT;` (`CONSULTATION|LAB|RADIOLOGY|HOSPITALIZATION|DISPENSATION`) + `CREATE INDEX idx_invoice_items_source ON invoice_items(source_type, source_id);` (idempotence anti-double-facturation).
+  - `UPDATE invoices SET open = FALSE;` (les factures existantes/seed ne ré-accumulent pas).
+  - PROD (Postgres) : `CREATE UNIQUE INDEX … ON invoices(patient_id) WHERE open;` (anti-course ; **omis en H2** — index partiel non supporté → verrou applicatif en dev).
+  - Entités : `Invoice.open` (défaut true) ; `InvoiceItem.sourceType/sourceId`.
+
+- **Moteur d'accumulation — `BillingService.addCharge(patientId, sourceType, sourceId, List<InvoiceItemDto>)`** :
+  1. Garde idempotence : `existsBilledSource(sourceType, sourceId)` (sur factures `status <> 'ANNULE'`) → si déjà facturé, no-op.
+  2. Find-or-create : `findOpenByPatient(patientId)` sinon nouvelle facture (`open=true`, `EN_ATTENTE`, `paidAmount=0`, `nextNumber()`).
+  3. Ajoute les lignes (taguées `sourceType/sourceId`) → `recompute(inv)` (réutilise sous-total/assurance/part patient existant) → save.
+  - Cycle de vie : `recordPayment` bascule `open=false` au **1er encaissement** (un acte clôturé ensuite ouvre une **nouvelle** facture) ; `cancel` (ANNULE) libère les sources (re-facturables sur une nouvelle facture).
+  - Nouvelles requêtes `InvoiceRepository` : `findOpenByPatient` (lock pessimiste en dev), `existsBilledSource`, `findCashierQueue` (`open=true OR status IN ('EN_ATTENTE','PARTIEL')`, `JOIN FETCH patient`).
+
+- **5 déclencheurs (synchrones, in-tx ; injecter `BillingService` — aucun cycle, il ne dépend que de repos)** :
+  - [ ] `ConsultationService.complete()` → 1 ligne acte `CONS_GEN` (réutilise `consultationLine()`), source `CONSULTATION`/id.
+  - [ ] `LabService.validate()` → 1 ligne par `LabRequestItem` (`LabTestCatalog.price`), source `LAB`/requestId.
+  - [ ] `RadiologyService.validate()` → 1 ligne par item (`RadiologyExamCatalog.price`), source `RADIOLOGY`/requestId.
+  - [ ] `HospitalizationService.discharge()` → ligne nuits×`daily_rate` (réutilise `prefillFromHospitalization`), source `HOSPITALIZATION`/id.
+  - [ ] `PharmacyService.dispense()` (après save) → 1 ligne par `DispensationItem` (`sellingPrice`), source `DISPENSATION`/dispensationId.
+
+- **UI Caisse — la pile** :
+  - [x] `BillingWebController.queue()` → `/billing/queue` + `templates/billing/queue.html` (Patient · N° · Date · À régler · Payé · **Reste à payer** · [Encaisser]) + **filtre patient instantané**. **Atterrissage par défaut du CAISSIER**. Création manuelle conservée en secours. *(Lot A)*
+
+- **UI Pharmacie — file des ordonnances** :
+  - [ ] `PrescriptionRepository.findPendingDispensation()` (`dispensed=false`, JOIN FETCH patient/doctor/items, tri issueDate).
+  - [ ] `/pharmacy/prescriptions` + `templates/pharmacy/prescriptions/worklist.html` + lien nav (Date · N° · Patient · Médecin · Nb lignes · [Dispenser] → `/pharmacy/dispensations/new?prescriptionId=` existant).
+
+- **Temps réel — WebSocket/STOMP** :
+  - [ ] Dép. `spring-boot-starter-websocket` ; `config/WebSocketConfig` (`@EnableWebSocketMessageBroker`, endpoint `/ws`+SockJS, broker `/topic`, prefix `/app`) ; `config/WebSocketSecurityConfig` (abonnements par rôle : `/topic/worklist/lab`→LABORANTIN, `…/radiology`→MEDECIN, `…/pharmacy`→PHARMACIEN, `/topic/billing/queue`→CAISSIER ; +ADMIN ; gérer CSRF STOMP).
+  - [ ] Événement `WorklistChangedEvent(channel, summary)` publié par les services (lab/radio create, consultation complete, dispense, validate, discharge, ordonnance créée) ; `WorklistBroadcaster` `@TransactionalEventListener(AFTER_COMMIT)` → `SimpMessagingTemplate.convertAndSend(topic, …)` (**push après commit**).
+  - [ ] `static/js/worklist-live.js` (sockjs + stomp.js) : abonnement par topic, à réception → toast + badge + re-fetch du fragment ; dégradation gracieuse. Brancher sur les 4 worklists (labo/radio existantes + pharmacie/caisse nouvelles).
+  - [ ] **Desktop JavaFX (JWT)** : client STOMP avec en-tête `Authorization` au CONNECT — **session ultérieure** (web d'abord).
+
+- **Points à confirmer au codage** : (1) assurance posée par le caissier à l'encaissement (facture ouverte naît sans assureur, `recompute` réajuste) ; (2) « servir avant payer » → stock décrémenté avant encaissement (risque d'impayé, suivi via « reste à payer ») ; (3) concurrence facture ouverte (index partiel unique prod / verrou pessimiste dev) ; (4) lignes labo **une par test** (transparence) — à valider.
+
+- **Séquencement (1 lot = 1 session + `mvnd` + tick)** : **A** migration + `open`/`source` + `addCharge` idempotent + find-or-create + page file caisse → **B** brancher les 5 triggers → **C** worklist pharmacie → **D** infra WebSocket + événements + JS live → **E** STOMP desktop (plus tard).
+
+- **Critères d'acceptation** :
+  - Clôturer une consultation (puis valider un labo, une imagerie, dispenser une ordonnance) pour un patient → **une seule facture ouverte** s'alimente automatiquement avec une ligne par acte (jamais de doublon si re-clôture).
+  - Le caissier ouvre `/billing/queue`, **sélectionne le patient** (sans rien créer) et encaisse ; le 1er paiement fige la facture (`open=false`).
+  - Le pharmacien voit la file des ordonnances non dispensées et sert depuis cette file.
+  - Une nouvelle demande labo/imagerie / un nouvel encaissement dû **apparaît en direct** (push) dans la worklist du service concerné, sans rechargement manuel.
+  - `mvnd test` vert (couvrir : idempotence `addCharge`, find-or-create, bascule `open` au paiement, gating rôles des topics).
+
+---
+
 ## Journal de progression (à remplir à chaque session)
 
 | Date | Item | Résultat |
@@ -196,6 +274,8 @@
 | 2026-06-23 | **Billing / modes de paiement locaux (Amanty, MyNITA)** | Refonte des modes de paiement pour le marché mauritanien (demande utilisateur). Recherche : **Amanty** (portefeuille BEA, `amanty.mr`) et **MyNITA** (réseau NITA/GIMTEL) = paiement marchand par **QR**, **aucune API/webhook public** trouvée → **confirmation manuelle** (choix utilisateur confirmé). Liste finale des modes : **Espèces, Amanty, MyNITA, Virement bancaire, Carte, Assurance** (retirés du menu : Orange Money / Wave / MTN MoMo ; le webhook Mobile Money P3.3 reste en place mais dormant). Flux QR : la clinique téléverse son QR marchand Amanty/MyNITA dans la config ; à l'encaissement (`billing/invoices/pay.html`), choisir Amanty/MyNITA affiche le QR (toggle JS) pour que le patient scanne, puis le caissier enregistre le paiement (réf.). **DB** : `V22` ajoute `amanty_qr_url/amanty_merchant_id/mynita_qr_url/mynita_merchant_id` à `clinic_config`. **Config admin** : section « Paiement mobile — QR marchand » (form passé en `multipart/form-data`, 2 uploads via `FileStorageService` sous `config/`, URL conservée si pas de nouveau fichier, + identifiants marchands optionnels) ; entité/DTO/service étendus. `Payment.method` reste un String libre (rétro-compatible : les paiements ORANGE_MONEY seedés restent valides). Tests : `PageRenderSmokeTest` + rendu config (section QR) + rendu encaissement (modes Amanty/MyNITA). **112 verts.** Vérifié via MockMvc (boot complet → Flyway V22 + validate OK). Reste : libellés conviviaux des modes sur reçus/rapports (affichage brut « AMANTY » pour l'instant) ; devise/​fuseau Mauritanie (MRU/Nouakchott) à régler en config ; suppression éventuelle du webhook Orange/Wave/MTN. |
 | 2026-06-24 | **Billing / correction marché Niger + AmanaTa** | Correction de la veille (l'entrée « modes de paiement locaux » visait par erreur la Mauritanie/Amanty). Marché cible = **Niger** : devise **XOF** (déjà seedée) + fuseau **Africa/Niamey** (migration `V23` UPDATE de la ligne singleton, seedée en `Africa/Dakar` par V4 ; défauts entité/DTO passés à Niamey). Service de paiement mobile = **AmanaTa** (pas « Amanty ») : renommage complet `amanty→amanata` / `AMANTY→AMANATA` (colonnes, champs entité/DTO, service, contrôleur config, `config/form.html`, `pay.html` + JS toggle, `Payment` commentaire, test). Colonnes renommées **dans V22** directement (migration non poussée, jamais persistée — H2 in-memory) plutôt qu'une migration de renommage. **112 verts** (Flyway V22+V23 + validate OK au boot). |
 | 2026-06-24 | **Billing / libellés conviviaux des modes** | Les modes de paiement s'affichaient en code brut (« AMANATA », « ESPECES »…) sur reçus/détail/tableaux de bord/rapports. Source unique : bean `@paymentMethods` (`PaymentMethods.label(code)` — ESPECES→Espèces, AMANATA→AmanaTa, MYNITA→MyNITA, VIREMENT→Virement bancaire, CARTE→Carte bancaire, ASSURANCE→Assurance / Tiers payant ; + héritées Orange/Wave/MTN ; code inconnu renvoyé tel quel). Remplacé aux **7 sites** d'affichage (`reports/financial`, `reports/dashboard`, `billing/dashboard` ×2, `billing/invoices/detail`, `billing/invoices/receipt`, via `@paymentMethods.label(...)`). **Gotcha corrigé** : `@bean` en SpEL échoue dans le contexte PDF (`PdfExportService` rend hors requête web → pas de résolveur de beans, `EL1057E` sur le reçu) — câblé un `ThymeleafEvaluationContext(applicationContext)` dans le contexte PDF pour que les beans soient résolus comme en web (bénéficie à tous les templates PDF). Test : `facture_detail_rend_200` + `ExportTest` (reçu PDF) couvrent les deux contextes. **113 verts.** |
+| 2026-06-24 | **P5.1 Lot A** | Socle auto-facturation + file caisse. `V24` (`invoices.open`, `invoice_items.source_type/source_id`+index). `BillingService.addCharge` **idempotent** (`existsBilledSource`) + **find-or-create** (`findOpenByPatient` verrou pessimiste) ; `buildLine` partagé ; `recordPayment`/`cancel`→`open=false`, `create()` manuelle `open=false`. `cashierQueue()` + `GET /billing/queue` + template (filtre patient JS) ; **CAISSIER atterrit sur `/billing/queue`**. `DataInitializer.finalizeInvoice`→`open=false`. `BillingAccumulationTest` (+4) + render queue + maj test atterrissage. **118 verts** (113→118). Reste B (5 triggers), C (worklist pharmacie), D (WebSocket), E (desktop). |
+| 2026-06-24 | **P5.1** (plan) | Plan détaillé consigné (pas de code) : parcours patient automatisé. Décisions verrouillées — facture **auto-alimentée à la clôture de chaque acte** (pile unique « ouverte » par patient, que le caissier sélectionne), **pharmacien sert PUIS ligne médicaments en caisse**, **push WebSocket/STOMP**. Audit : worklists labo/radio existent (pull) ; manquent file pharmacie (`findPendingDispensation`) + toute l'auto-facturation (`Invoice.open` + `invoice_items.source_*` + `BillingService.addCharge` idempotent + `/billing/queue`). 5 triggers (`complete`/`validate`×2/`discharge`/`dispense`). Séquencement A→E (A=migration+addCharge+file caisse en premier). |
 | 2026-06-21 | **P4.1** | Scribe IA ambiant — tranche **étage 2 (texte → note)**. Claude ne transcrit pas l'audio → pipeline 2 étages (STT externe + Claude) ; livré : structuration. Dép. `anthropic-java:2.34.0`. Pkg `scribe` : `ConsultationDraftDto` (sortie structurée, **tout String** pour ne pas forcer le modèle à inventer des constantes), `ClinicalNoteStructurer`+`ClaudeNoteStructurer` (`.outputConfig(Class)`, system FR anti-hallucination, `ObjectProvider<AnthropicClient>`), `ScribeConfig` (`@ConditionalOnProperty enabled` + fail-fast clé), `ScribeService` (gardes, jamais d'écriture auto). REST `/api/scribe/structure` (MEDECIN/ADMIN) + web `/consultations/scribe` (session, CSRF via `_csrf`→`X-CSRF-TOKEN`). Form : bloc « 🎙️ Scribe IA » gated `scribeEnabled` + JS pré-remplissage. Config `app.scribe.{enabled:false,model:claude-opus-4-8,api-key}`, `.env.example`. **Désactivé par défaut** (clé + PHI cloud assumé). `ScribeServiceTest` (+3, unitaire pur). **91 verts**. Reste : micro front + STT (vrai poste de coût), streaming, éval FR, posture PHI définitive. |
 
 ---

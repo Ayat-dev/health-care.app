@@ -1,7 +1,9 @@
 package com.clinic.backend.billing;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -48,6 +50,43 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
                          @Param("to") LocalDateTime to,
                          @Param("patientId") Long patientId,
                          @Param("status") String status);
+
+    /**
+     * Facture « ouverte » (accumulatrice, P5.1) du patient, s'il y en a une — verrou pessimiste
+     * pour sérialiser le find-or-create de {@code addCharge} (anti-course en dev/H2 ; en prod
+     * l'index partiel unique fait foi). Filtrée par tenant via {@code @TenantId}. Renvoie une
+     * liste par prudence (au plus un élément attendu) pour éviter un {@code NonUniqueResult}.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+        SELECT inv FROM Invoice inv
+        WHERE inv.patient.id = :patientId AND inv.open = true AND inv.status <> 'ANNULE'
+        ORDER BY inv.id ASC
+        """)
+    List<Invoice> findOpenByPatient(@Param("patientId") Long patientId);
+
+    /**
+     * Vrai si l'acte (sourceType, sourceId) est déjà facturé sur une facture non annulée
+     * (idempotence de l'auto-facturation — un acte ne se facture jamais deux fois).
+     */
+    @Query("""
+        SELECT COUNT(it) > 0 FROM InvoiceItem it
+        WHERE it.sourceType = :sourceType AND it.sourceId = :sourceId
+          AND it.invoice.status <> 'ANNULE'
+        """)
+    boolean existsBilledSource(@Param("sourceType") String sourceType, @Param("sourceId") Long sourceId);
+
+    /**
+     * File d'attente caisse (P5.1) : factures encore à encaisser (reste dû > 0), patient chargé.
+     * C'est la « pile » que le caissier sélectionne — la plus ancienne d'abord.
+     */
+    @Query("""
+        SELECT inv FROM Invoice inv
+        LEFT JOIN FETCH inv.patient
+        WHERE inv.status IN ('EN_ATTENTE', 'PARTIEL')
+        ORDER BY inv.createdAt ASC
+        """)
+    List<Invoice> findCashierQueue();
 
     /** Chronological history for a patient's dossier (most recent first, header only). */
     @Query("""

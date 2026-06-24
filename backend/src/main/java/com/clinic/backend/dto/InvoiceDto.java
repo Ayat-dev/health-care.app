@@ -25,6 +25,8 @@ public class InvoiceDto {
     private BigDecimal paidAmount;
     private BigDecimal balanceDue;
     private String status;
+    /** Facture « ouverte » (accumulatrice) — P5.1. */
+    private boolean open;
     private LocalDate dueDate;
     private String notes;
     private LocalDateTime createdAt;

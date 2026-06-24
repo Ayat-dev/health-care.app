@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout('Caisse — File d’attente', ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="panel">
+    <div class="panel-header">
+        <span>File d'attente caisse <small th:text="'(' + ${invoices.size()} + ')'">(0)</small></span>
+        <div style="display:flex; gap:.5rem;">
+            <a th:href="@{/billing/invoices}" class="btn btn-ghost btn-sm">Toutes les factures</a>
+            <a th:href="@{/billing/dashboard}" class="btn btn-ghost btn-sm">Tableau de bord</a>
+            <a th:href="@{/billing/invoices/new}" class="btn btn-ghost btn-sm">+ Facture manuelle</a>
+        </div>
+    </div>
+
+    <div class="search-bar" style="align-items:center;">
+        <input type="text" id="patientFilter" class="form-control" autofocus
+               placeholder="Rechercher un patient (nom ou n° dossier)…" style="max-width:380px;"/>
+    </div>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>N°</th>
+                <th>Patient</th>
+                <th>Date</th>
+                <th style="text-align:right;">À régler</th>
+                <th style="text-align:right;">Payé</th>
+                <th style="text-align:right;">Reste à payer</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody id="queueBody">
+            <tr th:if="${invoices.isEmpty()}">
+                <td colspan="8" class="empty-state">Aucune facture en attente d'encaissement. 🎉</td>
+            </tr>
+            <tr th:each="inv : ${invoices}"
+                th:attr="data-patient=${#strings.toLowerCase((inv.patientName ?: '') + ' ' + (inv.patientRecordNumber ?: ''))}">
+                <td><strong th:text="${inv.invoiceNumber}">FAC-…</strong></td>
+                <td>
+                    <span th:text="${inv.patientName}">Patient</span>
+                    <small th:text="${inv.patientRecordNumber}">PAT-…</small>
+                </td>
+                <td th:text="${#temporals.format(inv.createdAt,'dd/MM/yyyy')}">01/01</td>
+                <td style="text-align:right;" th:text="${#numbers.formatDecimal(inv.patientAmount,1,'WHITESPACE',0,'POINT')}">0</td>
+                <td style="text-align:right;" th:text="${#numbers.formatDecimal(inv.paidAmount,1,'WHITESPACE',0,'POINT')}">0</td>
+                <td style="text-align:right;">
+                    <strong style="color:#b91c1c"
+                            th:text="${#numbers.formatDecimal(inv.balanceDue,1,'WHITESPACE',0,'POINT')}">0</strong>
+                </td>
+                <td><span class="badge" th:classappend="'badge-' + ${inv.status}" th:text="${inv.status}">EN_ATTENTE</span></td>
+                <td style="white-space:nowrap;">
+                    <a th:href="@{/billing/invoices/{id}(id=${inv.id})}" class="btn btn-ghost btn-sm">Voir</a>
+                    <a th:href="@{/billing/invoices/{id}/pay(id=${inv.id})}" class="btn btn-primary btn-sm">Encaisser</a>
+                </td>
+            </tr>
+            <tr id="noMatchRow" style="display:none;">
+                <td colspan="8" class="empty-state">Aucun patient ne correspond à la recherche.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    (function () {
+        const input = document.getElementById('patientFilter');
+        const rows = Array.from(document.querySelectorAll('#queueBody tr[data-patient]'));
+        const noMatch = document.getElementById('noMatchRow');
+        if (!input) return;
+        input.addEventListener('input', function () {
+            const q = input.value.trim().toLowerCase();
+            let visible = 0;
+            rows.forEach(function (r) {
+                const match = !q || r.getAttribute('data-patient').includes(q);
+                r.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+            if (noMatch) noMatch.style.display = (rows.length > 0 && visible === 0) ? '' : 'none';
+        });
+    })();
+</script>
+
+</th:block></body>
+</html>

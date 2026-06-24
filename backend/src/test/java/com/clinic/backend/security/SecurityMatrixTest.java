@@ -97,10 +97,11 @@ class SecurityMatrixTest {
     @Test
     @WithMockUser(username = "cash", roles = "CAISSIER")
     void caissier_sur_dashboard_redirige_vers_son_accueil() throws Exception {
-        // Pas de tableau de bord KPI pour le caissier → renvoyé vers sa page métier (facturation).
+        // Pas de tableau de bord KPI pour le caissier → renvoyé vers sa page métier
+        // (la file d'attente caisse, P5.1).
         mvc.perform(get("/dashboard"))
            .andExpect(status().is3xxRedirection())
-           .andExpect(redirectedUrl("/billing"));
+           .andExpect(redirectedUrl("/billing/queue"));
     }
 
     // ── /reports/financial : ADMIN + CAISSIER ────────────────────────────────

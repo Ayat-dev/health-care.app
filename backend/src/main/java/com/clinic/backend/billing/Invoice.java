@@ -74,6 +74,14 @@ public class Invoice {
     @Column(nullable = false, length = 20)
     private String status = "EN_ATTENTE"; // EN_ATTENTE, PARTIEL, PAYE, ANNULE
 
+    /**
+     * Facture « ouverte » = accumulatrice (P5.1) : tant que {@code true}, les actes clôturés du
+     * patient (consultation, labo, imagerie, séjour, dispensation) y ajoutent automatiquement une
+     * ligne. Passe à {@code false} au 1er encaissement ou à l'annulation. Au plus une par patient.
+     */
+    @Column(nullable = false)
+    private boolean open = true;
+
     @Column(name = "due_date")
     private LocalDate dueDate;
 

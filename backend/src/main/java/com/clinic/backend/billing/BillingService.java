@@ -63,6 +63,12 @@ public class BillingService {
         return invoiceRepository.findByPatient(patientId).stream().map(this::toDto).toList();
     }
 
+    /** File d'attente caisse (P5.1) : la pile des factures à encaisser (reste dû > 0). */
+    @Transactional(readOnly = true)
+    public List<InvoiceDto> cashierQueue() {
+        return invoiceRepository.findCashierQueue().stream().map(this::toDto).toList();
+    }
+
     // ── Détail ────────────────────────────────────────────────────────────────
     @Transactional(readOnly = true)
     public Invoice getById(Long id) {
@@ -163,6 +169,7 @@ public class BillingService {
         inv.setCreatedBy(currentUser());
         inv.setStatus("EN_ATTENTE");
         inv.setPaidAmount(BigDecimal.ZERO);
+        inv.setOpen(false); // facture créée à la main = bille autonome, n'accumule pas d'actes auto (P5.1)
         applyHeader(dto, inv);
         replaceItems(inv, dto.getItems());
         recompute(inv);
@@ -214,37 +221,94 @@ public class BillingService {
         inv.getItems().clear();
         if (items != null) {
             for (InvoiceItemDto in : items) {
-                if (in == null) continue;
-                boolean blank = (in.getDescription() == null || in.getDescription().isBlank()) && in.getActId() == null;
-                if (blank) continue;
-
-                InvoiceItem item = new InvoiceItem();
-                ActCatalog act = null;
-                if (in.getActId() != null) {
-                    act = actCatalogRepository.findById(in.getActId()).orElse(null);
-                    item.setAct(act);
-                }
-                String description = in.getDescription() != null && !in.getDescription().isBlank()
-                        ? in.getDescription().trim()
-                        : (act != null ? act.getName() : null);
-                if (description == null) continue; // ni libellé ni acte → ligne ignorée
-                item.setDescription(description);
-
-                int qty = in.getQuantity() > 0 ? in.getQuantity() : 1;
-                BigDecimal unit = in.getUnitPrice() != null ? in.getUnitPrice()
-                        : (act != null ? act.getPrice() : BigDecimal.ZERO);
-                if (unit.signum() < 0) {
-                    throw new IllegalArgumentException("Le prix unitaire ne peut pas être négatif");
-                }
-                item.setQuantity(qty);
-                item.setUnitPrice(unit.setScale(2, RoundingMode.HALF_UP));
-                item.setTotalPrice(unit.multiply(BigDecimal.valueOf(qty)).setScale(2, RoundingMode.HALF_UP));
-                inv.addItem(item);
+                InvoiceItem item = buildLine(in);
+                if (item != null) inv.addItem(item);
             }
         }
         if (inv.getItems().isEmpty()) {
             throw new IllegalArgumentException("La facture doit contenir au moins une ligne");
         }
+    }
+
+    /**
+     * Construit une ligne de facture à partir d'un DTO (résolution de l'acte, libellé, prix).
+     * Renvoie {@code null} pour une ligne vide (ni libellé ni acte). Partagé par la saisie
+     * manuelle ({@link #replaceItems}) et l'auto-facturation ({@link #addCharge}).
+     */
+    private InvoiceItem buildLine(InvoiceItemDto in) {
+        if (in == null) return null;
+        boolean blank = (in.getDescription() == null || in.getDescription().isBlank()) && in.getActId() == null;
+        if (blank) return null;
+
+        InvoiceItem item = new InvoiceItem();
+        ActCatalog act = null;
+        if (in.getActId() != null) {
+            act = actCatalogRepository.findById(in.getActId()).orElse(null);
+            item.setAct(act);
+        }
+        String description = in.getDescription() != null && !in.getDescription().isBlank()
+                ? in.getDescription().trim()
+                : (act != null ? act.getName() : null);
+        if (description == null) return null; // ni libellé ni acte → ligne ignorée
+        item.setDescription(description);
+
+        int qty = in.getQuantity() > 0 ? in.getQuantity() : 1;
+        BigDecimal unit = in.getUnitPrice() != null ? in.getUnitPrice()
+                : (act != null ? act.getPrice() : BigDecimal.ZERO);
+        if (unit.signum() < 0) {
+            throw new IllegalArgumentException("Le prix unitaire ne peut pas être négatif");
+        }
+        item.setQuantity(qty);
+        item.setUnitPrice(unit.setScale(2, RoundingMode.HALF_UP));
+        item.setTotalPrice(unit.multiply(BigDecimal.valueOf(qty)).setScale(2, RoundingMode.HALF_UP));
+        return item;
+    }
+
+    // ── Auto-facturation : accumulation sur la facture ouverte du patient (P5.1) ─────────
+    /**
+     * Ajoute des lignes facturables à la facture <b>ouverte</b> du patient (créée si absente),
+     * appelée à la clôture d'un acte amont (consultation, labo, imagerie, séjour, dispensation).
+     * <b>Idempotent</b> : si l'acte (sourceType, sourceId) est déjà facturé sur une facture non
+     * annulée, ne fait rien et renvoie {@code null}. Renvoie aussi {@code null} si aucune ligne
+     * valide n'est produite (rien à facturer). Atomique avec la transaction de l'appelant.
+     */
+    public Invoice addCharge(Long patientId, String sourceType, Long sourceId, List<InvoiceItemDto> lines) {
+        if (patientId == null) {
+            throw new IllegalArgumentException("Le patient est obligatoire pour facturer un acte");
+        }
+        if (lines == null || lines.isEmpty()) return null;
+        if (sourceType != null && sourceId != null
+                && invoiceRepository.existsBilledSource(sourceType, sourceId)) {
+            return null; // acte déjà facturé → no-op
+        }
+        Patient patient = patientRepository.findByIdAndDeletedAtIsNull(patientId)
+                .orElseThrow(() -> new IllegalArgumentException("Patient introuvable : " + patientId));
+
+        Invoice inv = invoiceRepository.findOpenByPatient(patientId).stream().findFirst().orElse(null);
+        boolean isNew = inv == null;
+        if (isNew) {
+            inv = new Invoice();
+            inv.setPatient(patient);
+            inv.setInvoiceNumber(nextNumber());
+            inv.setCreatedBy(currentUser());
+            inv.setStatus("EN_ATTENTE");
+            inv.setPaidAmount(BigDecimal.ZERO);
+            inv.setOpen(true);
+        }
+
+        int added = 0;
+        for (InvoiceItemDto in : lines) {
+            InvoiceItem item = buildLine(in);
+            if (item == null) continue;
+            item.setSourceType(sourceType);
+            item.setSourceId(sourceId);
+            inv.addItem(item);
+            added++;
+        }
+        if (added == 0) return isNew ? null : inv; // aucune ligne valide → ne pas créer de facture vide
+
+        recompute(inv);
+        return invoiceRepository.save(inv);
     }
 
     /** Recompute subtotal/insurance/patient amounts from the lines + coverage %. */
@@ -297,6 +361,7 @@ public class BillingService {
         payment.setCashier(currentUser());
         inv.addPayment(payment);
 
+        inv.setOpen(false); // dès le 1er encaissement, la facture cesse d'accumuler de nouveaux actes (P5.1)
         inv.setPaidAmount(inv.getPaidAmount().add(amount).setScale(2, RoundingMode.HALF_UP));
         refreshStatus(inv);
         return invoiceRepository.save(inv);
@@ -313,6 +378,7 @@ public class BillingService {
             throw new IllegalStateException("Cette facture est déjà annulée");
         }
         inv.setStatus("ANNULE");
+        inv.setOpen(false); // une facture annulée n'accumule plus (P5.1)
         String motif = reason != null && !reason.isBlank() ? reason.trim() : "Annulation";
         String existing = inv.getNotes() != null && !inv.getNotes().isBlank() ? inv.getNotes() + "\n" : "";
         inv.setNotes(existing + "[ANNULÉE] " + motif);
@@ -404,6 +470,7 @@ public class BillingService {
         dto.setPaidAmount(inv.getPaidAmount());
         dto.setBalanceDue(inv.getBalanceDue());
         dto.setStatus(inv.getStatus());
+        dto.setOpen(inv.isOpen());
         dto.setDueDate(inv.getDueDate());
         dto.setNotes(inv.getNotes());
         dto.setCreatedAt(inv.getCreatedAt());

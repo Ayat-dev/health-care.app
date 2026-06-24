@@ -82,7 +82,7 @@ public enum RoleProfile {
     ),
 
     CAISSIER(
-        "/billing",
+        "/billing/queue", // la file d'attente caisse, pas le tableau de bord (P5.1)
         EnumSet.of(BILLING, REPORTS, NOTIFICATIONS),
         Set.of("FACTURE_IMPAYEE")
     ),
