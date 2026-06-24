@@ -4,6 +4,7 @@ import com.clinic.backend.dto.DispensationDto;
 import com.clinic.backend.dto.DispensationItemDto;
 import com.clinic.backend.dto.DrugDto;
 import com.clinic.backend.dto.StockItemDto;
+import com.clinic.backend.consultation.PrescriptionService;
 import com.clinic.backend.pharmacy.Dispensation;
 import com.clinic.backend.pharmacy.PharmacyService;
 import com.clinic.backend.patient.PatientService;
@@ -24,6 +25,7 @@ public class PharmacyWebController {
 
     private final PharmacyService pharmacyService;
     private final PatientService patientService;
+    private final PrescriptionService prescriptionService;
 
     // ── Tableau de bord ────────────────────────────────────────────────────────
     @GetMapping
@@ -124,6 +126,13 @@ public class PharmacyWebController {
             model.addAttribute("drugs", pharmacyService.listActiveDrugs());
             return "pharmacy/stock-receive";
         }
+    }
+
+    // ── File des ordonnances à dispenser (P5.1 Lot C) ─────────────────────────────
+    @GetMapping("/prescriptions")
+    public String prescriptionWorklist(Model model) {
+        model.addAttribute("prescriptions", prescriptionService.pendingDispensation());
+        return "pharmacy/prescriptions/worklist";
     }
 
     // ── Dispensations ───────────────────────────────────────────────────────────

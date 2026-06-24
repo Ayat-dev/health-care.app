@@ -328,6 +328,7 @@ public class PharmacyService {
         dash.setLowStockCount(stockItemRepository.findLowStock(today).size());
         dash.setExpiringCount(stockItemRepository.findExpiringBetween(today, today.plusDays(EXPIRY_WINDOW_DAYS)).size());
         dash.setExpiredCount(stockItemRepository.findExpiringBetween(today.minusYears(50), today.minusDays(1)).size());
+        dash.setPendingPrescriptions(prescriptionRepository.countByDispensedFalse());
         dash.setStockValue(stockValue());
 
         LocalDateTime monthStart = today.withDayOfMonth(1).atStartOfDay();

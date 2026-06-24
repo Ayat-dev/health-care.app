@@ -7,6 +7,10 @@
 
 <div class="stats-grid">
     <div class="stat-card">
+        <div class="stat-card-label">Ordonnances à dispenser</div>
+        <div class="stat-card-value" style="color:var(--blue,#2563eb);" th:text="${dash.pendingPrescriptions}">0</div>
+    </div>
+    <div class="stat-card">
         <div class="stat-card-label">Lots en stock faible</div>
         <div class="stat-card-value" style="color:var(--red);" th:text="${dash.lowStockCount}">0</div>
     </div>
@@ -26,7 +30,8 @@
 </div>
 
 <div style="display:flex; gap:12px; margin-top:20px; flex-wrap:wrap;">
-    <a th:href="@{/pharmacy/dispensations/new}" class="btn btn-primary">💊 Nouvelle dispensation</a>
+    <a th:href="@{/pharmacy/prescriptions}" class="btn btn-primary">🧾 File des ordonnances</a>
+    <a th:href="@{/pharmacy/dispensations/new}" class="btn btn-ghost">💊 Nouvelle dispensation</a>
     <a th:href="@{/pharmacy/stock/receive}" class="btn btn-ghost">📥 Réceptionner un lot</a>
     <a th:href="@{/pharmacy/stock}" class="btn btn-ghost">📦 État du stock</a>
     <a th:href="@{/pharmacy/drugs}" class="btn btn-ghost">📚 Catalogue</a>

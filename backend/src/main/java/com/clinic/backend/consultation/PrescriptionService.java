@@ -41,6 +41,12 @@ public class PrescriptionService {
         return toDto(getById(id));
     }
 
+    /** File des ordonnances à dispenser (P5.1 Lot C), mappée en transaction (OSIV off). */
+    @Transactional(readOnly = true)
+    public List<PrescriptionDto> pendingDispensation() {
+        return prescriptionRepository.findPendingDispensation().stream().map(this::toDto).toList();
+    }
+
     /** The latest ordonnance for a consultation, mapped to a DTO; null if none yet. */
     @Transactional(readOnly = true)
     public PrescriptionDto findDtoForConsultation(Long consultationId) {

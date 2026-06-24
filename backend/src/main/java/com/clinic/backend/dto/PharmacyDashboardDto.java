@@ -12,6 +12,7 @@ public class PharmacyDashboardDto {
     private long lowStockCount;
     private long expiringCount;
     private long expiredCount;
+    private long pendingPrescriptions;
     private BigDecimal stockValue = BigDecimal.ZERO;
     private List<TopDrug> topDispensed = new ArrayList<>();
 

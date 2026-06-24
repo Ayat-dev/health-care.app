@@ -42,6 +42,23 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, Long
     java.util.List<Prescription> findByPatientWithItems(@Param("patientId") Long patientId);
 
     /**
+     * File des ordonnances à dispenser (P5.1 Lot C) : non dispensées, plus ancienne d'abord
+     * (FIFO). Patient/médecin/lignes chargés pour l'affichage de la worklist (OSIV off).
+     */
+    @Query("""
+        SELECT DISTINCT p FROM Prescription p
+        LEFT JOIN FETCH p.patient
+        LEFT JOIN FETCH p.doctor
+        LEFT JOIN FETCH p.items
+        WHERE p.dispensed = false
+        ORDER BY p.issueDate ASC, p.id ASC
+        """)
+    java.util.List<Prescription> findPendingDispensation();
+
+    /** Nombre d'ordonnances en attente de dispensation (badge file pharmacie). */
+    long countByDispensedFalse();
+
+    /**
      * Highest sequence used for a numbering prefix (e.g. "ORD-2026-"); 0 if none.
      * Native + GLOBAL (non filtré par @TenantId, P4.2) : numéros d'ordonnance uniques entre cliniques.
      */

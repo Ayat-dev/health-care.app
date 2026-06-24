@@ -108,6 +108,15 @@ class PageRenderSmokeTest {
                 .andExpect(content().string(containsString("MyNITA")));
     }
 
+    /** File des ordonnances pharmacie (P5.1 Lot C) : exerce le template + la boucle
+     *  sur l'ordonnance seedée non dispensée (lignes, patient, médecin). */
+    @Test
+    void file_ordonnances_pharmacie_rend_200() throws Exception {
+        mvc.perform(get("/pharmacy/prescriptions"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Ordonnances à dispenser")));
+    }
+
     @Test
     void journal_audit_rend_200() throws Exception {
         mvc.perform(get("/admin/audit")).andExpect(status().isOk());
