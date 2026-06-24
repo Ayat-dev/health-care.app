@@ -12,6 +12,10 @@ import java.net.URL;
 public class SceneManager {
     private static Stage primaryStage;
 
+    /** Vrai une fois que la fenêtre a été dimensionnée pour l'app (après connexion).
+     *  Repassé à faux sur l'écran de connexion pour réajuster à la reconnexion. */
+    private static boolean appWindowInitialized = false;
+
     public static void setStage(Stage stage) { primaryStage = stage; }
 
     /** Fenêtre modale chargée : le {@link Stage} (à afficher via {@code showAndWait})
@@ -48,9 +52,34 @@ public class SceneManager {
         }
         FXMLLoader loader = new FXMLLoader(url);
         Pane root = loader.load();
-        Scene scene = new Scene(root);
-        primaryStage.setScene(scene);
-        primaryStage.sizeToScene();
+
+        boolean isLogin = fxml.equals("login.fxml");
+
+        // On réutilise une seule Scene pour toute la durée de vie de l'app : on
+        // remplace seulement sa racine. C'est ce qui préserve nativement la taille,
+        // la position et l'état maximisé de la fenêtre d'une vue à l'autre — au lieu
+        // d'en recréer une (qui réinitialisait la fenêtre à chaque navigation).
+        Scene scene = primaryStage.getScene();
+        if (scene == null) {
+            primaryStage.setScene(new Scene(root));
+        } else {
+            scene.setRoot(root);
+        }
+
+        if (isLogin) {
+            // Écran de connexion : fenêtre compacte recentrée. On réarme le drapeau
+            // pour que la prochaine entrée dans l'app réajuste la fenêtre.
+            appWindowInitialized = false;
+            primaryStage.setMaximized(false);
+            primaryStage.sizeToScene();
+            primaryStage.centerOnScreen();
+        } else if (!appWindowInitialized) {
+            // Première vue applicative (juste après la connexion) : on agrandit la
+            // fenêtre une seule fois. Ensuite on ne touche plus à sa géométrie, ce
+            // qui respecte tout redimensionnement / maximisation fait par l'utilisateur.
+            appWindowInitialized = true;
+            primaryStage.setMaximized(true);
+        }
         return loader.getController();
     }
 }
