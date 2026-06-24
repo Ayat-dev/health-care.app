@@ -26,6 +26,25 @@ public class ApiClient {
 
     public static void setBaseUrl(String url) { BASE_URL = url; }
 
+    /** URL du endpoint WebSocket temps réel, dérivée de {@link #BASE_URL} (http→ws, https→wss). */
+    public static String wsBaseUrl() {
+        return BASE_URL.replaceFirst("^http", "ws") + "/ws";
+    }
+
+    /**
+     * Jeton d'accès courant, rafraîchi au préalable s'il est expiré (best-effort). Utilisé par
+     * le client temps réel ({@link RealtimeClient}) avant d'ouvrir/rouvrir la connexion STOMP,
+     * pour éviter un CONNECT rejeté quand l'access token court (15 min) a expiré.
+     */
+    public static String freshAccessToken() {
+        String token = AuthState.get().getToken();
+        if (token != null && accessTokenExpired(token) && AuthState.get().getRefreshToken() != null) {
+            tryRefresh(token);
+            token = AuthState.get().getToken();
+        }
+        return token;
+    }
+
     /** Réponse brute : statut HTTP + corps texte, avec accès pratique JSON. */
     public record Response(int status, String body) {
         public boolean ok() { return status >= 200 && status < 300; }

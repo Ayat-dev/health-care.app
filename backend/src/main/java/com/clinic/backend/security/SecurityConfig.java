@@ -146,7 +146,10 @@ public class SecurityConfig {
                     "/h2-console/**",
                     "/css/**", "/js/**", "/images/**", "/uploads/**", "/favicon.ico",
                     // PWA (P3.1) — installables/utilisables sans session
-                    "/manifest.webmanifest", "/sw.js", "/offline.html"
+                    "/manifest.webmanifest", "/sw.js", "/offline.html",
+                    // WebSocket temps réel (P5.1) : la poignée de main est ouverte, l'auth se
+                    // fait au CONNECT STOMP — par session (web) ou par jeton JWT (desktop, Lot E).
+                    "/ws", "/ws/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )

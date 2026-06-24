@@ -18,6 +18,9 @@ public class SceneManager {
 
     public static void setStage(Stage stage) { primaryStage = stage; }
 
+    /** Fenêtre principale (pour ancrer un toast/notification temps réel). */
+    public static Stage getStage() { return primaryStage; }
+
     /** Fenêtre modale chargée : le {@link Stage} (à afficher via {@code showAndWait})
      *  et son contrôleur (pour lui passer des données / le stage avant affichage). */
     public record Modal<T>(Stage stage, T controller) {}

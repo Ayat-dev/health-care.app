@@ -2,7 +2,9 @@ package com.clinic.client.controller;
 
 import com.clinic.client.model.AuthState;
 import com.clinic.client.util.ApiClient;
+import com.clinic.client.util.RealtimeClient;
 import com.clinic.client.util.SceneManager;
+import com.clinic.client.util.Toast;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -59,6 +61,10 @@ public class LoginController {
                         role,
                         o.getString("fullName")
                     );
+                    // Écoute temps réel des worklists (P5.1 Lot E) : toast non-intrusif sur la
+                    // fenêtre principale. Best-effort — n'empêche jamais l'accès si indisponible.
+                    RealtimeClient.get().startForRole(role, summary ->
+                            Platform.runLater(() -> Toast.show(SceneManager.getStage(), summary)));
                     try { SceneManager.navigateTo("dashboard.fxml"); } catch (java.io.IOException ex) { message.setText("Erreur navigation : " + ex.getMessage()); }
                 } else if (status == 401 || status == 403) {
                     message.setText("Identifiants incorrects.");

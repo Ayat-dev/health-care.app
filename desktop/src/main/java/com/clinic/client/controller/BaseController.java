@@ -2,6 +2,7 @@ package com.clinic.client.controller;
 
 import com.clinic.client.model.AuthState;
 import com.clinic.client.util.ApiClient;
+import com.clinic.client.util.RealtimeClient;
 import com.clinic.client.util.SceneManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -24,6 +25,8 @@ public abstract class BaseController {
     @FXML public void goReference()     throws IOException { SceneManager.navigateTo("reference.fxml"); }
 
     @FXML public void logout() throws IOException {
+        // Coupe l'écoute temps réel (P5.1 Lot E) avant d'effacer la session.
+        RealtimeClient.get().stop();
         // Révoque le refresh token côté serveur (best-effort, hors thread UI) avant
         // d'effacer la session locale — le jeton est capturé puis passé explicitement.
         final String refreshToken = AuthState.get().getRefreshToken();
