@@ -138,7 +138,7 @@
         <tbody>
         <tr th:each="p : ${invoice.payments}">
             <td th:text="${#temporals.format(p.paidAt,'dd/MM/yyyy HH:mm')}">01/01</td>
-            <td th:text="${p.method}">ESPECES</td>
+            <td th:text="${@paymentMethods.label(p.method)}">ESPECES</td>
             <td th:text="${p.reference ?: '—'}">—</td>
             <td class="num" th:text="${#numbers.formatDecimal(p.amount,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</td>
         </tr>

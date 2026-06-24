@@ -82,7 +82,7 @@
                 <thead><tr><th>Mode</th><th style="text-align:right;">Montant</th></tr></thead>
                 <tbody>
                 <tr th:each="m : ${dashboard.paymentMethodBreakdown}">
-                    <td><span class="badge" th:text="${m.key}">ESPECES</span></td>
+                    <td><span class="badge" th:text="${@paymentMethods.label(m.key)}">ESPECES</span></td>
                     <td style="text-align:right;"
                         th:text="${#numbers.formatDecimal(m.value,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</td>
                 </tr>

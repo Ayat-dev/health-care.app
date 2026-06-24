@@ -111,7 +111,7 @@
             <tbody>
             <tr th:each="p : ${invoice.payments}">
                 <td th:text="${#temporals.format(p.paidAt,'dd/MM/yyyy HH:mm')}">01/01 09:00</td>
-                <td><span class="badge" th:text="${p.method}">ESPECES</span></td>
+                <td><span class="badge" th:text="${@paymentMethods.label(p.method)}">ESPECES</span></td>
                 <td th:text="${p.reference ?: '—'}">—</td>
                 <td th:text="${p.cashierName ?: '—'}">—</td>
                 <td style="text-align:right;" th:text="${#numbers.formatDecimal(p.amount,1,'WHITESPACE',0,'POINT')}">0</td>

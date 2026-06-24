@@ -3,9 +3,11 @@ package com.clinic.backend.export;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.helper.W3CDom;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
+import org.thymeleaf.spring6.expression.ThymeleafEvaluationContext;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Locale;
@@ -25,12 +27,19 @@ import java.util.Map;
 public class PdfExportService {
 
     private final SpringTemplateEngine templateEngine;
+    private final ApplicationContext applicationContext;
 
     /** Traite le template avec le modèle fourni, puis convertit le HTML obtenu en PDF. */
     public byte[] renderTemplate(String templateName, Map<String, Object> model) {
         Context ctx = new Context(Locale.FRENCH);
         ctx.setVariables(model);
         ctx.setVariable("pdf", true); // masque la toolbar dans les vues print
+        // Hors requête web, le contexte SpEL n'a pas de résolveur de beans : on en
+        // ajoute un (basé sur l'ApplicationContext) pour que les templates partagés
+        // avec les vues web puissent résoudre les beans (ex. @paymentMethods).
+        ctx.setVariable(
+                ThymeleafEvaluationContext.THYMELEAF_EVALUATION_CONTEXT_CONTEXT_VARIABLE_NAME,
+                new ThymeleafEvaluationContext(applicationContext, null));
         String html = templateEngine.process(templateName, ctx);
         return htmlToPdf(html);
     }

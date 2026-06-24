@@ -73,6 +73,13 @@ class PageRenderSmokeTest {
         mvc.perform(get("/billing")).andExpect(status().isOk());
     }
 
+    /** Détail facture : liste les paiements → exerce les libellés conviviaux
+     *  ({@code @paymentMethods.label}), donc valide la résolution du bean en EL. */
+    @Test
+    void facture_detail_rend_200_avec_libelles_modes() throws Exception {
+        mvc.perform(get("/billing/invoices/1")).andExpect(status().isOk());
+    }
+
     @Test
     void reports_rend_200() throws Exception {
         mvc.perform(get("/reports")).andExpect(status().isOk());

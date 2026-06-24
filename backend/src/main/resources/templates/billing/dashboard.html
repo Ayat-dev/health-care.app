@@ -52,7 +52,7 @@
 
     <div th:if="${!report.totalByMethod.isEmpty()}" style="padding:8px 16px; display:flex; gap:1.5rem; flex-wrap:wrap;">
         <div th:each="m : ${report.totalByMethod}">
-            <span class="badge" th:text="${m.key}">ESPECES</span>
+            <span class="badge" th:text="${@paymentMethods.label(m.key)}">ESPECES</span>
             <strong th:text="${#numbers.formatDecimal(m.value,1,'WHITESPACE',0,'POINT')}">0</strong>
         </div>
     </div>
@@ -68,7 +68,7 @@
                 <td th:text="${#temporals.format(p.paidAt,'HH:mm')}">09:00</td>
                 <td><a th:href="@{/billing/invoices/{id}(id=${p.invoiceId})}" th:text="${p.invoiceNumber}">FAC-…</a></td>
                 <td th:text="${p.patientName ?: '—'}">Patient</td>
-                <td><span class="badge" th:text="${p.method}">ESPECES</span></td>
+                <td><span class="badge" th:text="${@paymentMethods.label(p.method)}">ESPECES</span></td>
                 <td th:text="${p.cashierName ?: '—'}">—</td>
                 <td style="text-align:right;" th:text="${#numbers.formatDecimal(p.amount,1,'WHITESPACE',0,'POINT')}">0</td>
             </tr>
