@@ -1513,6 +1513,8 @@ summary:focus-visible {
 /* Chiffres alignés (colonnes de données : quantités, montants) — évite le ballotement. */
 .table td, .table th { font-variant-numeric: tabular-nums; }
 .num { font-variant-numeric: tabular-nums; }
+/* Colonne numérique (tarifs, quantités) alignée à droite pour comparer les ordres de grandeur. */
+.text-right { text-align: right; }
 
 /* ── Cockpit de pilotage (P6 WS5 c2 — hiérarchie KPI) ─────────────────────── */
 .stat-card-value { font-variant-numeric: tabular-nums; }

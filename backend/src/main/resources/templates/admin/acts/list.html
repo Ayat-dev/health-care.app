@@ -17,7 +17,7 @@
                 <th>Code</th>
                 <th>Nom</th>
                 <th>Département</th>
-                <th>Tarif</th>
+                <th class="text-right">Tarif</th>
                 <th>Statut</th>
                 <th>Actions</th>
             </tr>
@@ -30,7 +30,7 @@
                 <td><code th:text="${a.code}">CONS_GEN</code></td>
                 <td th:text="${a.name}">Consultation</td>
                 <td th:text="${a.departmentName != null ? a.departmentName : '—'}">—</td>
-                <td th:text="${#numbers.formatDecimal(a.price, 1, 'NONE', 0, 'NONE')}">5000</td>
+                <td class="text-right" th:text="${#numbers.formatDecimal(a.price, 1, 'WHITESPACE', 0, 'POINT')} + ' F'">5 000 F</td>
                 <td>
                     <span th:if="${a.active}" class="badge badge-green">Actif</span>
                     <span th:unless="${a.active}" class="badge badge-red">Désactivé</span>

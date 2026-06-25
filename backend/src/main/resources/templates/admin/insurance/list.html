@@ -17,7 +17,7 @@
                 <th>Code</th>
                 <th>Nom</th>
                 <th>Type</th>
-                <th>Prise en charge</th>
+                <th class="text-right">Prise en charge</th>
                 <th>Contact</th>
                 <th>Statut</th>
                 <th>Actions</th>
@@ -31,7 +31,7 @@
                 <td><code th:text="${p.code != null ? p.code : '—'}">IPM</code></td>
                 <td th:text="${p.name}">IPM</td>
                 <td th:text="${p.type != null ? p.type : '—'}">PUBLIQUE</td>
-                <td th:text="${p.coveragePercent != null ? p.coveragePercent + ' %' : '—'}">80 %</td>
+                <td class="text-right" th:text="${p.coveragePercent != null ? p.coveragePercent + ' %' : '—'}">80 %</td>
                 <td th:text="${p.contact != null ? p.contact : '—'}">—</td>
                 <td>
                     <span th:if="${p.active}" class="badge badge-green">Actif</span>

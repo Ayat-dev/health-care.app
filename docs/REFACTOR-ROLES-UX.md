@@ -238,6 +238,12 @@
 > Hospitalisation, Admin) bénéficient déjà du chrome partagé (fil d'Ariane + tabs si registre) ; un polish
 > esthétique fin par module peut suivre au besoin, même méthode.
 
+- [x] **Polish restant — catalogues admin (2026-06-26)** : cohérence monétaire des catalogues business
+      (Actes & tarifs, Analyses) — tarifs bruts `formatDecimal(..,'NONE',..)` → convention app
+      `WHITESPACE` + suffixe ` F` (« 5 000 F ») ; colonnes numériques (tarif, délai, prise en charge)
+      alignées à droite via nouvelle utilitaire `.text-right` (app.css). Les pages admin sont chacune
+      une entrée de sidebar distincte (pas un module à sous-pages) → pas de `ModuleTabs`, le fil
+      d'Ariane suffit. 1 smoke test (`AdminCatalogPolishTest`, `@WithUserDetails owner`). `mvnd test` 163/163.
 - [x] **Polish restant — modules secondaires (2026-06-26)** : sous-nav `ModuleTabs` câblée pour **Labo**
       (Travail du jour · Demandes), **Imagerie** (Travail du jour · Demandes) et **Hospitalisation**
       (Plan des lits · Séjours · Chambres) ; i18n FR/EN/AR. Les rangées de boutons de cross-nav des en-têtes
@@ -289,6 +295,7 @@ au démarrage de session ; tel quel, il **ne peut pas** l'utiliser.
 
 | Date | Chantier | Résultat |
 |---|---|---|
+| 2026-06-26 | WS5 c2 polish | **Catalogues admin.** Cohérence monétaire (Actes/Analyses) : tarifs bruts → convention app `WHITESPACE` + ` F` ; colonnes numériques (tarif/délai/prise en charge) alignées à droite via utilitaire `.text-right` (app.css). Pages admin = entrées sidebar distinctes → pas de `ModuleTabs` (fil d'Ariane suffit). 1 smoke test. `mvnd test` 163/163. |
 | 2026-06-26 | WS5 c2 polish | **Modules secondaires.** Sous-nav `ModuleTabs` câblée pour Labo (Travail du jour/Demandes), Imagerie (idem) et Hospitalisation (Plan des lits/Séjours/Chambres) ; i18n FR/EN/AR. Cross-nav des en-têtes retirée (remplacée par les onglets), seules les vraies actions conservées. Maternité = page unique → pas d'onglets. 2 tests de rendu ajoutés. `mvnd test` 162/162. |
 | 2026-06-25 | Doc | Création de ce plan ; constats code vérifiés ; décisions D1–D3 verrouillées ; rien d'implémenté encore. |
 | 2026-06-25 | WS5 c2 lot6 | **Facturation (clôt la liste prioritaire C2).** `ModuleTabs` BILLING (Tableau de bord/File caisse/Factures) → rangées de boutons de nav supprimées des en-têtes dashboard+liste. `billing/dashboard.html` repensé (carte héros « Encaissé aujourd'hui » + reste à recouvrer, sections Cumul/Statuts, accent ambre). i18n FR/EN/AR. Test billing renforcé (tabs). `mvnd test` 144/144. **Couche 2 priorité bouclée : 6 lots faits.** |

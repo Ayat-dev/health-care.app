@@ -17,8 +17,8 @@
                 <th>Code</th>
                 <th>Nom</th>
                 <th>Catégorie</th>
-                <th>Tarif</th>
-                <th>Délai (h)</th>
+                <th class="text-right">Tarif</th>
+                <th class="text-right">Délai (h)</th>
                 <th>Statut</th>
                 <th>Actions</th>
             </tr>
@@ -31,8 +31,8 @@
                 <td><code th:text="${t.code}">NFS</code></td>
                 <td th:text="${t.name}">Numération Formule Sanguine</td>
                 <td th:text="${t.category != null ? t.category : '—'}">HEMATOLOGIE</td>
-                <td th:text="${#numbers.formatDecimal(t.price, 1, 'NONE', 0, 'NONE')}">4000</td>
-                <td th:text="${t.turnaroundHours != null ? t.turnaroundHours : '—'}">24</td>
+                <td class="text-right" th:text="${#numbers.formatDecimal(t.price, 1, 'WHITESPACE', 0, 'POINT')} + ' F'">4 000 F</td>
+                <td class="text-right" th:text="${t.turnaroundHours != null ? t.turnaroundHours : '—'}">24</td>
                 <td>
                     <span th:if="${t.active}" class="badge badge-green">Actif</span>
                     <span th:unless="${t.active}" class="badge badge-red">Désactivé</span>
