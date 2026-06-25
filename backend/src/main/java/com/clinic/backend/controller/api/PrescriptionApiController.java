@@ -21,7 +21,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/prescriptions")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN','MEDECIN','PHARMACIEN')")
+@PreAuthorize("hasAnyRole('MEDECIN','PHARMACIEN')") // PHI clinique — ADMIN retiré (P6)
 public class PrescriptionApiController {
 
     private final PrescriptionService prescriptionService;

@@ -12,7 +12,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/admin/acts")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('OWNER')") // Actes & tarifs = business (D3, P6) → propriétaire
 @RequiredArgsConstructor
 public class ActCatalogWebController {
 

@@ -45,21 +45,21 @@ public class RadiologyApiController {
     }
 
     @PostMapping("/requests")
-    @PreAuthorize("hasAnyRole('MEDECIN','ADMIN')")
+    @PreAuthorize("hasRole('MEDECIN')")
     public ResponseEntity<RadiologyRequestDto> create(@RequestBody RadiologyRequestDto dto) {
         Long id = radiologyService.create(dto).getId();
         return ResponseEntity.ok(radiologyService.getDtoById(id));
     }
 
     @PostMapping("/requests/{id}/report")
-    @PreAuthorize("hasAnyRole('MEDECIN','ADMIN')")
+    @PreAuthorize("hasRole('MEDECIN')")
     public RadiologyRequestDto saveReport(@PathVariable Long id, @RequestBody RadiologyRequestDto dto) {
         radiologyService.saveReport(id, dto.getFindings(), dto.getConclusion());
         return radiologyService.getDtoById(id);
     }
 
     @PostMapping("/requests/{id}/images")
-    @PreAuthorize("hasAnyRole('MEDECIN','ADMIN')")
+    @PreAuthorize("hasRole('MEDECIN')")
     public RadiologyRequestDto uploadImage(@PathVariable Long id,
                                            @RequestParam("file") MultipartFile file,
                                            @RequestParam(required = false) String caption) {
@@ -68,21 +68,21 @@ public class RadiologyApiController {
     }
 
     @PatchMapping("/requests/{id}/validate")
-    @PreAuthorize("hasAnyRole('MEDECIN','ADMIN')")
+    @PreAuthorize("hasRole('MEDECIN')")
     public RadiologyRequestDto validate(@PathVariable Long id) {
         radiologyService.validate(id);
         return radiologyService.getDtoById(id);
     }
 
     @PatchMapping("/requests/{id}/deliver")
-    @PreAuthorize("hasAnyRole('MEDECIN','ADMIN')")
+    @PreAuthorize("hasRole('MEDECIN')")
     public RadiologyRequestDto deliver(@PathVariable Long id) {
         radiologyService.deliver(id);
         return radiologyService.getDtoById(id);
     }
 
     @PatchMapping("/requests/{id}/cancel")
-    @PreAuthorize("hasAnyRole('MEDECIN','ADMIN')")
+    @PreAuthorize("hasRole('MEDECIN')")
     public RadiologyRequestDto cancel(@PathVariable Long id) {
         radiologyService.cancel(id);
         return radiologyService.getDtoById(id);

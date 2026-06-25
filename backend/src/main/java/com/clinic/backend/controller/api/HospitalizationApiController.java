@@ -38,21 +38,21 @@ public class HospitalizationApiController {
     }
 
     @PostMapping("/rooms")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('OWNER')") // chambres = tarifs/business (D3, P6)
     public ResponseEntity<RoomDto> createRoom(@RequestBody RoomDto dto) {
         Long id = roomService.create(dto).getId();
         return ResponseEntity.ok(roomService.getDtoById(id));
     }
 
     @PutMapping("/rooms/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('OWNER')") // chambres = tarifs/business (D3, P6)
     public RoomDto updateRoom(@PathVariable Long id, @RequestBody RoomDto dto) {
         roomService.update(id, dto);
         return roomService.getDtoById(id);
     }
 
     @PatchMapping("/rooms/{id}/toggle")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('OWNER')") // chambres = tarifs/business (D3, P6)
     public RoomDto toggleRoom(@PathVariable Long id) {
         roomService.toggleActive(id);
         return roomService.getDtoById(id);
@@ -72,14 +72,14 @@ public class HospitalizationApiController {
     }
 
     @PostMapping("/hospitalizations")
-    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER','ADMIN')")
+    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER')")
     public ResponseEntity<HospitalizationDto> admit(@RequestBody HospitalizationDto dto) {
         Long id = hospitalizationService.admit(dto).getId();
         return ResponseEntity.ok(hospitalizationService.getDtoById(id));
     }
 
     @PatchMapping("/hospitalizations/{id}/transfer")
-    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER','ADMIN')")
+    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER')")
     public HospitalizationDto transfer(@PathVariable Long id,
                                        @RequestParam Long newRoomId,
                                        @RequestParam(required = false) String reason) {
@@ -88,7 +88,7 @@ public class HospitalizationApiController {
     }
 
     @PatchMapping("/hospitalizations/{id}/discharge")
-    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER','ADMIN')")
+    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER')")
     public HospitalizationDto discharge(@PathVariable Long id,
                                         @RequestParam(required = false) String status,
                                         @RequestParam(required = false) String diagnosis) {

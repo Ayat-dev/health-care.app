@@ -8,6 +8,8 @@ package com.clinic.backend.model;
 public enum Role {
     /** Tenant transverse (multi-tenant P4.2) : gère le registre des cliniques. Non assignable depuis /admin/users. */
     SUPER_ADMIN,
+    /** Propriétaire/exploitant business de la clinique : finances, catalogues commerciaux, stats agrégées — JAMAIS de PHI. Plateforme : desktop (cockpit) + web. */
+    OWNER,
     ADMIN,
     MEDECIN,
     INFIRMIER,

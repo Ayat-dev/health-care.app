@@ -106,6 +106,10 @@ public class DataInitializer {
                     passwordEncoder.encode("radiologue123"), "Dr. Sow (Radiologie)", "MEDECIN"), clinic1Id));
             User caissier = userRepository.save(withClinic(new User("caissier",
                     passwordEncoder.encode("caissier123"), "Caissier", "CAISSIER"), clinic1Id));
+            // Propriétaire/exploitant business (P6) — cockpit financier, sans PHI.
+            // En prod : créé par l'ADMIN via /admin/users (ProdDataInitializer ne seed que l'admin).
+            userRepository.save(withClinic(new User("owner",
+                    passwordEncoder.encode("owner123"), "Propriétaire", "OWNER"), clinic1Id));
             // Compte portail patient (P2.4) — rattaché ci-dessous au dossier de p1.
             User patientUser = userRepository.save(withClinic(new User("patient",
                     passwordEncoder.encode("patient123"), "Aminata Diallo", "PATIENT"), clinic1Id));

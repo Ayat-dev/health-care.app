@@ -28,7 +28,8 @@ class ApiErrorMappingTest {
     @Autowired MockMvc mvc;
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    // Lecture facturation réservée à OWNER/CAISSIER/SECRETAIRE (P6) — l'ADMIN n'a plus accès.
+    @WithMockUser(username = "cash", roles = "CAISSIER")
     void get_facture_inexistante_renvoie_404() throws Exception {
         mvc.perform(get("/api/billing/invoices/99999"))
            .andExpect(status().isNotFound())

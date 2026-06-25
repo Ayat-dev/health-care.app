@@ -25,33 +25,33 @@ public class ReportApiController {
 
     // ── Tableaux de bord ────────────────────────────────────────────────────────
     @GetMapping("/dashboard/admin")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('OWNER')")
     public AdminDashboardDto adminDashboard() {
         return reportService.adminDashboard();
     }
 
     @GetMapping("/dashboard/doctor")
-    @PreAuthorize("hasAnyRole('MEDECIN','ADMIN')")
+    @PreAuthorize("hasRole('MEDECIN')")
     public DoctorDashboardDto doctorDashboard() {
         return reportService.doctorDashboard();
     }
 
     @GetMapping("/dashboard/pharmacy")
-    @PreAuthorize("hasAnyRole('PHARMACIEN','ADMIN')")
+    @PreAuthorize("hasAnyRole('PHARMACIEN','OWNER')")
     public PharmacyDashboardDto pharmacyDashboard() {
         return reportService.pharmacyDashboard();
     }
 
     // ── Rapports ────────────────────────────────────────────────────────────────
     @GetMapping("/daily-cash")
-    @PreAuthorize("hasAnyRole('CAISSIER','ADMIN')")
+    @PreAuthorize("hasAnyRole('CAISSIER','OWNER')")
     public DailyCashReportDto dailyCash(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return reportService.dailyCash(date);
     }
 
     @GetMapping("/monthly-financial")
-    @PreAuthorize("hasAnyRole('CAISSIER','ADMIN')")
+    @PreAuthorize("hasAnyRole('CAISSIER','OWNER')")
     public MonthlyFinancialReportDto monthlyFinancial(
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) Integer year) {
@@ -62,7 +62,7 @@ public class ReportApiController {
     }
 
     @GetMapping("/activity")
-    @PreAuthorize("hasAnyRole('MEDECIN','ADMIN')")
+    @PreAuthorize("hasAnyRole('MEDECIN','OWNER')")
     public ActivityReportDto activity(
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) Integer year) {
@@ -73,7 +73,7 @@ public class ReportApiController {
     }
 
     @GetMapping("/epidemiology")
-    @PreAuthorize("hasAnyRole('MEDECIN','ADMIN')")
+    @PreAuthorize("hasAnyRole('MEDECIN','OWNER')")
     public EpidemiologyReportDto epidemiology(
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) Integer year) {
@@ -84,13 +84,13 @@ public class ReportApiController {
     }
 
     @GetMapping("/outstanding")
-    @PreAuthorize("hasAnyRole('CAISSIER','SECRETAIRE','ADMIN')")
+    @PreAuthorize("hasAnyRole('CAISSIER','SECRETAIRE','OWNER')")
     public OutstandingReportDto outstanding() {
         return reportService.outstanding();
     }
 
     @GetMapping("/stock")
-    @PreAuthorize("hasAnyRole('PHARMACIEN','ADMIN')")
+    @PreAuthorize("hasAnyRole('PHARMACIEN','OWNER')")
     public List<StockItemDto> stock() {
         return reportService.stock();
     }

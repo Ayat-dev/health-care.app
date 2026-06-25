@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/scribe")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('MEDECIN','ADMIN')")
+@PreAuthorize("hasRole('MEDECIN')") // assistant clinique (PHI) — ADMIN retiré (P6)
 public class ScribeApiController {
 
     private final ScribeService scribeService;

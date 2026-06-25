@@ -20,7 +20,7 @@ import java.util.List;
 @Controller
 @RequestMapping("/maternity")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN','MEDECIN','INFIRMIER')")
+@PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER')") // PHI clinique — ADMIN retiré (P6)
 public class MaternityWebController {
 
     private final MaternityService maternityService;

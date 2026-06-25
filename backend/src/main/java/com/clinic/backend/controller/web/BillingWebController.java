@@ -29,7 +29,7 @@ import java.util.Map;
 @Controller
 @RequestMapping("/billing")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN','CAISSIER','SECRETAIRE')")
+@PreAuthorize("hasAnyRole('OWNER','CAISSIER','SECRETAIRE')") // finances : ADMIN→OWNER (P6)
 public class BillingWebController {
 
     private final BillingService billingService;

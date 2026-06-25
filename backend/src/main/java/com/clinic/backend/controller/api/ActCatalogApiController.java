@@ -30,20 +30,20 @@ public class ActCatalogApiController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<ActCatalogDto> create(@RequestBody ActCatalogDto dto) {
         ActCatalog created = actCatalogService.create(dto);
         return ResponseEntity.ok(actCatalogService.toDto(created));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('OWNER')")
     public ActCatalogDto update(@PathVariable Long id, @RequestBody ActCatalogDto dto) {
         return actCatalogService.toDto(actCatalogService.update(id, dto));
     }
 
     @PatchMapping("/{id}/toggle")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('OWNER')")
     public ActCatalogDto toggle(@PathVariable Long id) {
         actCatalogService.toggleActive(id);
         return actCatalogService.getDtoById(id);

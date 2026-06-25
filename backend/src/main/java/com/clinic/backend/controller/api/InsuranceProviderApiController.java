@@ -31,20 +31,20 @@ public class InsuranceProviderApiController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<InsuranceProviderDto> create(@RequestBody InsuranceProviderDto dto) {
         InsuranceProvider created = insuranceProviderService.create(dto);
         return ResponseEntity.ok(insuranceProviderService.toDto(created));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('OWNER')")
     public InsuranceProviderDto update(@PathVariable Long id, @RequestBody InsuranceProviderDto dto) {
         return insuranceProviderService.toDto(insuranceProviderService.update(id, dto));
     }
 
     @PatchMapping("/{id}/toggle")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('OWNER')")
     public InsuranceProviderDto toggle(@PathVariable Long id) {
         insuranceProviderService.toggleActive(id);
         return insuranceProviderService.toDto(insuranceProviderService.getById(id));

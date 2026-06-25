@@ -24,7 +24,7 @@ import java.util.List;
 @Controller
 @RequestMapping("/lab")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN','MEDECIN','LABORANTIN')")
+@PreAuthorize("hasAnyRole('MEDECIN','LABORANTIN')") // PHI clinique — ADMIN retiré (P6)
 public class LabWebController {
 
     private final LabService labService;

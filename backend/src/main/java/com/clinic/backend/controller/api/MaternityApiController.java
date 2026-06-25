@@ -35,28 +35,28 @@ public class MaternityApiController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER','ADMIN')")
+    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER')")
     public ResponseEntity<MaternityRecordDto> create(@RequestBody MaternityRecordDto dto) {
         Long id = maternityService.openRecord(dto).getId();
         return ResponseEntity.ok(maternityService.getDtoById(id));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER','ADMIN')")
+    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER')")
     public MaternityRecordDto update(@PathVariable Long id, @RequestBody MaternityRecordDto dto) {
         maternityService.update(id, dto);
         return maternityService.getDtoById(id);
     }
 
     @PatchMapping("/{id}/deliver")
-    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER','ADMIN')")
+    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER')")
     public MaternityRecordDto deliver(@PathVariable Long id, @RequestBody MaternityRecordDto dto) {
         maternityService.recordDelivery(id, dto);
         return maternityService.getDtoById(id);
     }
 
     @PatchMapping("/{id}/close")
-    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER','ADMIN')")
+    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER')")
     public MaternityRecordDto close(@PathVariable Long id) {
         maternityService.close(id);
         return maternityService.getDtoById(id);
@@ -69,14 +69,14 @@ public class MaternityApiController {
     }
 
     @PostMapping("/{id}/visits")
-    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER','ADMIN')")
+    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER')")
     public MaternityRecordDto addVisit(@PathVariable Long id, @RequestBody PrenatalVisitDto dto) {
         maternityService.addVisit(id, dto);
         return maternityService.getDtoById(id);
     }
 
     @PutMapping("/{id}/visits/{visitId}")
-    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER','ADMIN')")
+    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER')")
     public MaternityRecordDto updateVisit(@PathVariable Long id, @PathVariable Long visitId,
                                           @RequestBody PrenatalVisitDto dto) {
         maternityService.updateVisit(visitId, dto);

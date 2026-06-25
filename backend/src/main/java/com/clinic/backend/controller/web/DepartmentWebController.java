@@ -11,7 +11,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/admin/departments")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('OWNER')") // Départements = business (D3, P6) → propriétaire
 @RequiredArgsConstructor
 public class DepartmentWebController {
 

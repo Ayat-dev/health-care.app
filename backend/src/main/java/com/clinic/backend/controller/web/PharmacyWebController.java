@@ -20,7 +20,7 @@ import java.time.LocalDate;
 @Controller
 @RequestMapping("/pharmacy")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('PHARMACIEN','ADMIN')")
+@PreAuthorize("hasRole('PHARMACIEN')")
 public class PharmacyWebController {
 
     private final PharmacyService pharmacyService;
@@ -47,14 +47,14 @@ public class PharmacyWebController {
     }
 
     @GetMapping("/drugs/new")
-    @PreAuthorize("hasAnyRole('PHARMACIEN','ADMIN')")
+    @PreAuthorize("hasRole('PHARMACIEN')")
     public String newDrug(Model model) {
         model.addAttribute("drug", new DrugDto());
         return "pharmacy/drugs/form";
     }
 
     @PostMapping("/drugs/new")
-    @PreAuthorize("hasAnyRole('PHARMACIEN','ADMIN')")
+    @PreAuthorize("hasRole('PHARMACIEN')")
     public String createDrug(@ModelAttribute("drug") DrugDto dto, Model model) {
         try {
             pharmacyService.createDrug(dto);
@@ -66,14 +66,14 @@ public class PharmacyWebController {
     }
 
     @GetMapping("/drugs/{id}/edit")
-    @PreAuthorize("hasAnyRole('PHARMACIEN','ADMIN')")
+    @PreAuthorize("hasRole('PHARMACIEN')")
     public String editDrug(@PathVariable Long id, Model model) {
         model.addAttribute("drug", pharmacyService.getDrugDto(id));
         return "pharmacy/drugs/form";
     }
 
     @PostMapping("/drugs/{id}/edit")
-    @PreAuthorize("hasAnyRole('PHARMACIEN','ADMIN')")
+    @PreAuthorize("hasRole('PHARMACIEN')")
     public String updateDrug(@PathVariable Long id, @ModelAttribute("drug") DrugDto dto, Model model) {
         try {
             pharmacyService.updateDrug(id, dto);
@@ -86,7 +86,7 @@ public class PharmacyWebController {
     }
 
     @PostMapping("/drugs/{id}/toggle")
-    @PreAuthorize("hasAnyRole('PHARMACIEN','ADMIN')")
+    @PreAuthorize("hasRole('PHARMACIEN')")
     public String toggleDrug(@PathVariable Long id, RedirectAttributes ra) {
         try {
             pharmacyService.toggleDrug(id);
@@ -104,7 +104,7 @@ public class PharmacyWebController {
     }
 
     @GetMapping("/stock/receive")
-    @PreAuthorize("hasAnyRole('PHARMACIEN','ADMIN')")
+    @PreAuthorize("hasRole('PHARMACIEN')")
     public String receiveForm(@RequestParam(required = false) Long drugId, Model model) {
         StockItemDto dto = new StockItemDto();
         dto.setDrugId(drugId);
@@ -115,7 +115,7 @@ public class PharmacyWebController {
     }
 
     @PostMapping("/stock/receive")
-    @PreAuthorize("hasAnyRole('PHARMACIEN','ADMIN')")
+    @PreAuthorize("hasRole('PHARMACIEN')")
     public String receive(@ModelAttribute("item") StockItemDto dto, RedirectAttributes ra, Model model) {
         try {
             pharmacyService.receiveStock(dto);
@@ -143,7 +143,7 @@ public class PharmacyWebController {
     }
 
     @GetMapping("/dispensations/new")
-    @PreAuthorize("hasAnyRole('PHARMACIEN','ADMIN')")
+    @PreAuthorize("hasRole('PHARMACIEN')")
     public String dispenseForm(@RequestParam(required = false) Long prescriptionId,
                                @RequestParam(required = false) Long patientId,
                                RedirectAttributes ra, Model model) {
@@ -166,7 +166,7 @@ public class PharmacyWebController {
     }
 
     @PostMapping("/dispensations/new")
-    @PreAuthorize("hasAnyRole('PHARMACIEN','ADMIN')")
+    @PreAuthorize("hasRole('PHARMACIEN')")
     public String dispense(@ModelAttribute("dispensation") DispensationDto dto,
                            RedirectAttributes ra, Model model) {
         try {

@@ -22,7 +22,7 @@ import java.util.List;
 @Controller
 @RequestMapping("/hospitalization")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN','MEDECIN','INFIRMIER')")
+@PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER')") // PHI clinique — ADMIN retiré (P6)
 public class HospitalizationWebController {
 
     private final HospitalizationService hospitalizationService;

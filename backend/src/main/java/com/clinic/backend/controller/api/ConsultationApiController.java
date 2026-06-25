@@ -16,7 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/consultations")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN','MEDECIN','INFIRMIER')")
+@PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER')") // PHI clinique — ADMIN retiré (P6)
 public class ConsultationApiController {
 
     private final ConsultationService consultationService;

@@ -49,35 +49,35 @@ public class LabApiController {
     }
 
     @PostMapping("/requests")
-    @PreAuthorize("hasAnyRole('MEDECIN','ADMIN')")
+    @PreAuthorize("hasRole('MEDECIN')")
     public ResponseEntity<LabRequestDto> create(@RequestBody LabRequestDto dto) {
         Long id = labService.create(dto).getId();
         return ResponseEntity.ok(labService.getDtoById(id));
     }
 
     @PostMapping("/requests/{id}/results")
-    @PreAuthorize("hasAnyRole('LABORANTIN','ADMIN')")
+    @PreAuthorize("hasRole('LABORANTIN')")
     public LabRequestDto enterResults(@PathVariable Long id, @RequestBody List<LabRequestItemDto> items) {
         labService.enterResults(id, items);
         return labService.getDtoById(id);
     }
 
     @PatchMapping("/requests/{id}/validate")
-    @PreAuthorize("hasAnyRole('MEDECIN','ADMIN')")
+    @PreAuthorize("hasRole('MEDECIN')")
     public LabRequestDto validate(@PathVariable Long id) {
         labService.validate(id);
         return labService.getDtoById(id);
     }
 
     @PatchMapping("/requests/{id}/deliver")
-    @PreAuthorize("hasAnyRole('LABORANTIN','MEDECIN','ADMIN')")
+    @PreAuthorize("hasAnyRole('LABORANTIN','MEDECIN')")
     public LabRequestDto deliver(@PathVariable Long id) {
         labService.deliver(id);
         return labService.getDtoById(id);
     }
 
     @PatchMapping("/requests/{id}/cancel")
-    @PreAuthorize("hasAnyRole('MEDECIN','ADMIN')")
+    @PreAuthorize("hasRole('MEDECIN')")
     public LabRequestDto cancel(@PathVariable Long id) {
         labService.cancel(id);
         return labService.getDtoById(id);

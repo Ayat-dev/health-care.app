@@ -27,7 +27,7 @@ public class PatientApiController {
     private final PatientService patientService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','INFIRMIER','SECRETAIRE','PHARMACIEN','LABORANTIN','CAISSIER')")
+    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER','SECRETAIRE','PHARMACIEN','LABORANTIN','CAISSIER')")
     public Page<PatientDto> list(
             @RequestParam(defaultValue = "") String q,
             @RequestParam(defaultValue = "0") int page,
@@ -36,26 +36,26 @@ public class PatientApiController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','INFIRMIER','SECRETAIRE','PHARMACIEN','LABORANTIN','CAISSIER')")
+    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER','SECRETAIRE','PHARMACIEN','LABORANTIN','CAISSIER')")
     public PatientDto get(@PathVariable Long id) {
         return patientService.toDto(patientService.getById(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','INFIRMIER')")
+    @PreAuthorize("hasAnyRole('MEDECIN','SECRETAIRE','INFIRMIER')")
     public ResponseEntity<PatientDto> create(@RequestBody PatientDto dto) {
         Patient created = patientService.create(dto);
         return ResponseEntity.ok(patientService.toDto(created));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','INFIRMIER')")
+    @PreAuthorize("hasAnyRole('MEDECIN','SECRETAIRE','INFIRMIER')")
     public PatientDto update(@PathVariable Long id, @RequestBody PatientDto dto) {
         return patientService.toDto(patientService.update(id, dto));
     }
 
     @PostMapping(value = "/{id}/photo", consumes = "multipart/form-data")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','INFIRMIER')")
+    @PreAuthorize("hasAnyRole('MEDECIN','SECRETAIRE','INFIRMIER')")
     public PatientDto uploadPhoto(@PathVariable Long id,
                                   @RequestParam("file") MultipartFile file) {
         return patientService.toDto(patientService.uploadPhoto(id, file));
@@ -67,7 +67,7 @@ public class PatientApiController {
      * 404 si le patient n'a pas de photo.
      */
     @GetMapping("/{id}/photo")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','INFIRMIER','SECRETAIRE','PHARMACIEN','LABORANTIN','CAISSIER')")
+    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER','SECRETAIRE','PHARMACIEN','LABORANTIN','CAISSIER')")
     public ResponseEntity<byte[]> getPhoto(@PathVariable Long id) {
         FileStorageService.StoredFile photo = patientService.loadPhoto(id);
         if (photo == null) return ResponseEntity.notFound().build();
@@ -77,7 +77,7 @@ public class PatientApiController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('MEDECIN')") // suppression de dossier (PHI) → clinique, plus ADMIN (P6)
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         patientService.delete(id);
         return ResponseEntity.noContent().build();

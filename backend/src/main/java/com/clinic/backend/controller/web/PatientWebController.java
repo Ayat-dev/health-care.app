@@ -38,7 +38,7 @@ public class PatientWebController {
     private final com.clinic.backend.billing.BillingService billingService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','INFIRMIER','SECRETAIRE','PHARMACIEN','LABORANTIN','CAISSIER')")
+    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER','SECRETAIRE','PHARMACIEN','LABORANTIN','CAISSIER')")
     public String list(@RequestParam(defaultValue = "") String q,
                        @RequestParam(defaultValue = "0") int page,
                        Model model) {
@@ -50,7 +50,7 @@ public class PatientWebController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','INFIRMIER','SECRETAIRE','PHARMACIEN','LABORANTIN','CAISSIER')")
+    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER','SECRETAIRE','PHARMACIEN','LABORANTIN','CAISSIER')")
     public String detail(@PathVariable Long id, Model model) {
         Patient patient = patientService.getByIdWithDoctor(id);
 
@@ -82,7 +82,7 @@ public class PatientWebController {
     }
 
     @GetMapping("/new")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','INFIRMIER')")
+    @PreAuthorize("hasAnyRole('MEDECIN','SECRETAIRE','INFIRMIER')")
     public String newForm(Model model) {
         model.addAttribute("patient", new PatientDto());
         model.addAttribute("doctors", userRepository.findAll());
@@ -90,14 +90,14 @@ public class PatientWebController {
     }
 
     @PostMapping("/new")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','INFIRMIER')")
+    @PreAuthorize("hasAnyRole('MEDECIN','SECRETAIRE','INFIRMIER')")
     public String create(@ModelAttribute PatientDto dto) {
         Patient created = patientService.create(dto);
         return "redirect:/patients/" + created.getId();
     }
 
     @GetMapping("/{id}/edit")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','INFIRMIER')")
+    @PreAuthorize("hasAnyRole('MEDECIN','SECRETAIRE','INFIRMIER')")
     public String editForm(@PathVariable Long id, Model model) {
         model.addAttribute("patient", patientService.toDto(patientService.getById(id)));
         model.addAttribute("doctors", userRepository.findAll());
@@ -105,14 +105,14 @@ public class PatientWebController {
     }
 
     @PostMapping("/{id}/edit")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','INFIRMIER')")
+    @PreAuthorize("hasAnyRole('MEDECIN','SECRETAIRE','INFIRMIER')")
     public String update(@PathVariable Long id, @ModelAttribute PatientDto dto) {
         patientService.update(id, dto);
         return "redirect:/patients/" + id;
     }
 
     @PostMapping("/{id}/photo")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','INFIRMIER')")
+    @PreAuthorize("hasAnyRole('MEDECIN','SECRETAIRE','INFIRMIER')")
     public String uploadPhoto(@PathVariable Long id,
                               @RequestParam("file") MultipartFile file,
                               RedirectAttributes ra) {

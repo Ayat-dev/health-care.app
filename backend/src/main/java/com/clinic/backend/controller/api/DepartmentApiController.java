@@ -31,20 +31,20 @@ public class DepartmentApiController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<DepartmentDto> create(@RequestBody DepartmentDto dto) {
         Department created = departmentService.create(dto);
         return ResponseEntity.ok(departmentService.toDto(created));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('OWNER')")
     public DepartmentDto update(@PathVariable Long id, @RequestBody DepartmentDto dto) {
         return departmentService.toDto(departmentService.update(id, dto));
     }
 
     @PatchMapping("/{id}/toggle")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('OWNER')")
     public DepartmentDto toggle(@PathVariable Long id) {
         departmentService.toggleActive(id);
         return departmentService.toDto(departmentService.getById(id));

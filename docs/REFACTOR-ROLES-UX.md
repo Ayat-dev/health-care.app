@@ -104,45 +104,62 @@
 > Ordre conseillé : **WS1 → WS2 → WS3** (le socle rôles, indissociable), puis **WS4** (desktop),
 > puis **WS5** (UX, le plus gros et le plus itératif). `mvnd compile` après chaque.
 
-### WS1 — Introduire le rôle `OWNER`
-- [ ] `model/Role.java` : ajouter `OWNER`.
-- [ ] `config/RoleProfile.java` : entrée `OWNER` (homepage = cockpit financier ; modules = voir §4 ;
+### WS1 — Introduire le rôle `OWNER` ✅ (2026-06-25)
+- [x] `model/Role.java` : ajouter `OWNER` (entre SUPER_ADMIN et ADMIN). Assignable via `/admin/users`
+      (l'ADMIN technique gère les accès) car `UserService.assignableRoles()` = tout sauf SUPER_ADMIN.
+- [x] `config/RoleProfile.java` : entrée `OWNER` (homepage `/reports` = cockpit financier ;
+      modules = `NOTIFICATIONS, BILLING, REPORTS, ADMIN_DEPTS, ADMIN_INSURANCE, ADMIN_ACTS` ;
       `notificationTypes` = `FACTURE_IMPAYEE`, `STOCK_ALERTE`, `SYSTEM`).
-- [ ] `config/Module.java` : si besoin, scinder/nommer les entrées catalogues pour le gating D3
-      (les `ADMIN_ACTS`/`ADMIN_INSURANCE`/`ADMIN_DEPTS` basculent côté OWNER ; restent physiquement
-      en section ADMIN ou créer une section « PILOTAGE » — décision UX, voir WS5).
-- [ ] **Migration `V25__owner_role.sql`** : créer le compte propriétaire de démo (profil `!prod`)
-      + documenter qu'en prod le OWNER est créé via bootstrap/admin. *(Pas de changement de schéma
-      `users` : `role` est déjà une chaîne libre ; juste des données + cohérence enum.)*
-- [ ] `config/DataInitializer.java` (`@Profile("!prod")`) : seed `owner / owner123` (rôle OWNER).
-- [ ] `config/SecurityConfig.java` + **balayage des `@PreAuthorize`** : partout où une route financière
-      BI est `hasRole('ADMIN')`, ajouter/remplacer par `hasRole('OWNER')` (cf. WS2 pour le retrait ADMIN).
-- **Critère d'acceptation** : login `owner/owner123` → atterrit sur le cockpit financier ; la sidebar
-  montre finances + catalogues business ; aucun écran clinique nominatif accessible (403/absent).
+- [x] `config/Module.java` : **inchangé** — `ADMIN_ACTS/INSURANCE/DEPTS` existent déjà comme entrées
+      distinctes ; il a suffi de les lister côté OWNER. Elles restent en section `ADMIN` de la sidebar
+      (une vraie section « PILOTAGE » est une décision UX → WS5).
+- [x] **Migration `V25` non créée** (déviation assumée) : aucun changement de schéma (`role` = chaîne libre),
+      et tous les comptes de démo sont seedés via `DataInitializer` (`@Profile("!prod")`), jamais par SQL —
+      un INSERT en migration tournerait aussi en prod (compte démo indésirable). V25 reste libre pour le
+      prochain vrai changement de schéma. En prod, le OWNER est créé par l'ADMIN via `/admin/users`.
+- [x] `config/DataInitializer.java` (`@Profile("!prod")`) : seed `owner / owner123` (OWNER, clinic1).
+- [x] `@PreAuthorize` BI financier → `OWNER` (voir WS2/WS3 pour le détail du balayage).
+- **Critère d'acceptation** : ✅ `owner/owner123` → atterrit sur `/reports` (cockpit financier) ; sidebar =
+  finances + catalogues business ; aucun module clinique (PATIENTS absent → recherche globale ne renvoie
+  pas de patient ; pages cliniques en 403). Tests : `owner_voit_le_cockpit_financier`,
+  `owner_accede_au_rapport_financier` (verts).
 
-### WS2 — Dégrader `ADMIN` (technique pur, sans PHI ni finances)
-- [ ] `config/RoleProfile.ADMIN` : remplacer `EnumSet.complementOf(...)` par un **set explicite**
-      = `{ADMIN_USERS, ADMIN_CONFIG, ADMIN_AUDIT, ADMIN_ICD10, ADMIN_LAB_TESTS, NOTIFICATIONS}`
-      (+ un éventuel dashboard **système**). Retirer : patients, consultations, billing, pharmacy,
-      lab, radiology, maternity, hospitalization, reports financiers, acts, insurance, depts.
-- [ ] Homepage ADMIN : `/admin/users` (ou nouveau `/admin/system` synthèse audit+usage), **pas** `/dashboard`.
-- [ ] Balayer les contrôleurs/`@PreAuthorize` qui donnaient l'accès clinique/financier à ADMIN et le retirer
-      (chaque module : API writes `hasAnyRole(... ,'ADMIN')` → décider OWNER vs rôle métier au cas par cas).
-- [ ] Vérifier que `SUPER_ADMIN` et le bootstrap prod (`ProdDataInitializer`) restent cohérents.
-- **Critère d'acceptation** : login admin → ne voit que technique ; `/patients`, `/billing`, `/reports/financial`
-  → **403** ; `/admin/audit`, `/admin/users`, `/admin/config` → **200**.
+### WS2 — Dégrader `ADMIN` (technique pur, sans PHI ni finances) ✅ (2026-06-25)
+- [x] `config/RoleProfile.ADMIN` : set **explicite** = `{NOTIFICATIONS, ADMIN_USERS, ADMIN_LAB_TESTS,
+      ADMIN_ICD10, ADMIN_AUDIT, ADMIN_CONFIG}` (fin du `complementOf`). `notificationTypes` réduit à `SYSTEM`.
+- [x] Homepage ADMIN → `/admin/users` (était `/dashboard`).
+- [x] Balayage `@PreAuthorize` (web **et** API) :
+      - **Clinique/PHI → ADMIN retiré** : Patients, Appointments, Consultations, Prescriptions, Lab,
+        Radiology, Maternity, Hospitalization (clinique), Pharmacy, Scribe. Soft-delete patient → `MEDECIN`.
+      - **Finances → ADMIN remplacé par OWNER** : Billing (lecture `OWNER/CAISSIER/SECRETAIRE`, création/maj
+        `CAISSIER/SECRETAIRE`, encaissement `CAISSIER`, annulation `OWNER`), Reports financiers, chambres
+        d'hospitalisation (tarifs → `OWNER`).
+      - **Catalogues business (D3) → OWNER** : `/admin/acts`, `/admin/insurance`, `/admin/departments`.
+      - **Reste ADMIN (technique, D3)** : `/admin/users`, `/admin/config`, `/admin/audit`, `/admin/icd10`,
+        `/admin/lab-tests`, `POST /api/auth/register`, `POST /api/notifications/test-sms`.
+- [x] `SUPER_ADMIN` (registre cliniques) et `ProdDataInitializer` (seed un seul ADMIN) inchangés/cohérents.
+- **Critère d'acceptation** : ✅ `/patients`, `/billing`, `/reports/financial` → **403** pour ADMIN ;
+  `/admin/audit`, `/admin/users`, `/admin/config` → **200**. Tests verts : `admin_refuse_sur_les_patients_phi`,
+  `admin_refuse_sur_la_facturation`, `admin_refuse_sur_le_rapport_financier`,
+  `admin_sur_dashboard_redirige_vers_sa_page_technique`, `admin_accede_au_journal_audit`.
+- **Reste à faire (hors socle)** : le gating temps réel STOMP (`WorklistChannels`) donne encore TOUTES les
+  worklists cliniques à l'ADMIN (`WorklistAuthorizationTest.l_admin_voit_toutes_les_worklists`). C'est un
+  canal PHI — à re-gater (le retirer d'ADMIN) lors d'un passage realtime/WS4 ; laissé tel quel ici car hors
+  périmètre WS1–3 et pour ne pas casser la couche realtime.
 
-### WS3 — Colmater la fuite financière (point 2)
-- [ ] `controller/web/ReportWebController.java:47` : retirer `MEDECIN` de la branche `adminDashboard()`.
-      MEDECIN qui ouvre `/reports` → **redirect** vers `/reports/activity` (rapport clinique), jamais le
-      tableau financier. La branche `adminDashboard()` devient **`OWNER`** (et plus ADMIN).
-- [ ] Re-gater toutes les méthodes `@PreAuthorize` de `ReportWebController` / `ReportApiController` :
-      financier/caisse → `OWNER` (+ `CAISSIER` pour la caisse du jour opérationnelle) ; activité/épidémio →
-      `MEDECIN` ; retirer ADMIN du financier.
-- [ ] Vérifier `dashboard-doctor.html` (déjà sain) et la sidebar : le module `REPORTS` côté MEDECIN ne doit
-      mener qu'aux rapports cliniques.
-- **Critère d'acceptation** : médecin connecté → **aucun** montant encaissé visible nulle part ;
-  `/reports/financial` → 403 pour médecin, 200 pour owner.
+### WS3 — Colmater la fuite financière (point 2) ✅ (2026-06-25)
+- [x] `ReportWebController.dashboard()` : la branche `adminDashboard()` (revenu, encaissé jour/mois) est
+      désormais **`OWNER` seul** (plus ADMIN ni MEDECIN). MEDECIN sur `/reports` → **redirect `/reports/activity`**.
+- [x] Méthodes `@PreAuthorize` re-gatées (web `ReportWebController` + API `ReportApiController`) :
+      financier/caisse/mensuel/impayés/stock/`dashboard/admin` → **OWNER** (+ CAISSIER/SECRETAIRE pour
+      l'opérationnel) ; activité/épidémio → **MEDECIN + OWNER** (agrégé/dé-identifié, défauts R1) ;
+      `dashboard/doctor` → MEDECIN seul. ADMIN retiré de tout le financier.
+- [x] `dashboard-doctor.html` déjà sain (zéro champ financier) ; côté MEDECIN le module REPORTS ne mène
+      qu'aux rapports cliniques (le hub redirige vers `/reports/activity`).
+- **Critère d'acceptation** : ✅ médecin → aucun montant encaissé visible ; `/reports/financial` 403 médecin,
+  200 owner ; `/reports` (hub) redirige le médecin vers `/reports/activity`. Tests :
+  `medecin_refuse_sur_rapport_financier`, `medecin_redirige_du_hub_rapports_vers_activite`,
+  `owner_accede_au_rapport_financier`.
 
 ### WS4 — Desktop = cockpit OWNER (points 3 & 5)
 - [ ] `desktop/.../model/AuthState.java` : `DESKTOP_ROLES = {OWNER}` (retirer MEDECIN/INFIRMIER/ADMIN).
@@ -209,3 +226,4 @@ au démarrage de session ; tel quel, il **ne peut pas** l'utiliser.
 | Date | Chantier | Résultat |
 |---|---|---|
 | 2026-06-25 | Doc | Création de ce plan ; constats code vérifiés ; décisions D1–D3 verrouillées ; rien d'implémenté encore. |
+| 2026-06-25 | WS1+WS2+WS3 | **Socle rôles livré.** OWNER ajouté (`Role`, `RoleProfile` homepage `/reports`, seed `owner/owner123`). ADMIN dégradé en set technique explicite (homepage `/admin/users`, notifs `SYSTEM`). Balayage `@PreAuthorize` web+API : clinique→ADMIN retiré, finances→OWNER, catalogues business (actes/assureurs/départements + tarifs chambres)→OWNER ; technique (users/config/audit/icd10/lab-tests/register/test-sms) reste ADMIN. Fuite financière colmatée : cockpit `adminDashboard()`→OWNER seul, MEDECIN redirigé `/reports/activity`. `mvnd compile` OK ; tests RBAC 39/39 verts (SecurityMatrix 28 + nouvelles assertions OWNER/ADMIN, ApiError 4, Icd10 4, Worklist 3). Déviation : pas de migration V25 (owner seedé via DataInitializer, aucun changement de schéma). Reste hors socle : gating realtime STOMP donne encore les worklists cliniques à l'ADMIN (à re-gater en WS4). |

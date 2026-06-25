@@ -29,7 +29,7 @@ import java.util.Map;
 @Controller
 @RequestMapping("/consultations")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN','MEDECIN','INFIRMIER')")
+@PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER')") // PHI clinique — ADMIN retiré (P6)
 public class ConsultationWebController {
 
     private final ConsultationService consultationService;

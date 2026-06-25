@@ -16,7 +16,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/appointments")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN','MEDECIN','SECRETAIRE','INFIRMIER')")
+@PreAuthorize("hasAnyRole('MEDECIN','SECRETAIRE','INFIRMIER')") // PHI — ADMIN retiré (P6)
 public class AppointmentApiController {
 
     private final AppointmentService appointmentService;

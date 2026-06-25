@@ -44,11 +44,15 @@ public class ReportWebController {
     // pour le caissier/secrétaire qui ont le module REPORTS mais pas le dashboard direction).
     @GetMapping({"", "/dashboard"})
     public String dashboard(Model model, org.springframework.security.core.Authentication auth) {
-        if (hasAnyRole(auth, "ADMIN", "MEDECIN")) {
+        // Cockpit financier (revenu, encaissé jour/mois) = pilotage business → OWNER seul.
+        // L'ADMIN (technique) n'y a plus accès ; le MEDECIN non plus (P6, fuite financière colmatée).
+        if (hasAnyRole(auth, "OWNER")) {
             model.addAttribute("dashboard", reportService.adminDashboard());
             model.addAttribute("config", clinicConfigService.getConfig());
             return "reports/dashboard";
         }
+        // MEDECIN : jamais de chiffre financier → renvoyé vers ses rapports cliniques.
+        if (hasAnyRole(auth, "MEDECIN")) return "redirect:/reports/activity";
         if (hasAnyRole(auth, "CAISSIER")) return "redirect:/reports/financial";
         if (hasAnyRole(auth, "SECRETAIRE")) return "redirect:/reports/outstanding";
         // Tout autre rôle atterrissant ici (pas de rapport accessible) → page d'accueil.
@@ -68,7 +72,7 @@ public class ReportWebController {
 
     // ── Bilan financier mensuel ─────────────────────────────────────────────────
     @GetMapping("/financial")
-    @PreAuthorize("hasAnyRole('ADMIN','CAISSIER')")
+    @PreAuthorize("hasAnyRole('OWNER','CAISSIER')")
     public String financial(@RequestParam(required = false) Integer month,
                             @RequestParam(required = false) Integer year, Model model) {
         LocalDate now = LocalDate.now();
@@ -82,7 +86,7 @@ public class ReportWebController {
 
     // ── Rapport d'activité médicale ─────────────────────────────────────────────
     @GetMapping("/activity")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN')")
+    @PreAuthorize("hasAnyRole('MEDECIN','OWNER')")
     public String activity(@RequestParam(required = false) Integer month,
                            @RequestParam(required = false) Integer year, Model model) {
         LocalDate now = LocalDate.now();
@@ -95,7 +99,7 @@ public class ReportWebController {
 
     // ── Statistiques épidémiologiques ───────────────────────────────────────────
     @GetMapping("/epidemiology")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN')")
+    @PreAuthorize("hasAnyRole('MEDECIN','OWNER')")
     public String epidemiology(@RequestParam(required = false) Integer month,
                                @RequestParam(required = false) Integer year, Model model) {
         LocalDate now = LocalDate.now();
@@ -108,7 +112,7 @@ public class ReportWebController {
 
     // ── Liste des impayés ───────────────────────────────────────────────────────
     @GetMapping("/outstanding")
-    @PreAuthorize("hasAnyRole('ADMIN','CAISSIER','SECRETAIRE')")
+    @PreAuthorize("hasAnyRole('OWNER','CAISSIER','SECRETAIRE')")
     public String outstanding(Model model) {
         model.addAttribute("report", reportService.outstanding());
         model.addAttribute("config", clinicConfigService.getConfig());
@@ -117,7 +121,7 @@ public class ReportWebController {
 
     // ── Export Excel des impayés ────────────────────────────────────────────────
     @GetMapping("/outstanding/excel")
-    @PreAuthorize("hasAnyRole('ADMIN','CAISSIER','SECRETAIRE')")
+    @PreAuthorize("hasAnyRole('OWNER','CAISSIER','SECRETAIRE')")
     public ResponseEntity<byte[]> outstandingExcel() {
         OutstandingReportDto report = reportService.outstanding();
         List<String> headers = List.of(
@@ -151,7 +155,7 @@ public class ReportWebController {
     // ── Exports PDF des rapports (template print générique) ──────────────────────
 
     @GetMapping("/financial/pdf")
-    @PreAuthorize("hasAnyRole('ADMIN','CAISSIER')")
+    @PreAuthorize("hasAnyRole('OWNER','CAISSIER')")
     public ResponseEntity<byte[]> financialPdf(@RequestParam(required = false) Integer month,
                                                @RequestParam(required = false) Integer year) {
         int m = month != null ? month : LocalDate.now().getMonthValue();
@@ -176,7 +180,7 @@ public class ReportWebController {
     }
 
     @GetMapping("/activity/pdf")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN')")
+    @PreAuthorize("hasAnyRole('MEDECIN','OWNER')")
     public ResponseEntity<byte[]> activityPdf(@RequestParam(required = false) Integer month,
                                               @RequestParam(required = false) Integer year) {
         int m = month != null ? month : LocalDate.now().getMonthValue();
@@ -199,7 +203,7 @@ public class ReportWebController {
     }
 
     @GetMapping("/epidemiology/pdf")
-    @PreAuthorize("hasAnyRole('ADMIN','MEDECIN')")
+    @PreAuthorize("hasAnyRole('MEDECIN','OWNER')")
     public ResponseEntity<byte[]> epidemiologyPdf(@RequestParam(required = false) Integer month,
                                                   @RequestParam(required = false) Integer year) {
         int m = month != null ? month : LocalDate.now().getMonthValue();

@@ -24,7 +24,7 @@ import java.util.List;
 @Controller
 @RequestMapping("/radiology")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN','MEDECIN')")
+@PreAuthorize("hasRole('MEDECIN')") // PHI clinique — ADMIN retiré (P6)
 public class RadiologyWebController {
 
     private final RadiologyService radiologyService;

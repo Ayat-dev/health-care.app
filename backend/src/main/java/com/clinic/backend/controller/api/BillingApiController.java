@@ -28,7 +28,9 @@ public class BillingApiController {
     private final InsuranceProviderService insuranceProviderService;
 
     // ── Factures ─────────────────────────────────────────────────────────────────
+    // Lecture facturation = opérationnel (caisse/accueil) + pilotage (OWNER) ; ADMIN exclu (P6).
     @GetMapping("/invoices")
+    @PreAuthorize("hasAnyRole('OWNER','CAISSIER','SECRETAIRE')")
     public List<InvoiceDto> list(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
@@ -38,33 +40,34 @@ public class BillingApiController {
     }
 
     @GetMapping("/invoices/{id}")
+    @PreAuthorize("hasAnyRole('OWNER','CAISSIER','SECRETAIRE')")
     public InvoiceDto get(@PathVariable Long id) {
         return billingService.getDtoById(id);
     }
 
     @PostMapping("/invoices")
-    @PreAuthorize("hasAnyRole('CAISSIER','SECRETAIRE','ADMIN')")
+    @PreAuthorize("hasAnyRole('CAISSIER','SECRETAIRE')")
     public ResponseEntity<InvoiceDto> create(@RequestBody InvoiceDto dto) {
         Long id = billingService.create(dto).getId();
         return ResponseEntity.ok(billingService.getDtoById(id));
     }
 
     @PutMapping("/invoices/{id}")
-    @PreAuthorize("hasAnyRole('CAISSIER','SECRETAIRE','ADMIN')")
+    @PreAuthorize("hasAnyRole('CAISSIER','SECRETAIRE')")
     public InvoiceDto update(@PathVariable Long id, @RequestBody InvoiceDto dto) {
         billingService.update(id, dto);
         return billingService.getDtoById(id);
     }
 
     @PostMapping("/invoices/{id}/pay")
-    @PreAuthorize("hasAnyRole('CAISSIER','ADMIN')")
+    @PreAuthorize("hasRole('CAISSIER')")
     public InvoiceDto pay(@PathVariable Long id, @RequestBody PaymentDto dto) {
         billingService.recordPayment(id, dto);
         return billingService.getDtoById(id);
     }
 
     @PatchMapping("/invoices/{id}/cancel")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('OWNER')") // annulation = décision business → OWNER (P6)
     public InvoiceDto cancel(@PathVariable Long id, @RequestBody(required = false) Map<String, String> body) {
         String reason = body != null ? body.get("reason") : null;
         billingService.cancel(id, reason);

@@ -38,11 +38,30 @@ public enum RoleProfile {
         Set.of()
     ),
 
+    /**
+     * Propriétaire/exploitant business (P6). Cockpit financier + catalogues commerciaux
+     * + stats agrégées. <b>Aucun PHI</b> (même mur de confidentialité que l'ADMIN) :
+     * pas de patients, consultations, labo, imagerie, maternité, hospitalisation nominatifs.
+     * Atterrit sur le tableau de bord financier ({@code /reports}).
+     */
+    OWNER(
+        "/reports",
+        EnumSet.of(NOTIFICATIONS, BILLING, REPORTS,
+                   ADMIN_DEPTS, ADMIN_INSURANCE, ADMIN_ACTS),
+        Set.of("FACTURE_IMPAYEE", "STOCK_ALERTE", "SYSTEM")
+    ),
+
+    /**
+     * Exploitant <b>technique</b> (P6) : accès, configuration système, journal d'audit,
+     * référentiels techniques (CIM-10, catalogue d'analyses), notifications système.
+     * <b>Ni PHI ni finances</b> — set explicite (plus de {@code complementOf}, qui lui
+     * donnait clinique + finances). Le business est désormais au {@link #OWNER}.
+     */
     ADMIN(
-        "/dashboard",
-        // Tout sauf le registre des cliniques (réservé au SUPER_ADMIN).
-        EnumSet.complementOf(EnumSet.of(ADMIN_CLINICS)),
-        Set.of("RAPPEL_RDV", "RESULTAT_LABO", "STOCK_ALERTE", "FACTURE_IMPAYEE", "SYSTEM")
+        "/admin/users",
+        EnumSet.of(NOTIFICATIONS,
+                   ADMIN_USERS, ADMIN_LAB_TESTS, ADMIN_ICD10, ADMIN_AUDIT, ADMIN_CONFIG),
+        Set.of("SYSTEM")
     ),
 
     MEDECIN(

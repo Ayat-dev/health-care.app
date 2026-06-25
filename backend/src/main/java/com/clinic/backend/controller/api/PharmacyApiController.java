@@ -27,14 +27,14 @@ public class PharmacyApiController {
     }
 
     @PostMapping("/drugs")
-    @PreAuthorize("hasAnyRole('PHARMACIEN','ADMIN')")
+    @PreAuthorize("hasRole('PHARMACIEN')")
     public ResponseEntity<DrugDto> createDrug(@RequestBody DrugDto dto) {
         Drug created = pharmacyService.createDrug(dto);
         return ResponseEntity.ok(pharmacyService.toDrugDto(created));
     }
 
     @PutMapping("/drugs/{id}")
-    @PreAuthorize("hasAnyRole('PHARMACIEN','ADMIN')")
+    @PreAuthorize("hasRole('PHARMACIEN')")
     public DrugDto updateDrug(@PathVariable Long id, @RequestBody DrugDto dto) {
         return pharmacyService.toDrugDto(pharmacyService.updateDrug(id, dto));
     }
@@ -46,7 +46,7 @@ public class PharmacyApiController {
     }
 
     @PostMapping("/stock/receive")
-    @PreAuthorize("hasAnyRole('PHARMACIEN','ADMIN')")
+    @PreAuthorize("hasRole('PHARMACIEN')")
     public ResponseEntity<StockItemDto> receive(@RequestBody StockItemDto dto) {
         StockItem received = pharmacyService.receiveStock(dto);
         return ResponseEntity.ok(pharmacyService.toStockDto(received));
@@ -64,7 +64,7 @@ public class PharmacyApiController {
 
     // ── Dispensations ──────────────────────────────────────────────────────────
     @PostMapping("/dispensations")
-    @PreAuthorize("hasAnyRole('PHARMACIEN','ADMIN')")
+    @PreAuthorize("hasRole('PHARMACIEN')")
     public ResponseEntity<DispensationDto> dispense(@RequestBody DispensationDto dto) {
         Dispensation d = pharmacyService.dispense(dto);
         return ResponseEntity.ok(pharmacyService.getDispensationDto(d.getId()));

@@ -53,13 +53,22 @@ class SecurityMatrixTest {
         mvc.perform(get("/admin/audit")).andExpect(status().isForbidden());
     }
 
-    // ── Hub /reports : ADMIN + MEDECIN voient la direction ; les autres rôles ──
-    // porteurs du module REPORTS sont redirigés vers le rapport qu'ils peuvent ouvrir.
+    // ── Hub /reports : seul l'OWNER voit le cockpit financier (P6) ; les autres ──
+    // rôles porteurs du module REPORTS sont redirigés vers le rapport qu'ils peuvent ouvrir.
+
+    @Test
+    @WithMockUser(username = "owner", roles = "OWNER")
+    void owner_voit_le_cockpit_financier() throws Exception {
+        mvc.perform(get("/reports/dashboard")).andExpect(status().isOk());
+    }
 
     @Test
     @WithMockUser(username = "doc", roles = "MEDECIN")
-    void medecin_accede_au_dashboard_rapports() throws Exception {
-        mvc.perform(get("/reports/dashboard")).andExpect(status().isOk());
+    void medecin_redirige_du_hub_rapports_vers_activite() throws Exception {
+        // P6 : le médecin ne voit AUCUN chiffre financier → renvoyé vers ses rapports cliniques.
+        mvc.perform(get("/reports/dashboard"))
+           .andExpect(status().is3xxRedirection())
+           .andExpect(redirectedUrl("/reports/activity"));
     }
 
     @Test
@@ -84,8 +93,11 @@ class SecurityMatrixTest {
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
-    void admin_voit_le_tableau_de_bord_kpi() throws Exception {
-        mvc.perform(get("/dashboard")).andExpect(status().isOk());
+    void admin_sur_dashboard_redirige_vers_sa_page_technique() throws Exception {
+        // P6 : l'ADMIN (technique) n'a plus le module Tableau de bord → renvoyé vers /admin/users.
+        mvc.perform(get("/dashboard"))
+           .andExpect(status().is3xxRedirection())
+           .andExpect(redirectedUrl("/admin/users"));
     }
 
     @Test
@@ -115,6 +127,32 @@ class SecurityMatrixTest {
     @Test
     @WithMockUser(username = "doc", roles = "MEDECIN")
     void medecin_refuse_sur_rapport_financier() throws Exception {
+        mvc.perform(get("/reports/financial")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "owner", roles = "OWNER")
+    void owner_accede_au_rapport_financier() throws Exception {
+        mvc.perform(get("/reports/financial")).andExpect(status().isOk());
+    }
+
+    // ── P6 : l'ADMIN (technique) ne voit ni PHI ni finances ──────────────────
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void admin_refuse_sur_les_patients_phi() throws Exception {
+        mvc.perform(get("/patients")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void admin_refuse_sur_la_facturation() throws Exception {
+        mvc.perform(get("/billing")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void admin_refuse_sur_le_rapport_financier() throws Exception {
         mvc.perform(get("/reports/financial")).andExpect(status().isForbidden());
     }
 
