@@ -1,5 +1,7 @@
 package com.clinic.backend.config;
 
+import com.clinic.backend.setup.SetupGuardInterceptor;
+import com.clinic.backend.setup.SetupService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,6 +32,12 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Value("${app.storage.upload-dir:uploads}")
     private String uploadDir;
+
+    private final SetupService setupService;
+
+    public WebConfig(SetupService setupService) {
+        this.setupService = setupService;
+    }
 
     // ─── Fichiers uploadés (photos patients, images radiology) ───────────────
     @Override
@@ -62,6 +70,19 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(localeChangeInterceptor());
+
+        // Première installation (cf. SetupGuardInterceptor) : redirige tout le web
+        // vers /setup tant qu'aucun utilisateur n'existe. On exclut l'assistant
+        // lui-même, les statiques, /error et tous les endpoints machine (API, FHIR,
+        // WebSocket, Actuator, console H2) — qui ne doivent pas recevoir de 302 HTML.
+        registry.addInterceptor(new SetupGuardInterceptor(setupService))
+                .addPathPatterns("/**")
+                .excludePathPatterns(
+                        "/setup", "/setup/**",
+                        "/css/**", "/js/**", "/images/**", "/uploads/**", "/favicon.ico",
+                        "/manifest.webmanifest", "/sw.js", "/offline.html",
+                        "/error",
+                        "/api/**", "/fhir/**", "/ws/**", "/actuator/**", "/h2-console/**");
     }
 
     // ─── CORS — API uniquement (/api/**) ────────────────────────────────────

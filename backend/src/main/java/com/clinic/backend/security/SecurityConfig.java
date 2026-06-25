@@ -142,6 +142,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/login", "/auth/**",
+                    // Assistant de première installation : ouvert tant qu'aucun
+                    // utilisateur n'existe ; SetupWebController le verrouille ensuite.
+                    "/setup", "/setup/**",
                     "/error",
                     "/h2-console/**",
                     "/css/**", "/js/**", "/images/**", "/uploads/**", "/favicon.ico",

@@ -18,6 +18,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * {@code CLINIC_ADMIN_PASSWORD}, uniquement si la base ne contient encore
  * aucun utilisateur.
  * <p>
+ * <b>Chemin d'installation optionnel (headless).</b> Le chemin nominal est désormais
+ * l'assistant web de première installation ({@code /setup}, voir
+ * {@link com.clinic.backend.setup.SetupService}) : un admin non technique configure
+ * tout depuis le navigateur, sans variable d'environnement. Ce bean reste pour les
+ * déploiements scriptés/automatisés — s'il crée l'admin, des utilisateurs existent
+ * donc l'assistant se désactive de lui-même. Si les variables ne sont pas fournies,
+ * l'assistant {@code /setup} prend le relais au premier accès web.
+ * <p>
  * Aucune donnée de démonstration n'est insérée en prod (cf. {@link DataInitializer},
  * gated {@code @Profile("!prod")}). Si les variables ne sont pas fournies au
  * premier démarrage, on logge une erreur explicite et on n'invente PAS de

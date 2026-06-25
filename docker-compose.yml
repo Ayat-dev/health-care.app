@@ -98,17 +98,11 @@ services:
     networks:
       - medical_net
 
-  desktop:
-    build: ./desktop
-    container_name: medical_desktop
-    environment:
-      - DISPLAY=${DISPLAY}
-    volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix
-    depends_on:
-      - backend
-    networks:
-      - medical_net
+# ── Client desktop JavaFX — GELÉ (cf. desktop/FROZEN.md) ──────────────────────
+# Le développement du client lourd est mis en pause : toute l'activité passe par
+# l'app web. Le code reste dans desktop/ comme socle à reprendre plus tard, mais
+# il n'est plus construit ni démarré ici (un service JavaFX/X11 n'a de toute façon
+# pas sa place côté serveur). Le contrat de reprise = l'API /api/** (JWT stateless).
 
 networks:
   medical_net:

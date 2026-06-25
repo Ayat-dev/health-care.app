@@ -15,6 +15,7 @@ cd backend && mvn spring-boot:run
 | Document | Description |
 |---|---|
 | [`docs/OVERVIEW.md`](docs/OVERVIEW.md) | Vision, architecture, stack, roadmap |
+| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Topologie serveur/clients, première installation (`/setup`), contrat de reprise desktop |
 | [`docs/DATABASE.md`](docs/DATABASE.md) | Schéma complet de la base de données |
 | [`docs/modules/01-AUTH.md`](docs/modules/01-AUTH.md) | Authentification & Rôles |
 | [`docs/modules/02-PATIENTS.md`](docs/modules/02-PATIENTS.md) | Gestion des patients |
@@ -38,7 +39,7 @@ cd backend && mvn spring-boot:run
 medical-app/
 ├── docs/           ← Documentation complète
 ├── backend/        ← Spring Boot (API REST + Web Thymeleaf)
-├── desktop/        ← Client JavaFX
+├── desktop/        ← Client JavaFX (GELÉ — cf. desktop/FROZEN.md)
 ├── docker-compose.yml
 └── .env.example
 ```
