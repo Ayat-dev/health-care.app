@@ -242,6 +242,17 @@
 
 ---
 
+## 🟣 P6 — Refonte rôles (OWNER/ADMIN), confidentialité & UX top-1%
+
+> Décidée le **2026-06-25**. Plan détaillé, décisions verrouillées, chantiers (WS1→WS5) et critères
+> d'acceptation dans **`docs/REFACTOR-ROLES-UX.md`** (source de vérité de cette refonte).
+> Résumé : créer le rôle **OWNER** (business, desktop, finances, **sans PHI**) détaché d'**ADMIN**
+> (technique pur, **sans PHI ni finances**) ; colmater la fuite financière vers le médecin
+> (`ReportWebController:47`) ; desktop = cockpit OWNER uniquement ; navigation « sans jonglage » +
+> UX top-1% (fil d'Ariane, sous-nav de module). `[ ]` à démarrer.
+
+---
+
 ## Journal de progression (à remplir à chaque session)
 
 | Date | Item | Résultat |
