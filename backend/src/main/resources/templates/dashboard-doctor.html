@@ -1,23 +1,42 @@
 <html th:replace="~{layouts/base :: layout(#{dashboard.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
+<!-- En-tête de journée : repère le médecin et la date du jour. -->
+<div class="content-header">
+    <div>
+        <h2 th:text="'Bonjour, ' + ${dashboard.doctorName}">Bonjour, Dr Martin</h2>
+        <div class="page-subtitle"
+             th:text="${#temporals.format(#temporals.createToday(), 'EEEE d MMMM yyyy')}">jeudi 25 juin 2026</div>
+    </div>
+</div>
+
+<!-- KPI de la journée — l'action « à valider » est accentuée quand il y en a. -->
 <div class="stats-grid">
     <div class="stat-card">
-        <div class="stat-card-label">Consultations du jour</div>
+        <div class="stat-card-header">
+            <span class="stat-card-label">Consultations du jour</span>
+            <span class="stat-card-icon stat-icon-blue" aria-hidden="true">🩺</span>
+        </div>
         <div class="stat-card-value" th:text="${#lists.size(dashboard.todayConsultations)}">—</div>
     </div>
     <div class="stat-card">
-        <div class="stat-card-label">Rendez-vous (7 jours)</div>
+        <div class="stat-card-header">
+            <span class="stat-card-label">Rendez-vous (7 jours)</span>
+            <span class="stat-card-icon stat-icon-green" aria-hidden="true">📅</span>
+        </div>
         <div class="stat-card-value" th:text="${#lists.size(dashboard.weekAppointments)}">—</div>
     </div>
-    <div class="stat-card">
-        <div class="stat-card-label">Résultats labo à valider</div>
+    <div class="stat-card" th:classappend="${dashboard.labPendingValidationCount > 0} ? 'stat-card--amber'">
+        <div class="stat-card-header">
+            <span class="stat-card-label">Résultats labo à valider</span>
+            <span class="stat-card-icon stat-icon-purple" aria-hidden="true">🔬</span>
+        </div>
         <div class="stat-card-value" th:text="${dashboard.labPendingValidationCount}">—</div>
     </div>
 </div>
 
 <!-- Mes consultations du jour -->
-<div class="panel" style="margin-top:24px;">
+<div class="panel">
     <div class="panel-header">
         <h2 class="panel-title">Mes consultations du jour</h2>
     </div>
@@ -45,7 +64,7 @@
 </div>
 
 <!-- Résultats labo à valider -->
-<div class="panel" style="margin-top:24px;">
+<div class="panel">
     <div class="panel-header">
         <h2 class="panel-title">Résultats de laboratoire à valider</h2>
     </div>
@@ -72,7 +91,7 @@
 </div>
 
 <!-- Mes rendez-vous de la semaine -->
-<div class="panel" style="margin-top:24px;">
+<div class="panel">
     <div class="panel-header">
         <h2 class="panel-title">Mes rendez-vous (7 jours)</h2>
         <a th:href="@{/appointments/week}" class="btn btn-ghost btn-sm">Voir l'agenda</a>

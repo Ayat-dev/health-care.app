@@ -214,7 +214,11 @@
       **carte héros** « Encaissé ce mois » (valeur 40px, dégradé vert, tendance vs mois préc.), puis sections
       groupées (Revenus / Activité &amp; exploitation / Alertes stock avec bords sémantiques amber/red), KPI en
       `tabular-nums`. `mvnd test` 143/143.
-- [ ] Lots suivants : dashboard médecin, patients, consultations, facturation… (même méthode).
+- [x] **Lot 3 — Dashboard médecin** (`dashboard-doctor.html`) : en-tête de journée personnalisé (« Bonjour,
+      Dr X » + date du jour via `#temporals.createToday()`), KPI avec icônes (`.stat-card-header`/`.stat-card-icon`)
+      et **accent ambre sur « labo à valider » quand > 0** (l'action saute aux yeux), rythme vertical homogénéisé
+      (suppression des `margin-top` inline → cadence `.page-content`). `mvnd test` 143/143.
+- [ ] Lots suivants : patients (liste + dossier), consultations, facturation… (même méthode).
 - **Critère d'acceptation (atteint pour la nav)** : depuis n'importe quelle sous-vue, retour au tableau de
   bord du module **et** à l'accueil en ≤ 1 clic, sans recliquer la sidebar. ✅ (fil d'Ariane).
 
@@ -260,6 +264,7 @@ au démarrage de session ; tel quel, il **ne peut pas** l'utiliser.
 | Date | Chantier | Résultat |
 |---|---|---|
 | 2026-06-25 | Doc | Création de ce plan ; constats code vérifiés ; décisions D1–D3 verrouillées ; rien d'implémenté encore. |
+| 2026-06-25 | WS5 c2 lot3 | **Dashboard médecin.** `dashboard-doctor.html` : en-tête de journée (Bonjour Dr X + date), KPI avec icônes, accent ambre sur « labo à valider » si > 0, rythme vertical homogénéisé (suppression des margin-top inline). Aucune nouvelle classe CSS (réutilise le vocabulaire `.stat-card-header/.stat-card-icon/.stat-icon-*` + `.stat-card--amber`). Test de rendu renforcé (greeting). `mvnd test` 143/143. |
 | 2026-06-25 | WS5 c2 lot2 | **Cockpit OWNER.** `ModuleTabs` rendu role-aware (filtre par rôle dans `GlobalModelAdvice`) → onglets Rapports gatés (Cockpit/Financier/Activité/Épidémio/Impayés) comme les `@PreAuthorize` WS3. `reports/dashboard.html` repensé : carte héros « Encaissé ce mois » + sections groupées (Revenus/Exploitation/Alertes, bords sémantiques) ; rangée de boutons supprimée (remplacée par les onglets). CSS étendu (`.cockpit-hero`, `.section-title`, `.stat-card--green/amber/red`, tabular-nums sur `.stat-card-value`). i18n FR/EN/AR. Tests role-aware ajoutés (owner voit tous les onglets, médecin ne voit pas Financier). `mvnd test` 143/143. |
 | 2026-06-25 | WS5 c1b+c2 | **Sous-nav de module + polish Pharmacie.** Registre `ModuleTabs` (réutilisable, 1 ligne/module) → barre d'onglets persistante rendue par `base.html` sous le fil d'Ariane (actif = plus long préfixe), i18n FR/EN/AR ; Pharmacie câblée. Polish pharmacie (skill `ui-ux-pro-max` consulté) : quick-actions recentrées, `tabular-nums`, nettoyage `sec:authorize` ADMIN. **Correctif** : la suite complète a révélé 23 tests cassés par le cloisonnement WS1-4 (fixtures utilisant ADMIN comme acteur omnipotent) → re-câblés sur les bons rôles (medecin/caissier/owner/pharmacien). `mvnd test` 141/141 verts. |
 | 2026-06-25 | WS5 c1a | **Fil d'Ariane partagé.** Cadrage incrémental 2 couches retenu. Couche 1a livrée : breadcrumb auto-dérivé (`GlobalModelAdvice.currentModule` + `base.html` + `.breadcrumb` app.css + i18n FR/EN/AR), masqué sur la home, testé (`BreadcrumbNavigationTest`). Satisfait le critère nav « ≤ 1 clic ». Reste : sous-nav module + bouton Retour (posés en Couche 2), puis polish esthétique par lot avec `ui-ux-pro-max`. |

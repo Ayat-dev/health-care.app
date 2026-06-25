@@ -42,6 +42,8 @@ class PageRenderSmokeTest {
     void dashboard_medecin_rend_200_avec_donnees() throws Exception {
         mvc.perform(get("/dashboard"))
                 .andExpect(status().isOk())
+                // en-tête de journée personnalisé (P6 WS5 c2) + table des consultations
+                .andExpect(content().string(containsString("Bonjour, Dr. Martin")))
                 .andExpect(content().string(containsString("Mes consultations du jour")));
     }
 
