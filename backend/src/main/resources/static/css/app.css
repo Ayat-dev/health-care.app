@@ -1513,3 +1513,42 @@ summary:focus-visible {
 /* Chiffres alignés (colonnes de données : quantités, montants) — évite le ballotement. */
 .table td, .table th { font-variant-numeric: tabular-nums; }
 .num { font-variant-numeric: tabular-nums; }
+
+/* ── Cockpit de pilotage (P6 WS5 c2 — hiérarchie KPI) ─────────────────────── */
+.stat-card-value { font-variant-numeric: tabular-nums; }
+
+/* Libellé de section (groupe de KPI) — scannabilité. */
+.section-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-500);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: -8px; /* resserre vers la grille suivante (gap page-content) */
+}
+
+/* Bord gauche sémantique pour distinguer revenus / alertes. */
+.stat-card--green { border-left: 3px solid var(--green); }
+.stat-card--amber { border-left: 3px solid var(--amber); }
+.stat-card--red   { border-left: 3px solid var(--red); }
+
+/* Carte « héros » : la métrique n°1 du propriétaire (encaissé du mois). */
+.cockpit-hero {
+    background: linear-gradient(180deg, var(--green-light), var(--surface));
+    border-left: 3px solid var(--green);
+}
+.cockpit-hero-value {
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--text-900);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+.cockpit-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-500);
+}

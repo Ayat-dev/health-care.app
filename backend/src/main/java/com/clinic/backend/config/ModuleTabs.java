@@ -2,6 +2,7 @@ package com.clinic.backend.config;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.clinic.backend.config.Module.*;
 
@@ -19,8 +20,19 @@ import static com.clinic.backend.config.Module.*;
  */
 public final class ModuleTabs {
 
-    /** Un onglet : clé i18n du libellé + URL de destination. */
-    public record Tab(String labelKey, String url) {}
+    /**
+     * Un onglet : clé i18n du libellé + URL de destination + rôles autorisés.
+     * {@code roles} vide = visible à tout rôle qui voit déjà le module (cas mono-rôle,
+     * ex. Pharmacie = PHARMACIEN). Pour un module hétérogène (Rapports : OWNER/MEDECIN/
+     * CAISSIER/SECRETAIRE n'ont pas les mêmes sous-pages), on restreint onglet par onglet
+     * pour ne jamais présenter une destination en 403 (cf. règle UX « empty-nav-state »).
+     */
+    public record Tab(String labelKey, String url, Set<String> roles) {
+        public Tab(String labelKey, String url) { this(labelKey, url, Set.of()); }
+        public boolean visibleTo(String role) {
+            return roles.isEmpty() || (role != null && roles.contains(role));
+        }
+    }
 
     private static final Map<Module, List<Tab>> TABS = Map.of(
         PHARMACY, List.of(
@@ -29,6 +41,15 @@ public final class ModuleTabs {
             new Tab("tab.pharmacy.stock",           "/pharmacy/stock"),
             new Tab("tab.pharmacy.dispensations",   "/pharmacy/dispensations"),
             new Tab("tab.pharmacy.prescriptions",   "/pharmacy/prescriptions")
+        ),
+        // Rapports — hétérogène : chaque onglet est gaté sur les rôles qui y ont droit
+        // (mêmes règles que les @PreAuthorize de ReportWebController, P6 WS3).
+        REPORTS, List.of(
+            new Tab("tab.reports.cockpit",      "/reports",              Set.of("OWNER")),
+            new Tab("tab.reports.financial",    "/reports/financial",    Set.of("OWNER", "CAISSIER")),
+            new Tab("tab.reports.activity",     "/reports/activity",     Set.of("MEDECIN", "OWNER")),
+            new Tab("tab.reports.epidemiology", "/reports/epidemiology", Set.of("MEDECIN", "OWNER")),
+            new Tab("tab.reports.outstanding",  "/reports/outstanding",  Set.of("OWNER", "CAISSIER", "SECRETAIRE"))
         )
     );
 

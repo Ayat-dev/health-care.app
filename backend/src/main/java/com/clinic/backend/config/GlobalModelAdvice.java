@@ -66,9 +66,14 @@ public class GlobalModelAdvice {
     }
 
     // ── Sous-navigation du module courant (onglets, P6 WS5) ──────────────────────
+    // Filtrés par rôle : un module hétérogène (Rapports) n'expose que les onglets
+    // accessibles au rôle courant — jamais de destination en 403 dans la barre.
     @ModelAttribute("moduleTabs")
     public List<ModuleTabs.Tab> moduleTabs(HttpServletRequest request) {
-        return ModuleTabs.forModule(currentModule(request));
+        String role = currentRole();
+        return ModuleTabs.forModule(currentModule(request)).stream()
+                .filter(t -> t.visibleTo(role))
+                .toList();
     }
 
     /** URL de l'onglet actif = le plus long préfixe de l'URI courante parmi les onglets. */

@@ -1,36 +1,38 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Rapports — Tableau de bord', ~{::content})}">
+<html th:replace="~{layouts/base :: layout('Cockpit — Pilotage', ~{::content})}">
 <body><th:block th:fragment="content">
 
-<div class="panel-header" style="padding:0 0 12px;">
-    <span>Indicateurs de pilotage</span>
-    <div style="display:flex; gap:.5rem;">
-        <a th:href="@{/reports/activity}" class="btn btn-ghost btn-sm">Activité</a>
-        <a th:href="@{/reports/epidemiology}" class="btn btn-ghost btn-sm">Épidémiologie</a>
-        <a th:href="@{/reports/financial}" class="btn btn-ghost btn-sm">Bilan financier</a>
-        <a th:href="@{/reports/outstanding}" class="btn btn-ghost btn-sm">Impayés</a>
+<!-- La navigation entre rapports est dans la barre d'onglets du module (sous le titre). -->
+
+<!-- ── Revenus : la métrique n°1 du propriétaire en évidence ─────────────── -->
+<div class="section-title">Revenus</div>
+<div class="stat-card cockpit-hero">
+    <div class="stat-card-label">Encaissé ce mois</div>
+    <div class="cockpit-hero-value"
+         th:text="${#numbers.formatDecimal(dashboard.revenueMonth,0,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</div>
+    <div class="cockpit-hero-meta">
+        <span th:if="${dashboard.revenueMonthVariationPercent != null}"
+              class="stat-card-trend"
+              th:classappend="${dashboard.revenueMonthVariationPercent.signum() >= 0} ? 'up' : 'down'"
+              th:text="(${dashboard.revenueMonthVariationPercent.signum() >= 0} ? '▲ +' : '▼ ') + ${dashboard.revenueMonthVariationPercent} + ' % vs mois précédent'">▲ +0 %</span>
+        <span th:text="'Aujourd’hui : ' + ${#numbers.formatDecimal(dashboard.revenueToday,0,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">Aujourd’hui : 0</span>
     </div>
 </div>
 
-<!-- Revenus -->
+<!-- ── Exploitation : activité & occupation (agrégats, sans nominatif) ────── -->
+<div class="section-title" style="margin-top:8px;">Activité &amp; exploitation</div>
 <div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-card-label">Encaissé aujourd'hui</div>
-        <div class="stat-card-value" th:text="${#numbers.formatDecimal(dashboard.revenueToday,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-card-label">Encaissé ce mois</div>
-        <div class="stat-card-value" th:text="${#numbers.formatDecimal(dashboard.revenueMonth,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</div>
-        <div th:if="${dashboard.revenueMonthVariationPercent != null}" style="font-size:.8rem; margin-top:4px;"
-             th:classappend="${dashboard.revenueMonthVariationPercent.signum() >= 0} ? 'badge-green' : 'badge-red'"
-             class="badge"
-             th:text="(${dashboard.revenueMonthVariationPercent.signum() >= 0} ? '▲ +' : '▼ ') + ${dashboard.revenueMonthVariationPercent} + ' % vs mois préc.'">+0 %</div>
-    </div>
     <div class="stat-card">
         <div class="stat-card-label">Consultations (mois)</div>
         <div class="stat-card-value" th:text="${dashboard.consultationsMonth}">0</div>
-        <div style="font-size:.8rem; color:#64748b; margin-top:4px;"
+        <div class="stat-card-trend"
              th:text="'Aujourd’hui : ' + ${dashboard.consultationsToday} + ' · 7 j : ' + ${dashboard.consultationsWeek}">—</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card-label">Occupation des lits</div>
+        <div class="stat-card-value" th:text="${dashboard.bedOccupancyRate} + ' %'">0 %</div>
+        <div class="stat-card-trend"
+             th:text="${dashboard.occupiedBeds} + ' / ' + ${dashboard.totalBeds} + ' lits occupés'">—</div>
     </div>
     <div class="stat-card">
         <div class="stat-card-label">Patients (dossiers actifs)</div>
@@ -38,25 +40,21 @@
     </div>
 </div>
 
-<div class="stats-grid" style="margin-top:12px;">
-    <div class="stat-card">
-        <div class="stat-card-label">Taux d'occupation des lits</div>
-        <div class="stat-card-value" th:text="${dashboard.bedOccupancyRate} + ' %'">0 %</div>
-        <div style="font-size:.8rem; color:#64748b; margin-top:4px;"
-             th:text="${dashboard.occupiedBeds} + ' / ' + ${dashboard.totalBeds} + ' lits occupés'">—</div>
-    </div>
-    <div class="stat-card">
+<!-- ── Alertes : stock sous seuil / lots expirant ────────────────────────── -->
+<div class="section-title" style="margin-top:8px;">Alertes stock</div>
+<div class="stats-grid">
+    <div class="stat-card" th:classappend="${dashboard.lowStockCount > 0} ? 'stat-card--amber'">
         <div class="stat-card-label">Stock sous seuil d'alerte</div>
         <div class="stat-card-value" th:text="${dashboard.lowStockCount}">0</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card" th:classappend="${dashboard.expiringCount > 0} ? 'stat-card--red'">
         <div class="stat-card-label">Lots expirant (≤ 30 j)</div>
         <div class="stat-card-value" th:text="${dashboard.expiringCount}">0</div>
     </div>
 </div>
 
-<div class="form-grid-2" style="margin-top:16px; align-items:start;">
-    <!-- Top pathologies -->
+<!-- ── Détail : pathologies agrégées + encaissements par mode ────────────── -->
+<div class="form-grid-2" style="margin-top:8px; align-items:start;">
     <div class="panel">
         <div class="panel-header"><span>Top pathologies (ce mois)</span></div>
         <div th:if="${dashboard.topPathologies.isEmpty()}" class="empty-state">Aucune consultation clôturée ce mois.</div>
@@ -73,7 +71,6 @@
         </div>
     </div>
 
-    <!-- Répartition paiements -->
     <div class="panel">
         <div class="panel-header"><span>Modes de paiement (ce mois)</span></div>
         <div th:if="${dashboard.paymentMethodBreakdown.isEmpty()}" class="empty-state">Aucun encaissement ce mois.</div>
@@ -84,7 +81,7 @@
                 <tr th:each="m : ${dashboard.paymentMethodBreakdown}">
                     <td><span class="badge" th:text="${@paymentMethods.label(m.key)}">ESPECES</span></td>
                     <td style="text-align:right;"
-                        th:text="${#numbers.formatDecimal(m.value,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</td>
+                        th:text="${#numbers.formatDecimal(m.value,0,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</td>
                 </tr>
                 </tbody>
             </table>

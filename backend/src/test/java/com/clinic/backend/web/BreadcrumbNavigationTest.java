@@ -71,4 +71,31 @@ class BreadcrumbNavigationTest {
            .andExpect(status().isOk())
            .andExpect(content().string(not(containsString("class=\"module-tabs\""))));
     }
+
+    // ── Sous-nav role-aware (P6 WS5 c2) — module hétérogène : Rapports ────────
+
+    @Test
+    @org.springframework.security.test.context.support.WithUserDetails(
+            value = "owner", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void le_cockpit_owner_voit_tous_les_onglets_rapports() throws Exception {
+        mvc.perform(get("/reports"))
+           .andExpect(status().isOk())
+           .andExpect(content().string(allOf(
+                   containsString("href=\"/reports/financial\""),
+                   containsString("href=\"/reports/activity\""),
+                   containsString("href=\"/reports/outstanding\""))));
+    }
+
+    @Test
+    @WithMockUser(username = "doc", roles = "MEDECIN")
+    void le_medecin_ne_voit_pas_l_onglet_financier_des_rapports() throws Exception {
+        // Sur /reports/activity, le médecin voit Activité/Épidémiologie mais PAS le Bilan financier
+        // (gaté OWNER/CAISSIER) — aucune destination en 403 dans la barre.
+        mvc.perform(get("/reports/activity"))
+           .andExpect(status().isOk())
+           .andExpect(content().string(allOf(
+                   containsString("class=\"module-tabs\""),
+                   containsString("href=\"/reports/activity\""),
+                   not(containsString("href=\"/reports/financial\"")))));
+    }
 }
