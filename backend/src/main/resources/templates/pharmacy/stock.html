@@ -8,7 +8,7 @@
 <div class="panel">
     <div class="panel-header">
         <span>État du stock</span>
-        <th:block sec:authorize="hasAnyRole('PHARMACIEN','ADMIN')">
+        <th:block sec:authorize="hasRole('PHARMACIEN')">
             <a th:href="@{/pharmacy/stock/receive}" class="btn btn-primary btn-sm">+ Réceptionner un lot</a>
         </th:block>
     </div>

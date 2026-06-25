@@ -65,6 +65,26 @@ public class GlobalModelAdvice {
         return best;
     }
 
+    // ── Sous-navigation du module courant (onglets, P6 WS5) ──────────────────────
+    @ModelAttribute("moduleTabs")
+    public List<ModuleTabs.Tab> moduleTabs(HttpServletRequest request) {
+        return ModuleTabs.forModule(currentModule(request));
+    }
+
+    /** URL de l'onglet actif = le plus long préfixe de l'URI courante parmi les onglets. */
+    @ModelAttribute("activeTabUrl")
+    public String activeTabUrl(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        if (uri == null) return null;
+        String best = null;
+        for (ModuleTabs.Tab t : moduleTabs(request)) {
+            if (uri.equals(t.url()) || uri.startsWith(t.url() + "/")) {
+                if (best == null || t.url().length() > best.length()) best = t.url();
+            }
+        }
+        return best;
+    }
+
     // ── Modules par section (zéro DB, tout en mémoire) ───────────────────────────
 
     @ModelAttribute("principalModules")

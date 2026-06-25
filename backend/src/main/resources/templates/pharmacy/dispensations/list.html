@@ -8,7 +8,7 @@
 <div class="panel">
     <div class="panel-header">
         <span>Historique des dispensations</span>
-        <th:block sec:authorize="hasAnyRole('PHARMACIEN','ADMIN')">
+        <th:block sec:authorize="hasRole('PHARMACIEN')">
             <a th:href="@{/pharmacy/dispensations/new}" class="btn btn-primary btn-sm">+ Nouvelle dispensation</a>
         </th:block>
     </div>

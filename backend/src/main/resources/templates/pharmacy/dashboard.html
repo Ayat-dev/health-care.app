@@ -29,12 +29,10 @@
     </div>
 </div>
 
+<!-- Actions (la navigation entre sections est dans la barre d'onglets du module) -->
 <div style="display:flex; gap:12px; margin-top:20px; flex-wrap:wrap;">
-    <a th:href="@{/pharmacy/prescriptions}" class="btn btn-primary">🧾 File des ordonnances</a>
-    <a th:href="@{/pharmacy/dispensations/new}" class="btn btn-ghost">💊 Nouvelle dispensation</a>
+    <a th:href="@{/pharmacy/dispensations/new}" class="btn btn-primary">💊 Nouvelle dispensation</a>
     <a th:href="@{/pharmacy/stock/receive}" class="btn btn-ghost">📥 Réceptionner un lot</a>
-    <a th:href="@{/pharmacy/stock}" class="btn btn-ghost">📦 État du stock</a>
-    <a th:href="@{/pharmacy/drugs}" class="btn btn-ghost">📚 Catalogue</a>
 </div>
 
 <div class="panel" style="margin-top:24px;">

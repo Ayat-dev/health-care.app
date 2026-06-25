@@ -194,14 +194,21 @@
       via `GlobalModelAdvice.currentModule` ; segments cliquables → retour module + accueil ≤ 1 clic ;
       masqué sur la home du rôle ; i18n FR/EN/AR + `aria-current` ; `.breadcrumb` dans app.css.
       Testé (`BreadcrumbNavigationTest`). **→ satisfait le critère d'acceptation principal.**
-- [ ] **Sous-navigation de module** (onglets persistants sur les landings : ex. Pharmacie : Tableau de
-      bord · Médicaments · Stock · Dispensations). Fragment réutilisable à introduire en Couche 2 (1er module).
-- [ ] Bouton **Retour** systématique sur formulaires/détails — fragment réutilisable, posé par page en Couche 2.
+- [x] **Sous-navigation de module** — registre central **`config/ModuleTabs`** (1 ligne/module, philosophie
+      `Module`/`RoleProfile`) ; `GlobalModelAdvice` expose `moduleTabs` + `activeTabUrl` (onglet actif =
+      plus long préfixe d'URL) ; `base.html` rend la barre `.module-tabs` sous le fil d'Ariane ;
+      i18n FR/EN/AR. **1er module câblé : Pharmacie** (Tableau de bord · Médicaments · Stock · Dispensations ·
+      File ordonnances). Testé (`BreadcrumbNavigationTest`). Autres modules = ajouter une entrée au registre.
+- [~] Bouton **Retour** : les formulaires/détails pharmacie ont déjà des affordances cohérentes (« Annuler »
+      → liste, « ← Historique »), désormais doublées par fil d'Ariane + onglets. Un fragment Retour générique
+      reste à généraliser aux autres modules en Couche 2.
 
 **Couche 2 — polish UX par lot (skill `ui-ux-pro-max`)**
-- [ ] Audit + refonte esthétique page par page, flux les plus utilisés d'abord (cockpit OWNER, dashboard
-      médecin, patients, consultations, facturation, pharmacie…). États vides, focus, contraste, responsive,
-      cohérence — standards meilleurs EHR. `mvnd compile` + contrôle visuel + commit par lot.
+- [~] **Lot 1 — Pharmacie** (fait) : skill `ui-ux-pro-max` consulté (style « Data-Dense Dashboard », palette
+      projet conservée). Sous-nav onglets + fil d'Ariane sur toutes les pages pharmacie ; dashboard quick-actions
+      recentrées sur les vraies actions (la navigation est dans les onglets) ; chiffres en `tabular-nums`
+      (colonnes quantités/montants) ; nettoyage du `sec:authorize` ADMIN mort (WS2). `mvnd test` 141/141.
+- [ ] Lots suivants : cockpit OWNER, dashboard médecin, patients, consultations, facturation… (même méthode).
 - **Critère d'acceptation (atteint pour la nav)** : depuis n'importe quelle sous-vue, retour au tableau de
   bord du module **et** à l'accueil en ≤ 1 clic, sans recliquer la sidebar. ✅ (fil d'Ariane).
 
@@ -247,6 +254,7 @@ au démarrage de session ; tel quel, il **ne peut pas** l'utiliser.
 | Date | Chantier | Résultat |
 |---|---|---|
 | 2026-06-25 | Doc | Création de ce plan ; constats code vérifiés ; décisions D1–D3 verrouillées ; rien d'implémenté encore. |
+| 2026-06-25 | WS5 c1b+c2 | **Sous-nav de module + polish Pharmacie.** Registre `ModuleTabs` (réutilisable, 1 ligne/module) → barre d'onglets persistante rendue par `base.html` sous le fil d'Ariane (actif = plus long préfixe), i18n FR/EN/AR ; Pharmacie câblée. Polish pharmacie (skill `ui-ux-pro-max` consulté) : quick-actions recentrées, `tabular-nums`, nettoyage `sec:authorize` ADMIN. **Correctif** : la suite complète a révélé 23 tests cassés par le cloisonnement WS1-4 (fixtures utilisant ADMIN comme acteur omnipotent) → re-câblés sur les bons rôles (medecin/caissier/owner/pharmacien). `mvnd test` 141/141 verts. |
 | 2026-06-25 | WS5 c1a | **Fil d'Ariane partagé.** Cadrage incrémental 2 couches retenu. Couche 1a livrée : breadcrumb auto-dérivé (`GlobalModelAdvice.currentModule` + `base.html` + `.breadcrumb` app.css + i18n FR/EN/AR), masqué sur la home, testé (`BreadcrumbNavigationTest`). Satisfait le critère nav « ≤ 1 clic ». Reste : sous-nav module + bouton Retour (posés en Couche 2), puis polish esthétique par lot avec `ui-ux-pro-max`. |
 | 2026-06-25 | WS4 | **Desktop = cockpit OWNER.** `AuthState.DESKTOP_ROLES={OWNER}` + label/message refus ; `dashboard.fxml`/`DashboardController` refondus en cockpit business (revenus, recouvrement, occupation, stock, modes de paiement via `/api/reports/dashboard/admin`+`/monthly-financial`, zéro appel PHI) ; écrans cliniques gelés/inatteignables (R5) ; `RealtimeClient` → multi-topic business (pharmacy+billing). Backend realtime re-gaté : ADMIN retiré de toutes les worklists, OWNER ajouté à pharmacy+billing (`WebSocketSecurityConfig`). `mvnd compile` backend+desktop OK ; tests 36/36 (Worklist 4 dont OWNER, SecurityMatrix 28, ApiError 4). Reste : **WS5** (nav sans jonglage + UX top-1%). |
 | 2026-06-25 | WS1+WS2+WS3 | **Socle rôles livré.** OWNER ajouté (`Role`, `RoleProfile` homepage `/reports`, seed `owner/owner123`). ADMIN dégradé en set technique explicite (homepage `/admin/users`, notifs `SYSTEM`). Balayage `@PreAuthorize` web+API : clinique→ADMIN retiré, finances→OWNER, catalogues business (actes/assureurs/départements + tarifs chambres)→OWNER ; technique (users/config/audit/icd10/lab-tests/register/test-sms) reste ADMIN. Fuite financière colmatée : cockpit `adminDashboard()`→OWNER seul, MEDECIN redirigé `/reports/activity`. `mvnd compile` OK ; tests RBAC 39/39 verts (SecurityMatrix 28 + nouvelles assertions OWNER/ADMIN, ApiError 4, Icd10 4, Worklist 3). Déviation : pas de migration V25 (owner seedé via DataInitializer, aucun changement de schéma). Reste hors socle : gating realtime STOMP donne encore les worklists cliniques à l'ADMIN (à re-gater en WS4). |

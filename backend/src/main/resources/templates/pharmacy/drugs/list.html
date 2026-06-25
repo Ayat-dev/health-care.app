@@ -8,7 +8,7 @@
 <div class="panel">
     <div class="panel-header">
         <span>Catalogue des médicaments</span>
-        <th:block sec:authorize="hasAnyRole('PHARMACIEN','ADMIN')">
+        <th:block sec:authorize="hasRole('PHARMACIEN')">
             <a th:href="@{/pharmacy/drugs/new}" class="btn btn-primary btn-sm">+ Nouveau médicament</a>
         </th:block>
     </div>
@@ -59,7 +59,7 @@
                     <span th:unless="${d.active}" class="badge badge-red">Désactivé</span>
                 </td>
                 <td style="white-space:nowrap;">
-                    <th:block sec:authorize="hasAnyRole('PHARMACIEN','ADMIN')">
+                    <th:block sec:authorize="hasRole('PHARMACIEN')">
                         <a th:href="@{/pharmacy/stock/receive(drugId=${d.id})}" class="btn btn-ghost btn-sm">Réceptionner</a>
                         <a th:href="@{/pharmacy/drugs/{id}/edit(id=${d.id})}" class="btn btn-ghost btn-sm">Modifier</a>
                         <form th:action="@{/pharmacy/drugs/{id}/toggle(id=${d.id})}" method="post" style="display:inline;">

@@ -154,6 +154,14 @@
                     <span class="breadcrumb-current" aria-current="page" th:text="${title}">Page</span>
                 </th:block>
             </nav>
+            <!-- Sous-navigation du module (P6 WS5) — onglets persistants, actif auto-calculé.
+                 Source : config/ModuleTabs (registre central). Rien si le module n'en déclare pas. -->
+            <nav class="module-tabs" th:if="${!moduleTabs.isEmpty()}" th:aria-label="#{a11y.module_nav}">
+                <a th:each="t : ${moduleTabs}" th:href="@{${t.url}}" class="module-tab"
+                   th:classappend="${t.url == activeTabUrl} ? 'active'"
+                   th:aria-current="${t.url == activeTabUrl} ? 'page' : null"
+                   th:text="#{${t.labelKey}}">Onglet</a>
+            </nav>
             <th:block th:replace="${content}"/>
         </div>
     </main>

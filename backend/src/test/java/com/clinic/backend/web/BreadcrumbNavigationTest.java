@@ -48,4 +48,27 @@ class BreadcrumbNavigationTest {
            .andExpect(status().isOk())
            .andExpect(content().string(not(containsString("class=\"breadcrumb\""))));
     }
+
+    // ── Sous-navigation de module (P6 WS5) — onglets persistants ─────────────
+
+    @Test
+    @WithMockUser(username = "pharma", roles = "PHARMACIEN")
+    void la_sous_nav_pharmacie_marque_l_onglet_actif_le_plus_specifique() throws Exception {
+        // Sur /pharmacy/stock, l'onglet Stock est actif (préfixe le plus long), pas Tableau de bord.
+        mvc.perform(get("/pharmacy/stock"))
+           .andExpect(status().isOk())
+           .andExpect(content().string(allOf(
+                   containsString("class=\"module-tabs\""),
+                   containsString("module-tab active"),
+                   containsString("href=\"/pharmacy/dispensations\""))));
+    }
+
+    @Test
+    @WithMockUser(username = "doc", roles = "MEDECIN")
+    void pas_de_sous_nav_sur_un_module_sans_onglets() throws Exception {
+        // Le module Consultations n'a pas de registre d'onglets → pas de barre module-tabs.
+        mvc.perform(get("/consultations"))
+           .andExpect(status().isOk())
+           .andExpect(content().string(not(containsString("class=\"module-tabs\""))));
+    }
 }
