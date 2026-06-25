@@ -138,6 +138,22 @@
             </div>
         </div>
         <div class="page-content">
+            <!-- Fil d'Ariane (P6 WS5) — auto-dérivé : Accueil / Module / Page courante.
+                 Masqué sur la page d'accueil du rôle (on y est déjà). -->
+            <nav class="breadcrumb" th:if="${currentUri != homeUrl}" th:aria-label="#{a11y.breadcrumb}">
+                <a th:href="@{${homeUrl}}" th:text="#{nav.home}">Accueil</a>
+                <th:block th:if="${currentModule != null}">
+                    <span class="breadcrumb-sep" aria-hidden="true">/</span>
+                    <a th:if="${currentUri != currentModule.urlPrefix}"
+                       th:href="@{${currentModule.urlPrefix}}" th:text="#{${currentModule.labelKey}}">Module</a>
+                    <span th:if="${currentUri == currentModule.urlPrefix}"
+                          class="breadcrumb-current" aria-current="page" th:text="#{${currentModule.labelKey}}">Module</span>
+                </th:block>
+                <th:block th:if="${currentModule == null or currentUri != currentModule.urlPrefix}">
+                    <span class="breadcrumb-sep" aria-hidden="true">/</span>
+                    <span class="breadcrumb-current" aria-current="page" th:text="${title}">Page</span>
+                </th:block>
+            </nav>
             <th:block th:replace="${content}"/>
         </div>
     </main>

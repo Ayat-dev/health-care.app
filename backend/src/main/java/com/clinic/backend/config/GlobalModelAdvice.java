@@ -48,6 +48,23 @@ public class GlobalModelAdvice {
         return role == null ? "/login" : RoleProfile.fromRole(role).homepage;
     }
 
+    // ── Module courant (fil d'Ariane, P6 WS5) ────────────────────────────────────
+    // Le module dont l'URL de base est le plus long préfixe de l'URI courante
+    // (ex. /consultations/5/prescription → CONSULTATIONS). null si aucun (ex. /profile).
+    @ModelAttribute("currentModule")
+    public Module currentModule(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        if (uri == null) return null;
+        Module best = null;
+        for (Module m : Module.values()) {
+            String p = m.urlPrefix;
+            if (uri.equals(p) || uri.startsWith(p + "/")) {
+                if (best == null || p.length() > best.urlPrefix.length()) best = m;
+            }
+        }
+        return best;
+    }
+
     // ── Modules par section (zéro DB, tout en mémoire) ───────────────────────────
 
     @ModelAttribute("principalModules")
