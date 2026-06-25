@@ -1,6 +1,5 @@
 package com.clinic.backend.controller.web;
 
-import com.clinic.backend.config.Module;
 import com.clinic.backend.config.RoleProfile;
 import com.clinic.backend.reports.ReportService;
 import lombok.RequiredArgsConstructor;
@@ -40,26 +39,16 @@ public class AuthWebController {
     public String dashboard(Model model, Authentication auth) {
         String role = role(auth);
 
-        // Médecin : tableau de bord dédié (sa journée).
+        // Médecin : tableau de bord dédié (sa journée) — seul rôle portant le module
+        // Tableau de bord (cf. RoleProfile).
         if ("MEDECIN".equals(role)) {
             model.addAttribute("dashboard", reportService.doctorDashboard());
             return "dashboard-doctor";
         }
 
-        // Rôles sans module Tableau de bord (caissier, infirmier, secrétaire, pharmacien…)
-        // → pas de KPIs de direction : on les renvoie vers leur page d'accueil métier.
-        RoleProfile profile = RoleProfile.fromRole(role);
-        if (!profile.modules.contains(Module.DASHBOARD)) {
-            return "redirect:" + profile.homepage;
-        }
-
-        // ADMIN : KPIs d'accueil réels.
-        ReportService.LandingSummary s = reportService.landingSummary();
-        model.addAttribute("patientsCount", s.patients());
-        model.addAttribute("appointmentsToday", s.appointmentsToday());
-        model.addAttribute("consultationsToday", s.consultationsToday());
-        model.addAttribute("pendingInvoices", s.pendingInvoices());
-        return "dashboard";
+        // Tout autre rôle n'a pas de tableau de bord KPI (P6 : ADMIN technique, OWNER
+        // a son cockpit /reports, caissier sa file…) → page d'accueil métier.
+        return "redirect:" + RoleProfile.fromRole(role).homepage;
     }
 
     /** Rôle de l'utilisateur courant (ex. "CAISSIER"), null si non authentifié. */

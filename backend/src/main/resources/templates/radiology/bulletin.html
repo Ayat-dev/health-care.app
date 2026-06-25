@@ -41,7 +41,7 @@
 <body>
 
 <div class="toolbar" th:if="${!pdf}">
-    <a href="javascript:history.back()" class="btn btn-back">← Retour</a>
+    <a th:replace="~{fragments/ui :: backHistory}"></a>
     <a th:href="@{/radiology/requests/{id}/bulletin/pdf(id=${request.id})}" class="btn"
        style="background:#0f766e;color:#fff;">⬇ PDF</a>
     <button onclick="window.print()" class="btn btn-print">Imprimer</button>

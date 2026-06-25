@@ -35,7 +35,7 @@
     </div>
     <div class="patient-actions">
         <a th:href="@{/patients/{id}/edit(id=${patient.id})}" class="btn btn-primary btn-sm">Modifier</a>
-        <a th:href="@{/patients}" class="btn btn-ghost btn-sm">← Retour</a>
+        <a th:replace="~{fragments/ui :: back(@{/patients})}"></a>
     </div>
 </div>
 

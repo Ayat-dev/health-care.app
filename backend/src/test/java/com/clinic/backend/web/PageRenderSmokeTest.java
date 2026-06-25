@@ -147,4 +147,23 @@ class PageRenderSmokeTest {
     void journal_audit_rend_200() throws Exception {
         mvc.perform(get("/admin/audit")).andExpect(status().isOk());
     }
+
+    /** Saisie des résultats labo : exerce le bouton « Retour » mutualisé
+     *  ({@code fragments/ui :: back}) avec un argument @{...} à variable de chemin. */
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void saisie_resultats_labo_rend_200_avec_bouton_retour() throws Exception {
+        mvc.perform(get("/lab/requests/1/results"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("← Retour")));
+    }
+
+    /** Compte-rendu d'imagerie : même bouton « Retour » mutualisé à variable de chemin. */
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void compte_rendu_imagerie_rend_200_avec_bouton_retour() throws Exception {
+        mvc.perform(get("/radiology/requests/1/report"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("← Retour")));
+    }
 }

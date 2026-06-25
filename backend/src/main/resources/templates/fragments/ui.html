@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head><meta charset="UTF-8"><title>Fragments UI</title></head>
+<body>
+
+<!--/*
+  Boutons « Retour » réutilisables (P6 WS5 — généralisation du bouton Retour).
+
+  • back(href)  : retour vers une URL connue (page in-app).
+        <a th:replace="~{fragments/ui :: back(@{/patients})}"></a>
+        <a th:replace="~{fragments/ui :: back(@{/lab/requests/{id}(id=${request.id})})}"></a>
+  • backHistory : retour contextuel d'une page d'impression autonome
+        (revient à la page précédente du navigateur).
+        <a th:replace="~{fragments/ui :: backHistory}"></a>
+*/-->
+<a th:fragment="back(href)" th:href="${href}" class="btn btn-ghost btn-sm">← Retour</a>
+
+<a th:fragment="backHistory" href="javascript:history.back()" class="btn btn-back">← Retour</a>
+
+</body>
+</html>
