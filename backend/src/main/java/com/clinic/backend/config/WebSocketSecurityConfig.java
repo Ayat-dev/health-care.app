@@ -29,10 +29,12 @@ public class WebSocketSecurityConfig {
         messages
                 // CONNECT / DISCONNECT / UNSUBSCRIBE (destination nulle) : juste être authentifié.
                 .nullDestMatcher().authenticated()
-                .simpSubscribeDestMatchers(WorklistChannels.LAB).hasAnyRole("LABORANTIN", "ADMIN")
-                .simpSubscribeDestMatchers(WorklistChannels.RADIOLOGY).hasAnyRole("MEDECIN", "ADMIN")
-                .simpSubscribeDestMatchers(WorklistChannels.PHARMACY).hasAnyRole("PHARMACIEN", "ADMIN")
-                .simpSubscribeDestMatchers(WorklistChannels.BILLING_QUEUE).hasAnyRole("CAISSIER", "ADMIN")
+                // P6 : l'ADMIN (technique) ne suit plus aucune worklist clinique (PHI). Les worklists
+                // soin restent aux soignants/support ; le OWNER suit les canaux business (stock, caisse).
+                .simpSubscribeDestMatchers(WorklistChannels.LAB).hasRole("LABORANTIN")
+                .simpSubscribeDestMatchers(WorklistChannels.RADIOLOGY).hasRole("MEDECIN")
+                .simpSubscribeDestMatchers(WorklistChannels.PHARMACY).hasAnyRole("PHARMACIEN", "OWNER")
+                .simpSubscribeDestMatchers(WorklistChannels.BILLING_QUEUE).hasAnyRole("CAISSIER", "OWNER")
                 // Tout le reste (envoi vers /app, autres topics) : refusé — ces worklists sont en
                 // pur push descendant, les clients ne publient rien.
                 .anyMessage().denyAll();

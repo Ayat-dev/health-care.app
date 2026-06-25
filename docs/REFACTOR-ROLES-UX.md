@@ -161,16 +161,29 @@
   `medecin_refuse_sur_rapport_financier`, `medecin_redirige_du_hub_rapports_vers_activite`,
   `owner_accede_au_rapport_financier`.
 
-### WS4 — Desktop = cockpit OWNER (points 3 & 5)
-- [ ] `desktop/.../model/AuthState.java` : `DESKTOP_ROLES = {OWNER}` (retirer MEDECIN/INFIRMIER/ADMIN).
-      Message de refus mis à jour (« poste réservé au propriétaire ; le personnel utilise l'app web »).
-- [ ] Repenser `dashboard.fxml` + `DashboardController` en **cockpit business** : KPIs financiers,
-      activité, occupation, stock — **via API agrégées** (`/api/reports/...`), **sans** écran clinique nominatif.
-- [ ] Retirer/neutraliser les écrans cliniques desktop (consultations, dossier, demande d'examen) — ou les
-      conserver gelés mais inatteignables ; à trancher selon l'effort (voir §7).
-- [ ] Adapter `RealtimeClient.startForRole` aux besoins OWNER (alertes stock/impayés plutôt que worklists soin).
-- **Critère d'acceptation** : seul `owner` peut se connecter au desktop ; il y voit un cockpit business ;
-  tout autre rôle est refusé proprement.
+### WS4 — Desktop = cockpit OWNER (points 3 & 5) ✅ (2026-06-25)
+- [x] `desktop/.../model/AuthState.java` : `DESKTOP_ROLES = {OWNER}` ; `roleLabel` ajoute OWNER →
+      « Propriétaire ». `LoginController` : message de refus « poste réservé au propriétaire ; votre profil
+      s'utilise depuis l'application web ».
+- [x] `dashboard.fxml` + `DashboardController` refondus en **cockpit business** : revenus (jour/mois +
+      variation), reste à recouvrer, consultations du mois (agrégat), occupation des lits, alertes stock,
+      ventilation des encaissements par mode — servis par `/api/reports/dashboard/admin` +
+      `/api/reports/monthly-financial` (toutes deux OWNER). **Aucun appel PHI** (les anciens
+      `/api/patients|appointments|consultations` du dashboard ont disparu).
+- [x] Écrans cliniques desktop (**R5 = gel inatteignable**, moindre effort) : patients/RDV/consultations/
+      dossier/demande d'examen restent dans le code mais ne sont **plus liés** depuis la nav du cockpit ;
+      ils 403eraient de toute façon pour OWNER. La sidebar OWNER = Tableau de bord · Actualiser · Déconnexion.
+- [x] `RealtimeClient` : `topicForRole`→`topicsForRole` (liste, multi-SUBSCRIBE). OWNER suit les canaux
+      **business** `/topic/worklist/pharmacy` (stock) + `/topic/billing/queue` (caisse) ; plus de worklist soin.
+- [x] **Backend realtime re-gaté** (l'item « hors socle » de WS2) : `WebSocketSecurityConfig` — ADMIN retiré
+      de TOUTES les worklists ; LAB→LABORANTIN, RADIOLOGY→MEDECIN, PHARMACY→PHARMACIEN+**OWNER**,
+      BILLING_QUEUE→CAISSIER+**OWNER**. Test `WorklistAuthorizationTest` mis à jour
+      (`l_admin_ne_voit_aucune_worklist_clinique`, `l_owner_suit_les_canaux_business`).
+- **Critère d'acceptation** : ✅ seul `owner` se connecte au desktop (tout autre rôle refusé proprement avec
+  message web) ; cockpit 100 % business, zéro écran clinique nominatif. `mvnd compile` backend+desktop OK,
+  tests 36/36 verts.
+- **NB / reste possible** : la mise en forme monétaire desktop affiche « FCFA » en dur (déploiement Niger/XOF)
+  plutôt que via `clinic_config.currency` — à brancher sur la config si multi-devise un jour.
 
 ### WS5 — Navigation « sans jonglage » + UX top-1% (points 1 & 6)
 - [ ] **Fil d'Ariane** réutilisable dans `layouts/base.html` (ex. `Pharmacie / Nouvelle dispensation`),
@@ -226,4 +239,5 @@ au démarrage de session ; tel quel, il **ne peut pas** l'utiliser.
 | Date | Chantier | Résultat |
 |---|---|---|
 | 2026-06-25 | Doc | Création de ce plan ; constats code vérifiés ; décisions D1–D3 verrouillées ; rien d'implémenté encore. |
+| 2026-06-25 | WS4 | **Desktop = cockpit OWNER.** `AuthState.DESKTOP_ROLES={OWNER}` + label/message refus ; `dashboard.fxml`/`DashboardController` refondus en cockpit business (revenus, recouvrement, occupation, stock, modes de paiement via `/api/reports/dashboard/admin`+`/monthly-financial`, zéro appel PHI) ; écrans cliniques gelés/inatteignables (R5) ; `RealtimeClient` → multi-topic business (pharmacy+billing). Backend realtime re-gaté : ADMIN retiré de toutes les worklists, OWNER ajouté à pharmacy+billing (`WebSocketSecurityConfig`). `mvnd compile` backend+desktop OK ; tests 36/36 (Worklist 4 dont OWNER, SecurityMatrix 28, ApiError 4). Reste : **WS5** (nav sans jonglage + UX top-1%). |
 | 2026-06-25 | WS1+WS2+WS3 | **Socle rôles livré.** OWNER ajouté (`Role`, `RoleProfile` homepage `/reports`, seed `owner/owner123`). ADMIN dégradé en set technique explicite (homepage `/admin/users`, notifs `SYSTEM`). Balayage `@PreAuthorize` web+API : clinique→ADMIN retiré, finances→OWNER, catalogues business (actes/assureurs/départements + tarifs chambres)→OWNER ; technique (users/config/audit/icd10/lab-tests/register/test-sms) reste ADMIN. Fuite financière colmatée : cockpit `adminDashboard()`→OWNER seul, MEDECIN redirigé `/reports/activity`. `mvnd compile` OK ; tests RBAC 39/39 verts (SecurityMatrix 28 + nouvelles assertions OWNER/ADMIN, ApiError 4, Icd10 4, Worklist 3). Déviation : pas de migration V25 (owner seedé via DataInitializer, aucun changement de schéma). Reste hors socle : gating realtime STOMP donne encore les worklists cliniques à l'ADMIN (à re-gater en WS4). |

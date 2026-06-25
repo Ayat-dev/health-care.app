@@ -67,11 +67,22 @@ class WorklistAuthorizationTest {
     }
 
     @Test
-    void l_admin_voit_toutes_les_worklists() {
+    void l_admin_ne_voit_aucune_worklist_clinique() {
+        // P6 : l'ADMIN (technique) est exclu des canaux PHI/soin.
         Supplier<Authentication> admin = user("ROLE_ADMIN");
-        assertThat(granted(admin, WorklistChannels.LAB)).isTrue();
-        assertThat(granted(admin, WorklistChannels.RADIOLOGY)).isTrue();
-        assertThat(granted(admin, WorklistChannels.PHARMACY)).isTrue();
-        assertThat(granted(admin, WorklistChannels.BILLING_QUEUE)).isTrue();
+        assertThat(granted(admin, WorklistChannels.LAB)).isFalse();
+        assertThat(granted(admin, WorklistChannels.RADIOLOGY)).isFalse();
+        assertThat(granted(admin, WorklistChannels.PHARMACY)).isFalse();
+        assertThat(granted(admin, WorklistChannels.BILLING_QUEUE)).isFalse();
+    }
+
+    @Test
+    void l_owner_suit_les_canaux_business() {
+        // P6 : le propriétaire (cockpit desktop) suit stock & caisse, jamais le clinique nominatif.
+        Supplier<Authentication> owner = user("ROLE_OWNER");
+        assertThat(granted(owner, WorklistChannels.PHARMACY)).isTrue();
+        assertThat(granted(owner, WorklistChannels.BILLING_QUEUE)).isTrue();
+        assertThat(granted(owner, WorklistChannels.LAB)).isFalse();
+        assertThat(granted(owner, WorklistChannels.RADIOLOGY)).isFalse();
     }
 }

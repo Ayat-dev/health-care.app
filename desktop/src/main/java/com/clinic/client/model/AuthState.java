@@ -6,13 +6,14 @@ import java.util.Set;
 public class AuthState {
 
     /**
-     * Rôles autorisés sur le poste de soin (bureau).
+     * Rôles autorisés sur le poste bureau (P6 — refonte rôles).
      * <p>
-     * Le client lourd est l'outil des soignants : médecins et infirmiers. L'admin y
-     * accède aussi (installation, support). Tous les autres rôles (secrétaire,
-     * pharmacien, caissier, laborantin, patient…) travaillent sur l'application web.
+     * Le client lourd est désormais le <b>cockpit du propriétaire</b> : seul le rôle
+     * {@code OWNER} s'y connecte (pilotage business, sans données de santé). Tout le
+     * personnel clinique (médecins, infirmiers) et opérationnel (secrétaire, pharmacien,
+     * caissier, laborantin) travaille sur l'application web.
      */
-    public static final Set<String> DESKTOP_ROLES = Set.of("MEDECIN", "INFIRMIER", "ADMIN");
+    public static final Set<String> DESKTOP_ROLES = Set.of("OWNER");
 
     private static AuthState instance;
     private String token;
@@ -33,6 +34,7 @@ public class AuthState {
     public static String roleLabel(String role) {
         if (role == null) return "";
         return switch (role) {
+            case "OWNER"      -> "Propriétaire";
             case "MEDECIN"    -> "Médecin";
             case "INFIRMIER"  -> "Infirmier";
             case "ADMIN"      -> "Administrateur";

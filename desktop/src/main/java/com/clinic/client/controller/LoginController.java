@@ -47,9 +47,9 @@ public class LoginController {
                     JSONObject o = resp.asObject();
                     String role = o.getString("role");
                     if (!AuthState.isDesktopRole(role)) {
-                        // Compte valide mais hors cible : ce poste est réservé aux soignants.
-                        message.setText("Ce poste est réservé au personnel soignant "
-                                + "(médecins, infirmiers). Votre profil « " + AuthState.roleLabel(role)
+                        // Compte valide mais hors cible : ce poste est le cockpit du propriétaire (P6).
+                        message.setText("Ce poste est réservé au propriétaire de la clinique. "
+                                + "Votre profil « " + AuthState.roleLabel(role)
                                 + " » s'utilise depuis l'application web.");
                         return;
                     }

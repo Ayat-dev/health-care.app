@@ -44,31 +44,34 @@ public final class RealtimeClient {
 
     private volatile boolean active = false;
     private volatile WebSocket ws;
-    private String topic;
+    private java.util.List<String> topics = java.util.List.of();
     private Consumer<String> onMessage;
     private int retry = 0;
 
     private RealtimeClient() {}
 
-    /** Topic STOMP pertinent pour ce rôle sur le poste de soin, ou {@code null} si aucun. */
-    public static String topicForRole(String role) {
-        if (role == null) return null;
+    /**
+     * Topics STOMP pertinents pour ce rôle sur le poste bureau (P6). Le client lourd est le
+     * cockpit du propriétaire : il suit les canaux <b>business</b> (stock pharmacie, file caisse),
+     * jamais une worklist clinique nominative. Liste vide = aucun abonnement.
+     */
+    public static java.util.List<String> topicsForRole(String role) {
+        if (role == null) return java.util.List.of();
         return switch (role) {
-            // Le médecin (dont le radiologue) et l'admin suivent la file d'imagerie en direct.
-            case "MEDECIN", "ADMIN" -> "/topic/worklist/radiology";
-            default -> null; // infirmier & co. : aucune worklist desktop abonnable
+            case "OWNER" -> java.util.List.of("/topic/worklist/pharmacy", "/topic/billing/queue");
+            default -> java.util.List.of(); // tout le clinique est passé sur le web (D1)
         };
     }
 
     /**
      * Démarre l'écoute temps réel adaptée au rôle. {@code listener} est invoqué (hors thread FX)
      * à chaque mise à jour, avec un libellé court ; à l'appelant de basculer sur le thread UI.
-     * No-op si le rôle n'a pas de topic.
+     * No-op si le rôle n'a aucun topic.
      */
     public synchronized void startForRole(String role, Consumer<String> listener) {
-        String t = topicForRole(role);
-        if (t == null) return;
-        this.topic = t;
+        java.util.List<String> t = topicsForRole(role);
+        if (t.isEmpty()) return;
+        this.topics = t;
         this.onMessage = listener;
         this.active = true;
         this.retry = 0;
@@ -162,11 +165,14 @@ public final class RealtimeClient {
             switch (command) {
                 case "CONNECTED" -> {
                     retry = 0;
-                    String subscribe = "SUBSCRIBE\n"
-                            + "id:sub-desktop\n"
-                            + "destination:" + topic + "\n"
-                            + "\n" + NUL;
-                    webSocket.sendText(subscribe, true);
+                    int i = 0;
+                    for (String dest : topics) {
+                        String subscribe = "SUBSCRIBE\n"
+                                + "id:sub-desktop-" + (i++) + "\n"
+                                + "destination:" + dest + "\n"
+                                + "\n" + NUL;
+                        webSocket.sendText(subscribe, true);
+                    }
                 }
                 case "MESSAGE" -> {
                     Consumer<String> l = onMessage;
