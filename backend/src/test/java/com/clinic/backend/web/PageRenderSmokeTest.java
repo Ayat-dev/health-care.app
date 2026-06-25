@@ -71,6 +71,15 @@ class PageRenderSmokeTest {
                 .andExpect(content().string(containsString("data-tab=\"lab\"")));
     }
 
+    /** Fiche de consultation : exerce le bloc « Actions cliniques » consolidé (P6 WS5 c2). */
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void consultation_detail_rend_actions_cliniques() throws Exception {
+        mvc.perform(get("/consultations/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Actions cliniques")));
+    }
+
     @Test
     @WithUserDetails(value = "caissier", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void billing_rend_200() throws Exception {

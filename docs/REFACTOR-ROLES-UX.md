@@ -222,7 +222,12 @@
       (le dossier) : onglets refondus en **deep-linkables** (`#hash` dans l'URL → lien partageable + l'onglet
       **survit au rechargement**, ex. retour après « Modifier ») et **accessibles** (`role="tablist"`/`tab`/
       `tabpanel`, `aria-selected`) ; JS robuste sans `event` global ni `onclick` inline. `mvnd test` 143/143.
-- [ ] Lots suivants : consultations, facturation… (même méthode).
+- [x] **Lot 5 — Consultations** : `consultations/detail.html` resserré — les **4 panneaux quasi vides**
+      (Labo/Imagerie/Hospitalisation/Facturation, un bouton + une phrase chacun) fusionnés en **un seul bloc
+      « Actions cliniques »** (groupe de boutons + une note), rythme vertical homogénéisé (suppression des
+      `margin-top` inline), « Retour à la liste » retiré (le fil d'Ariane le remplace) en gardant le lien
+      latéral « Dossier patient ». Liste consultations conservée (saine). `mvnd test` 144/144.
+- [ ] Lots suivants : facturation… (même méthode).
 - **Critère d'acceptation (atteint pour la nav)** : depuis n'importe quelle sous-vue, retour au tableau de
   bord du module **et** à l'accueil en ≤ 1 clic, sans recliquer la sidebar. ✅ (fil d'Ariane).
 
@@ -268,6 +273,7 @@ au démarrage de session ; tel quel, il **ne peut pas** l'utiliser.
 | Date | Chantier | Résultat |
 |---|---|---|
 | 2026-06-25 | Doc | Création de ce plan ; constats code vérifiés ; décisions D1–D3 verrouillées ; rien d'implémenté encore. |
+| 2026-06-25 | WS5 c2 lot5 | **Consultations.** `consultations/detail.html` : 4 panneaux quasi vides (labo/imagerie/hospit/facturation) fusionnés en un bloc « Actions cliniques » (groupe de boutons), rythme homogénéisé (margin-top inline retirés), « Retour à la liste » remplacé par le fil d'Ariane (lien « Dossier patient » conservé). Smoke test ajouté (`consultation_detail_rend_actions_cliniques`). `mvnd test` 144/144. |
 | 2026-06-25 | WS5 c2 lot4 | **Parcours patient.** `patients/detail.html` : onglets du dossier refondus deep-linkables (#hash → partageable + survit au rechargement/retour) + ARIA (tablist/tab/tabpanel/aria-selected), JS robuste (plus de `event` global ni `onclick` inline). Liste patients revue et conservée (déjà saine). Test de rendu renforcé (role=tablist + data-tab). `mvnd test` 143/143. |
 | 2026-06-25 | WS5 c2 lot3 | **Dashboard médecin.** `dashboard-doctor.html` : en-tête de journée (Bonjour Dr X + date), KPI avec icônes, accent ambre sur « labo à valider » si > 0, rythme vertical homogénéisé (suppression des margin-top inline). Aucune nouvelle classe CSS (réutilise le vocabulaire `.stat-card-header/.stat-card-icon/.stat-icon-*` + `.stat-card--amber`). Test de rendu renforcé (greeting). `mvnd test` 143/143. |
 | 2026-06-25 | WS5 c2 lot2 | **Cockpit OWNER.** `ModuleTabs` rendu role-aware (filtre par rôle dans `GlobalModelAdvice`) → onglets Rapports gatés (Cockpit/Financier/Activité/Épidémio/Impayés) comme les `@PreAuthorize` WS3. `reports/dashboard.html` repensé : carte héros « Encaissé ce mois » + sections groupées (Revenus/Exploitation/Alertes, bords sémantiques) ; rangée de boutons supprimée (remplacée par les onglets). CSS étendu (`.cockpit-hero`, `.section-title`, `.stat-card--green/amber/red`, tabular-nums sur `.stat-card-value`). i18n FR/EN/AR. Tests role-aware ajoutés (owner voit tous les onglets, médecin ne voit pas Financier). `mvnd test` 143/143. |
