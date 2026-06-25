@@ -65,7 +65,10 @@ class PageRenderSmokeTest {
     void patient_detail_rend_apercu_et_timeline() throws Exception {
         mvc.perform(get("/patients/1"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Chronologie du dossier")));
+                .andExpect(content().string(containsString("Chronologie du dossier")))
+                // onglets deep-linkables + ARIA (P6 WS5 c2)
+                .andExpect(content().string(containsString("role=\"tablist\"")))
+                .andExpect(content().string(containsString("data-tab=\"lab\"")));
     }
 
     @Test
