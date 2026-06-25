@@ -57,6 +57,21 @@ public final class ModuleTabs {
             new Tab("tab.reports.activity",     "/reports/activity",     Set.of("MEDECIN", "OWNER")),
             new Tab("tab.reports.epidemiology", "/reports/epidemiology", Set.of("MEDECIN", "OWNER")),
             new Tab("tab.reports.outstanding",  "/reports/outstanding",  Set.of("OWNER", "CAISSIER", "SECRETAIRE"))
+        ),
+        // Laboratoire / Imagerie — autorisation de classe partagée (PHI clinique) → onglets non gatés.
+        LAB, List.of(
+            new Tab("tab.lab.worklist", "/lab"),
+            new Tab("tab.lab.requests", "/lab/requests")
+        ),
+        RADIOLOGY, List.of(
+            new Tab("tab.radiology.worklist", "/radiology"),
+            new Tab("tab.radiology.requests", "/radiology/requests")
+        ),
+        // Hospitalisation — plan des lits / séjours / chambres ; autorisation de classe partagée.
+        HOSPITALIZATION, List.of(
+            new Tab("tab.hospitalization.beds",  "/hospitalization"),
+            new Tab("tab.hospitalization.stays", "/hospitalization/list"),
+            new Tab("tab.hospitalization.rooms", "/hospitalization/rooms")
         )
     );
 

@@ -8,10 +8,7 @@
 <div class="panel">
     <div class="panel-header">
         <span>Demandes d'imagerie</span>
-        <div style="display:flex; gap:.5rem;">
-            <a th:href="@{/radiology}" class="btn btn-ghost btn-sm">Travail du jour</a>
-            <a th:href="@{/radiology/requests/new}" class="btn btn-primary btn-sm">+ Nouvelle demande</a>
-        </div>
+        <a th:href="@{/radiology/requests/new}" class="btn btn-primary btn-sm">+ Nouvelle demande</a>
     </div>
 
     <form method="get" th:action="@{/radiology/requests}" class="search-bar" style="align-items:center;">

@@ -8,10 +8,7 @@
 <div class="panel">
     <div class="panel-header">
         <span>Séjours hospitaliers</span>
-        <div style="display:flex; gap:.5rem;">
-            <a th:href="@{/hospitalization}" class="btn btn-ghost btn-sm">Plan des lits</a>
-            <a th:href="@{/hospitalization/admit}" class="btn btn-primary btn-sm">+ Admettre un patient</a>
-        </div>
+        <a th:href="@{/hospitalization/admit}" class="btn btn-primary btn-sm">+ Admettre un patient</a>
     </div>
 
     <form method="get" th:action="@{/hospitalization/list}" class="search-bar" style="align-items:center;">

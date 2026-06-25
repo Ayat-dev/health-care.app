@@ -98,4 +98,33 @@ class BreadcrumbNavigationTest {
                    containsString("href=\"/reports/activity\""),
                    not(containsString("href=\"/reports/financial\"")))));
     }
+
+    // ── Sous-nav des modules secondaires (P6 WS5 — polish restant) ───────────
+
+    @Test
+    @WithMockUser(username = "lab", roles = "LABORANTIN")
+    void la_sous_nav_labo_marque_l_onglet_actif_le_plus_specifique() throws Exception {
+        // Sur /lab/requests, l'onglet Demandes est actif ; Travail du jour reste présent.
+        mvc.perform(get("/lab/requests"))
+           .andExpect(status().isOk())
+           .andExpect(content().string(allOf(
+                   containsString("class=\"module-tabs\""),
+                   containsString("module-tab active"),
+                   containsString("href=\"/lab\""),
+                   containsString("href=\"/lab/requests\""))));
+    }
+
+    @Test
+    @WithMockUser(username = "nurse", roles = "INFIRMIER")
+    void la_sous_nav_hospitalisation_expose_ses_trois_onglets() throws Exception {
+        // Plan des lits / Séjours / Chambres atteignables depuis n'importe quelle sous-vue.
+        // (page Chambres = référentiel sans PHI → ne déclenche pas le filtre multi-tenant en test).
+        mvc.perform(get("/hospitalization/rooms"))
+           .andExpect(status().isOk())
+           .andExpect(content().string(allOf(
+                   containsString("class=\"module-tabs\""),
+                   containsString("href=\"/hospitalization\""),
+                   containsString("href=\"/hospitalization/list\""),
+                   containsString("href=\"/hospitalization/rooms\""))));
+    }
 }

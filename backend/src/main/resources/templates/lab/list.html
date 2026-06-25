@@ -8,10 +8,7 @@
 <div class="panel">
     <div class="panel-header">
         <span>Demandes d'analyses</span>
-        <div style="display:flex; gap:.5rem;">
-            <a th:href="@{/lab}" class="btn btn-ghost btn-sm">Travail du jour</a>
-            <a th:href="@{/lab/requests/new}" class="btn btn-primary btn-sm">+ Nouvelle demande</a>
-        </div>
+        <a th:href="@{/lab/requests/new}" class="btn btn-primary btn-sm">+ Nouvelle demande</a>
     </div>
 
     <form method="get" th:action="@{/lab/requests}" class="search-bar" style="align-items:center;">

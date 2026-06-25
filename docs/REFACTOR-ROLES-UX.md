@@ -237,6 +237,14 @@
 > Parcours patient · Consultations · Facturation). Les modules restants (Labo, Imagerie, Maternité,
 > Hospitalisation, Admin) bénéficient déjà du chrome partagé (fil d'Ariane + tabs si registre) ; un polish
 > esthétique fin par module peut suivre au besoin, même méthode.
+
+- [x] **Polish restant — modules secondaires (2026-06-26)** : sous-nav `ModuleTabs` câblée pour **Labo**
+      (Travail du jour · Demandes), **Imagerie** (Travail du jour · Demandes) et **Hospitalisation**
+      (Plan des lits · Séjours · Chambres) ; i18n FR/EN/AR. Les rangées de boutons de cross-nav des en-têtes
+      (`lab/{worklist,list}`, `radiology/{worklist,list}`, `hospitalization/{beds,list,rooms}`) supprimées —
+      remplacées par les onglets persistants, seules les vraies actions (« + Nouvelle demande », « + Admettre »,
+      « + Nouvelle chambre ») restent. Maternité = page unique (`/maternity`) → pas d'onglets. 2 tests de rendu
+      ajoutés (sous-nav labo active + 3 onglets hospitalisation). `mvnd test` 162/162.
 - **Critère d'acceptation (atteint pour la nav)** : depuis n'importe quelle sous-vue, retour au tableau de
   bord du module **et** à l'accueil en ≤ 1 clic, sans recliquer la sidebar. ✅ (fil d'Ariane).
 
@@ -281,6 +289,7 @@ au démarrage de session ; tel quel, il **ne peut pas** l'utiliser.
 
 | Date | Chantier | Résultat |
 |---|---|---|
+| 2026-06-26 | WS5 c2 polish | **Modules secondaires.** Sous-nav `ModuleTabs` câblée pour Labo (Travail du jour/Demandes), Imagerie (idem) et Hospitalisation (Plan des lits/Séjours/Chambres) ; i18n FR/EN/AR. Cross-nav des en-têtes retirée (remplacée par les onglets), seules les vraies actions conservées. Maternité = page unique → pas d'onglets. 2 tests de rendu ajoutés. `mvnd test` 162/162. |
 | 2026-06-25 | Doc | Création de ce plan ; constats code vérifiés ; décisions D1–D3 verrouillées ; rien d'implémenté encore. |
 | 2026-06-25 | WS5 c2 lot6 | **Facturation (clôt la liste prioritaire C2).** `ModuleTabs` BILLING (Tableau de bord/File caisse/Factures) → rangées de boutons de nav supprimées des en-têtes dashboard+liste. `billing/dashboard.html` repensé (carte héros « Encaissé aujourd'hui » + reste à recouvrer, sections Cumul/Statuts, accent ambre). i18n FR/EN/AR. Test billing renforcé (tabs). `mvnd test` 144/144. **Couche 2 priorité bouclée : 6 lots faits.** |
 | 2026-06-25 | WS5 c2 lot5 | **Consultations.** `consultations/detail.html` : 4 panneaux quasi vides (labo/imagerie/hospit/facturation) fusionnés en un bloc « Actions cliniques » (groupe de boutons), rythme homogénéisé (margin-top inline retirés), « Retour à la liste » remplacé par le fil d'Ariane (lien « Dossier patient » conservé). Smoke test ajouté (`consultation_detail_rend_actions_cliniques`). `mvnd test` 144/144. |
