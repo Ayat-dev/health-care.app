@@ -21,7 +21,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@WithUserDetails(value = "admin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+// P6 : l'OWNER couvre facturation + rapports financiers/activité/épidémio (pilotage).
+// Les bulletins labo/radio (PHI clinique) sont exercés par un médecin (override par méthode).
+@WithUserDetails(value = "owner", userDetailsServiceBeanName = "userDetailsServiceImpl")
 class ExportTest {
 
     @Autowired MockMvc mvc;
@@ -38,11 +40,13 @@ class ExportTest {
     }
 
     @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void bulletin_labo_pdf_valide() throws Exception {
         assertPdf("/lab/requests/1/bulletin/pdf");
     }
 
     @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void bulletin_radio_pdf_valide() throws Exception {
         assertPdf("/radiology/requests/1/bulletin/pdf");
     }

@@ -19,22 +19,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * C'est exactement la classe de bug type {@code mod}→{@code navMod} qui 500-ait
  * toutes les pages — un test qui l'aurait attrapé.
  *
- * {@code @WithUserDetails} charge l'admin seedé via le bean UserDetailsService,
- * donc le principal est un {@code com.clinic.backend.model.User} (pas le User
- * générique de Spring) — le badge notifications et RoleProfile fonctionnent.
+ * <p>P6 : depuis le cloisonnement des rôles, l'ADMIN ne voit plus le clinique ni les
+ * finances. Chaque page est donc exercée avec un VRAI utilisateur seedé du bon rôle
+ * (via {@code @WithUserDetails}) : médecin pour le clinique, caissier pour la caisse,
+ * owner pour le pilotage, admin pour le technique.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@WithUserDetails(value = "admin", userDetailsServiceBeanName = "userDetailsServiceImpl")
 class PageRenderSmokeTest {
 
     @Autowired MockMvc mvc;
-
-    @Test
-    void dashboard_rend_200() throws Exception {
-        mvc.perform(get("/dashboard")).andExpect(status().isOk());
-    }
 
     /**
      * Tableau de bord médecin (vue dédiée) rendu avec un VRAI médecin seedé : ses
@@ -51,17 +46,20 @@ class PageRenderSmokeTest {
     }
 
     @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void patients_rend_200() throws Exception {
         mvc.perform(get("/patients")).andExpect(status().isOk());
     }
 
     @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void appointments_rend_200() throws Exception {
         mvc.perform(get("/appointments")).andExpect(status().isOk());
     }
 
     /** Dossier patient : exerce l'agrégat coup d'œil + timeline (P3.6). */
     @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void patient_detail_rend_apercu_et_timeline() throws Exception {
         mvc.perform(get("/patients/1"))
                 .andExpect(status().isOk())
@@ -69,12 +67,14 @@ class PageRenderSmokeTest {
     }
 
     @Test
+    @WithUserDetails(value = "caissier", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void billing_rend_200() throws Exception {
         mvc.perform(get("/billing")).andExpect(status().isOk());
     }
 
     /** File d'attente caisse (P5.1) : exerce le template + le filtre JS inline. */
     @Test
+    @WithUserDetails(value = "caissier", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void file_attente_caisse_rend_200() throws Exception {
         mvc.perform(get("/billing/queue")).andExpect(status().isOk());
     }
@@ -82,17 +82,21 @@ class PageRenderSmokeTest {
     /** Détail facture : liste les paiements → exerce les libellés conviviaux
      *  ({@code @paymentMethods.label}), donc valide la résolution du bean en EL. */
     @Test
+    @WithUserDetails(value = "caissier", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void facture_detail_rend_200_avec_libelles_modes() throws Exception {
         mvc.perform(get("/billing/invoices/1")).andExpect(status().isOk());
     }
 
+    /** Cockpit de pilotage financier : réservé à l'OWNER (P6). */
     @Test
+    @WithUserDetails(value = "owner", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void reports_rend_200() throws Exception {
         mvc.perform(get("/reports")).andExpect(status().isOk());
     }
 
     /** Config clinique : exerce la nouvelle section QR marchand (AmanaTa / MyNITA). */
     @Test
+    @WithUserDetails(value = "admin", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void config_rend_200_avec_section_qr_marchand() throws Exception {
         mvc.perform(get("/admin/config"))
                 .andExpect(status().isOk())
@@ -101,6 +105,7 @@ class PageRenderSmokeTest {
 
     /** Encaissement : exerce la liste de modes mise à jour + le bloc QR togglable. */
     @Test
+    @WithUserDetails(value = "caissier", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void encaissement_rend_200_avec_modes_amanata_mynita() throws Exception {
         mvc.perform(get("/billing/invoices/1/pay"))
                 .andExpect(status().isOk())
@@ -111,6 +116,7 @@ class PageRenderSmokeTest {
     /** File des ordonnances pharmacie (P5.1 Lot C) : exerce le template + la boucle
      *  sur l'ordonnance seedée non dispensée (lignes, patient, médecin). */
     @Test
+    @WithUserDetails(value = "pharmacien", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void file_ordonnances_pharmacie_rend_200() throws Exception {
         mvc.perform(get("/pharmacy/prescriptions"))
                 .andExpect(status().isOk())
@@ -118,6 +124,7 @@ class PageRenderSmokeTest {
     }
 
     @Test
+    @WithUserDetails(value = "admin", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void journal_audit_rend_200() throws Exception {
         mvc.perform(get("/admin/audit")).andExpect(status().isOk());
     }

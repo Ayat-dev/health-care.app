@@ -52,11 +52,11 @@ class I18nTest {
     // ── Chrome applicatif (sidebar i18n, principal authentifié) ──────────────
 
     @Test
-    @WithUserDetails(value = "admin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void sidebar_traduite_en_anglais() throws Exception {
+        // P6 : le médecin a le module Tableau de bord → libellé de sidebar traduit (chrome i18n).
         mvc.perform(get("/dashboard").param("lang", "en"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Dashboard")))
-                .andExpect(content().string(containsString("Welcome to ClinicApp")));
+                .andExpect(content().string(containsString("Dashboard")));
     }
 }

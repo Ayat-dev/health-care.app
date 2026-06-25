@@ -27,8 +27,9 @@ class GlobalSearchTest {
     @Autowired MockMvc mvc;
 
     @Test
-    @WithUserDetails(value = "admin", userDetailsServiceBeanName = "userDetailsServiceImpl")
-    void admin_trouve_un_patient() throws Exception {
+    // P6 : l'ADMIN n'a plus le module PATIENTS → c'est un soignant qui trouve un patient.
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void medecin_trouve_un_patient() throws Exception {
         mvc.perform(get("/search/suggest").param("q", "Diallo"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("PATIENT")))
@@ -38,11 +39,11 @@ class GlobalSearchTest {
     @Test
     @WithUserDetails(value = "admin", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void admin_trouve_un_module_par_navigation() throws Exception {
-        // "pharma" matche le libellé du module Pharmacie → résultat NAV vers /pharmacy
-        mvc.perform(get("/search/suggest").param("q", "pharma"))
+        // "utilisa" matche le libellé du module Utilisateurs (technique, ADMIN) → NAV /admin/users
+        mvc.perform(get("/search/suggest").param("q", "utilisa"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("NAV")))
-                .andExpect(content().string(containsString("/pharmacy")));
+                .andExpect(content().string(containsString("/admin/users")));
     }
 
     @Test

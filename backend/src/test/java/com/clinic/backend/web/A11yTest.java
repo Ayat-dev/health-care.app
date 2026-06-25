@@ -25,7 +25,7 @@ class A11yTest {
     @Autowired MockMvc mvc;
 
     @Test
-    @WithUserDetails(value = "admin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void chrome_expose_lien_evitement_et_landmark() throws Exception {
         mvc.perform(get("/dashboard"))
                 .andExpect(status().isOk())
@@ -39,7 +39,7 @@ class A11yTest {
     }
 
     @Test
-    @WithUserDetails(value = "admin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void nav_actif_porte_aria_current() throws Exception {
         // /dashboard est actif → l'item correspondant porte aria-current="page"
         mvc.perform(get("/dashboard"))

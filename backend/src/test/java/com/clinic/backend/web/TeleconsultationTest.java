@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@WithUserDetails(value = "admin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+@WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
 class TeleconsultationTest {
 
     @Autowired MockMvc mvc;
