@@ -4,23 +4,20 @@
 
 <div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
 
-<div class="panel-header" style="padding:0 0 12px;">
-    <span>Tableau de bord financier</span>
-    <div style="display:flex; gap:.5rem;">
-        <a th:href="@{/billing/queue}" class="btn btn-primary btn-sm">🧾 File d'attente caisse</a>
-        <a th:href="@{/billing/invoices}" class="btn btn-ghost btn-sm">Toutes les factures</a>
+<!-- Caisse du jour : l'encaissement du jour en évidence (métrique n°1 du caissier). -->
+<div class="section-title">Caisse du jour</div>
+<div class="stat-card cockpit-hero">
+    <div class="stat-card-label">Encaissé aujourd'hui</div>
+    <div class="cockpit-hero-value"
+         th:text="${#numbers.formatDecimal(dashboard.todayCollected,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</div>
+    <div class="cockpit-hero-meta">
+        <span th:text="'Reste à recouvrer : ' + ${#numbers.formatDecimal(dashboard.totalOutstanding,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">Reste à recouvrer : 0</span>
     </div>
 </div>
 
+<!-- Cumul -->
+<div class="section-title" style="margin-top:8px;">Cumul</div>
 <div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-card-label">Encaissé aujourd'hui</div>
-        <div class="stat-card-value" th:text="${#numbers.formatDecimal(dashboard.todayCollected,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-card-label">Reste à recouvrer</div>
-        <div class="stat-card-value" th:text="${#numbers.formatDecimal(dashboard.totalOutstanding,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</div>
-    </div>
     <div class="stat-card">
         <div class="stat-card-label">Total facturé (part patient)</div>
         <div class="stat-card-value" th:text="${#numbers.formatDecimal(dashboard.totalInvoiced,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</div>
@@ -31,9 +28,11 @@
     </div>
 </div>
 
-<div class="stats-grid" style="margin-top:12px;">
-    <div class="stat-card">
-        <div class="stat-card-label">Factures en attente</div>
+<!-- Factures par statut -->
+<div class="section-title" style="margin-top:8px;">Factures par statut</div>
+<div class="stats-grid">
+    <div class="stat-card" th:classappend="${dashboard.pendingCount > 0} ? 'stat-card--amber'">
+        <div class="stat-card-label">En attente</div>
         <div class="stat-card-value" th:text="${dashboard.pendingCount}">0</div>
     </div>
     <div class="stat-card">
@@ -47,7 +46,7 @@
 </div>
 
 <!-- Rapport de caisse du jour -->
-<div class="panel" style="margin-top:16px;">
+<div class="panel">
     <div class="panel-header">
         <span th:text="'Caisse du ' + ${#temporals.format(report.day,'dd/MM/yyyy')}">Caisse du jour</span>
         <strong th:text="${#numbers.formatDecimal(report.total,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</strong>

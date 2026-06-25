@@ -83,7 +83,12 @@ class PageRenderSmokeTest {
     @Test
     @WithUserDetails(value = "caissier", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void billing_rend_200() throws Exception {
-        mvc.perform(get("/billing")).andExpect(status().isOk());
+        mvc.perform(get("/billing"))
+                .andExpect(status().isOk())
+                // sous-nav du module Facturation (P6 WS5 c2)
+                .andExpect(content().string(containsString("class=\"module-tabs\"")))
+                .andExpect(content().string(containsString("href=\"/billing/queue\"")))
+                .andExpect(content().string(containsString("href=\"/billing/invoices\"")));
     }
 
     /** File d'attente caisse (P5.1) : exerce le template + le filtre JS inline. */

@@ -227,7 +227,16 @@
       « Actions cliniques »** (groupe de boutons + une note), rythme vertical homogénéisé (suppression des
       `margin-top` inline), « Retour à la liste » retiré (le fil d'Ariane le remplace) en gardant le lien
       latéral « Dossier patient ». Liste consultations conservée (saine). `mvnd test` 144/144.
-- [ ] Lots suivants : facturation… (même méthode).
+- [x] **Lot 6 — Facturation** : entrée `ModuleTabs` BILLING (Tableau de bord · File caisse · Factures,
+      non gatée — accès de classe partagé) → les rangées de boutons de nav des en-têtes
+      (`dashboard.html`, `invoices/list.html`) supprimées. `billing/dashboard.html` repensé en hiérarchie
+      (carte héros « Encaissé aujourd'hui » + reste à recouvrer, sections Cumul / Factures par statut avec
+      accent ambre sur « En attente », rythme homogénéisé). `mvnd test` 144/144.
+
+> **Couche 2 — liste prioritaire bouclée** (6 lots : Pharmacie · Cockpit OWNER · Dashboard médecin ·
+> Parcours patient · Consultations · Facturation). Les modules restants (Labo, Imagerie, Maternité,
+> Hospitalisation, Admin) bénéficient déjà du chrome partagé (fil d'Ariane + tabs si registre) ; un polish
+> esthétique fin par module peut suivre au besoin, même méthode.
 - **Critère d'acceptation (atteint pour la nav)** : depuis n'importe quelle sous-vue, retour au tableau de
   bord du module **et** à l'accueil en ≤ 1 clic, sans recliquer la sidebar. ✅ (fil d'Ariane).
 
@@ -273,6 +282,7 @@ au démarrage de session ; tel quel, il **ne peut pas** l'utiliser.
 | Date | Chantier | Résultat |
 |---|---|---|
 | 2026-06-25 | Doc | Création de ce plan ; constats code vérifiés ; décisions D1–D3 verrouillées ; rien d'implémenté encore. |
+| 2026-06-25 | WS5 c2 lot6 | **Facturation (clôt la liste prioritaire C2).** `ModuleTabs` BILLING (Tableau de bord/File caisse/Factures) → rangées de boutons de nav supprimées des en-têtes dashboard+liste. `billing/dashboard.html` repensé (carte héros « Encaissé aujourd'hui » + reste à recouvrer, sections Cumul/Statuts, accent ambre). i18n FR/EN/AR. Test billing renforcé (tabs). `mvnd test` 144/144. **Couche 2 priorité bouclée : 6 lots faits.** |
 | 2026-06-25 | WS5 c2 lot5 | **Consultations.** `consultations/detail.html` : 4 panneaux quasi vides (labo/imagerie/hospit/facturation) fusionnés en un bloc « Actions cliniques » (groupe de boutons), rythme homogénéisé (margin-top inline retirés), « Retour à la liste » remplacé par le fil d'Ariane (lien « Dossier patient » conservé). Smoke test ajouté (`consultation_detail_rend_actions_cliniques`). `mvnd test` 144/144. |
 | 2026-06-25 | WS5 c2 lot4 | **Parcours patient.** `patients/detail.html` : onglets du dossier refondus deep-linkables (#hash → partageable + survit au rechargement/retour) + ARIA (tablist/tab/tabpanel/aria-selected), JS robuste (plus de `event` global ni `onclick` inline). Liste patients revue et conservée (déjà saine). Test de rendu renforcé (role=tablist + data-tab). `mvnd test` 143/143. |
 | 2026-06-25 | WS5 c2 lot3 | **Dashboard médecin.** `dashboard-doctor.html` : en-tête de journée (Bonjour Dr X + date), KPI avec icônes, accent ambre sur « labo à valider » si > 0, rythme vertical homogénéisé (suppression des margin-top inline). Aucune nouvelle classe CSS (réutilise le vocabulaire `.stat-card-header/.stat-card-icon/.stat-icon-*` + `.stat-card--amber`). Test de rendu renforcé (greeting). `mvnd test` 143/143. |

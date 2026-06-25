@@ -42,6 +42,13 @@ public final class ModuleTabs {
             new Tab("tab.pharmacy.dispensations",   "/pharmacy/dispensations"),
             new Tab("tab.pharmacy.prescriptions",   "/pharmacy/prescriptions")
         ),
+        // Facturation — toutes les sous-pages partagent l'autorisation de classe
+        // (OWNER/CAISSIER/SECRETAIRE) → onglets non gatés.
+        BILLING, List.of(
+            new Tab("nav.dashboard",          "/billing"),
+            new Tab("tab.billing.queue",      "/billing/queue"),
+            new Tab("tab.billing.invoices",   "/billing/invoices")
+        ),
         // Rapports — hétérogène : chaque onglet est gaté sur les rôles qui y ont droit
         // (mêmes règles que les @PreAuthorize de ReportWebController, P6 WS3).
         REPORTS, List.of(
