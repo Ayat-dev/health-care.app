@@ -166,6 +166,17 @@ a:hover { text-decoration: underline; }
   font-weight: 500;
 }
 .nav-item i { font-size: 16px; width: 18px; flex-shrink: 0; }
+/* Icônes de nav SVG (sprite fragments/icons.html) — épousent la couleur du lien via currentColor
+   (gris au repos, blanc à l'état actif), sans emoji. Cf. docs/UX-GUIDELINES.md §7. */
+.nav-icon {
+  width: 18px; height: 18px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 
 .sidebar-badge {
   margin-left: auto;

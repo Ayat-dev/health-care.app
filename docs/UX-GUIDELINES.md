@@ -139,8 +139,10 @@ C'est le style retenu (« Data-Dense Dashboard ») : maximiser la lisibilité sa
 ## 7. Iconographie & cohérence visuelle
 
 - **Pas d'emoji comme icône structurelle** de navigation/action (dépendant de la police, incohérent).
-  Préférer du SVG cohérent (jeu unique, même épaisseur de trait). *NB : la sidebar utilise actuellement
-  des emojis de section — toléré comme repère, mais toute nouvelle icône fonctionnelle = SVG.*
+  La sidebar utilise un **sprite SVG inline** (`templates/fragments/icons.html`, jeu Lucide, trait 2px) :
+  chaque `Module.icon` porte un identifiant (`calendar`, `pill`…) rendu via `<svg class="nav-icon">
+  <use href="#ic-{icon}"></use></svg>`. Pour ajouter une icône : un `<symbol id="ic-x">` dans le sprite,
+  puis l'id dans `Module`. `.nav-icon` hérite la couleur du lien (`currentColor` → blanc à l'état actif).
 - **Un seul jeu d'icônes**, taille par paliers (tokens), alignées à la ligne de base du texte.
 - **Style filled vs outline** : un seul par niveau de hiérarchie.
 - **Ombres / rayons cohérents** : utiliser l'échelle (`--shadow-sm/--shadow`, `--radius-*`), pas de

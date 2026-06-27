@@ -47,10 +47,17 @@ class PageRenderSmokeTest {
                 .andExpect(content().string(containsString("Mes consultations du jour")));
     }
 
+    /** Sidebar : icônes SVG (sprite + <use>) au lieu d'emojis (#6 polish UX). Vérifie que le
+     *  sprite est inclus (symbole) ET que la nav le référence (use) — donc que l'id concorde. */
     @Test
     @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
-    void patients_rend_200() throws Exception {
-        mvc.perform(get("/patients")).andExpect(status().isOk());
+    void patients_rend_200_avec_icones_svg() throws Exception {
+        mvc.perform(get("/patients"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("id=\"ic-user\"")))
+                .andExpect(content().string(containsString("href=\"#ic-user\"")))
+                // plus aucun emoji de nav (l'ancien rendu posait l'emoji en texte du <span>)
+                .andExpect(content().string(containsString("class=\"nav-icon\"")));
     }
 
     @Test

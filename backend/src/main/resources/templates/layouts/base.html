@@ -19,6 +19,8 @@
     <script th:src="@{/js/pwa.js}" defer></script>
 </head>
 <body>
+<!-- Sprite d'icônes SVG (nav) — inclus une fois, référencé par <use href="#ic-…"> -->
+<svg th:replace="~{fragments/icons :: sprite}"></svg>
 <!-- Évitement de bloc (WCAG 2.4.1) — 1er élément focusable -->
 <a class="skip-link" href="#main-content" th:text="#{a11y.skip_to_content}">Aller au contenu principal</a>
 <div class="layout">
@@ -40,7 +42,7 @@
                         <a th:href="${navMod.urlPrefix}" class="nav-item"
                            th:classappend="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'active'"
                            th:aria-current="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'page' : null">
-                            <span th:text="${navMod.icon}" aria-hidden="true">🔔</span>
+                            <svg class="nav-icon" aria-hidden="true"><use th:attr="href='#ic-' + ${navMod.icon}"></use></svg>
                             <span th:text="#{${navMod.labelKey}}">Notifications</span>
                             <span th:if="${unreadNotifications > 0}"
                                   class="badge badge-red"
@@ -54,7 +56,7 @@
                         <a th:href="${navMod.urlPrefix}" class="nav-item"
                            th:classappend="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'active'"
                            th:aria-current="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'page' : null">
-                            <span th:text="${navMod.icon}" aria-hidden="true"></span>
+                            <svg class="nav-icon" aria-hidden="true"><use th:attr="href='#ic-' + ${navMod.icon}"></use></svg>
                             <span th:text="#{${navMod.labelKey}}"></span>
                         </a>
                     </th:block>
@@ -69,7 +71,7 @@
                     <a th:href="${navMod.urlPrefix}" class="nav-item"
                        th:classappend="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'active'"
                        th:aria-current="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'page' : null">
-                        <span th:text="${navMod.icon}" aria-hidden="true"></span>
+                        <svg class="nav-icon" aria-hidden="true"><use th:attr="href='#ic-' + ${navMod.icon}"></use></svg>
                         <span th:text="#{${navMod.labelKey}}"></span>
                     </a>
                 </th:block>
@@ -82,7 +84,7 @@
                     <a th:href="${navMod.urlPrefix}" class="nav-item"
                        th:classappend="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'active'"
                        th:aria-current="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'page' : null">
-                        <span th:text="${navMod.icon}" aria-hidden="true"></span>
+                        <svg class="nav-icon" aria-hidden="true"><use th:attr="href='#ic-' + ${navMod.icon}"></use></svg>
                         <span th:text="#{${navMod.labelKey}}"></span>
                     </a>
                 </th:block>
@@ -95,7 +97,7 @@
                     <a th:href="${navMod.urlPrefix}" class="nav-item"
                        th:classappend="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'active'"
                        th:aria-current="${#strings.startsWith(currentUri, navMod.urlPrefix)} ? 'page' : null">
-                        <span th:text="${navMod.icon}" aria-hidden="true"></span>
+                        <svg class="nav-icon" aria-hidden="true"><use th:attr="href='#ic-' + ${navMod.icon}"></use></svg>
                         <span th:text="#{${navMod.labelKey}}"></span>
                     </a>
                 </th:block>
