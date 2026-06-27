@@ -249,7 +249,13 @@
 > Résumé : créer le rôle **OWNER** (business, desktop, finances, **sans PHI**) détaché d'**ADMIN**
 > (technique pur, **sans PHI ni finances**) ; colmater la fuite financière vers le médecin
 > (`ReportWebController:47`) ; desktop = cockpit OWNER uniquement ; navigation « sans jonglage » +
-> UX top-1% (fil d'Ariane, sous-nav de module). `[ ]` à démarrer.
+> UX top-1% (fil d'Ariane, sous-nav de module).
+>
+> **[x] TERMINÉ (2026-06-27)** — WS1→WS4 (socle rôles + cloisonnement PHI/finances + cockpit desktop)
+> puis WS5 (fil d'Ariane + `ModuleTabs` + 6 lots de polish) **et** la liste cosmétique ultra-fine
+> (tokens/utilitaires `.text-muted`/`.text-danger`, JS onglets mutualisé `ui.js`, espacement
+> `.panel-body`/`.mt-16`, filtres `.search-bar`, icônes nav SVG). Détail + journal dans
+> `docs/REFACTOR-ROLES-UX.md`. `mvnd test` 167/167. Guide UX durable : `docs/UX-GUIDELINES.md`.
 
 ---
 
@@ -257,6 +263,7 @@
 
 | Date | Item | Résultat |
 |---|---|---|
+| 2026-06-27 | **P6** (terminé) | Refonte rôles+UX achevée (WS1→WS5 + liste cosmétique ultra-fine). Détail/journal dans `docs/REFACTOR-ROLES-UX.md`, guide durable `docs/UX-GUIDELINES.md`. `mvnd test` 167/167. **→ tous les items formels P1–P6 du backlog sont faits ; ne restent que les « Reste (optionnel) » par item.** |
 | 2026-06-19 | (création) | Backlog créé suite à l'analyse comparative + audit code. Bug RBAC `mod`→`navMod` corrigé (commit 4ed3535). |
 | 2026-06-19 | **P1.1** | Profils dev/prod + secrets externalisés (fail-fast), seed démo gated `!prod`, bootstrap admin prod via env, compose+`.env.example`. Vérifié dev/prod/fail-fast. Boot Postgres réel à confirmer au déploiement (Docker indispo en local). |
 | 2026-06-19 | **P1.2** | Journal d'audit : pkg `audit` (`@Audited` + AOP `@AfterReturning`, écriture `REQUIRES_NEW`), V14, vue admin `/admin/audit` (ADMIN). 14 méthodes auditées. Vérifié : 3 actions → 3 traces (auteur/entité/id/IP), filtres OK, non-admin 403. |
