@@ -2,6 +2,8 @@ package com.clinic.backend;
 
 import com.clinic.backend.audit.AuditLog;
 import com.clinic.backend.audit.AuditLogRepository;
+import com.clinic.backend.hospitalization.HospitalizationRepository;
+import com.clinic.backend.hospitalization.RoomRepository;
 import com.clinic.backend.maternity.MaternityRecordRepository;
 import com.clinic.backend.notification.NotificationRepository;
 import com.clinic.backend.patient.Patient;
@@ -38,6 +40,8 @@ class MultiTenancyTest {
     @Autowired NotificationRepository notificationRepository;
     @Autowired AuditLogRepository auditLogRepository;
     @Autowired RadiologyRequestRepository radiologyRequestRepository;
+    @Autowired RoomRepository roomRepository;
+    @Autowired HospitalizationRepository hospitalizationRepository;
 
     private Long clinic1() { return clinicRepository.findByCodeIgnoreCase("CENTRALE").orElseThrow().getId(); }
     private Long clinic2() { return clinicRepository.findByCodeIgnoreCase("PLATEAU").orElseThrow().getId(); }
@@ -76,6 +80,11 @@ class MultiTenancyTest {
         long matC2   = TenantContext.callAs(clinic2(), () -> maternityRecordRepository.count());
         long radC1   = TenantContext.callAs(clinic1(), () -> radiologyRequestRepository.count());
         long radC2   = TenantContext.callAs(clinic2(), () -> radiologyRequestRepository.count());
+        // CENTRALE porte les 8 chambres (seedées V10, rétro-remplies V28) + 1 séjour ; PLATEAU aucune.
+        long roomC1  = TenantContext.callAs(clinic1(), () -> roomRepository.count());
+        long roomC2  = TenantContext.callAs(clinic2(), () -> roomRepository.count());
+        long hospC1  = TenantContext.callAs(clinic1(), () -> hospitalizationRepository.count());
+        long hospC2  = TenantContext.callAs(clinic2(), () -> hospitalizationRepository.count());
 
         assertThat(stockC1).isGreaterThan(0);
         assertThat(stockC2).isZero();
@@ -83,6 +92,10 @@ class MultiTenancyTest {
         assertThat(matC2).isZero();
         assertThat(radC1).isGreaterThan(0);
         assertThat(radC2).isZero();
+        assertThat(roomC1).isGreaterThan(0);
+        assertThat(roomC2).isZero();
+        assertThat(hospC1).isGreaterThan(0);
+        assertThat(hospC2).isZero();
     }
 
     @Test

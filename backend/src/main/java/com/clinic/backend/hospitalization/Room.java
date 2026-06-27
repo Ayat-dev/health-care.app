@@ -2,6 +2,7 @@ package com.clinic.backend.hospitalization;
 
 import com.clinic.backend.department.Department;
 import jakarta.persistence.*;
+import org.hibernate.annotations.TenantId;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,7 +17,10 @@ import java.time.LocalDateTime;
  * frees a bed simply by flipping the hospitalization status.
  */
 @Entity
-@Table(name = "rooms")
+// Multi-tenant (P4.2) : numéro de chambre unique PAR clinique (deux cliniques peuvent réutiliser « 101 »).
+// L'UNIQUE global d'origine (V10) est remplacé par cet UNIQUE composite dans la migration V28.
+@Table(name = "rooms", uniqueConstraints = @UniqueConstraint(name = "uq_rooms_clinic_number",
+        columnNames = {"clinic_id", "room_number"}))
 @Getter @Setter @NoArgsConstructor
 public class Room {
 
@@ -24,7 +28,12 @@ public class Room {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "room_number", nullable = false, unique = true, length = 20)
+    /** Discriminant multi-tenant (P4.2) — rempli par Hibernate à l'insert depuis le tenant courant. */
+    @TenantId
+    @Column(name = "clinic_id")
+    private Long clinicId;
+
+    @Column(name = "room_number", nullable = false, length = 20)
     private String roomNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
