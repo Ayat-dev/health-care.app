@@ -13,7 +13,6 @@
             <span class="badge badge-blue" th:text="${stay.patientRecordNumber}">PAT-…</span>
             <span class="badge" th:classappend="'badge-' + ${stay.status}" th:text="${stay.status}">ADMIS</span>
         </span>
-        <a th:href="@{/hospitalization}" class="btn btn-ghost btn-sm">← Plan des lits</a>
     </div>
     <div class="form-grid-2" style="padding:12px 16px;">
         <div><span class="detail-label">Chambre</span>
@@ -81,10 +80,9 @@
     </div>
 </div>
 
-<div style="margin-top:16px;">
-    <a th:if="${stay.patientId != null}" th:href="@{/patients/{id}(id=${stay.patientId})}"
-       class="btn btn-ghost">Dossier patient</a>
-    <a th:href="@{/hospitalization/list}" class="btn btn-ghost">Liste des séjours</a>
+<!-- Fil d'Ariane + onglets de module couvrent le retour ; on garde le lien latéral vers le dossier patient. -->
+<div th:if="${stay.patientId != null}" style="margin-top:16px;">
+    <a th:href="@{/patients/{id}(id=${stay.patientId})}" class="btn btn-ghost">Dossier patient</a>
 </div>
 
 </th:block></body>

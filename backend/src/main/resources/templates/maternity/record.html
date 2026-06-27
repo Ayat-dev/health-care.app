@@ -38,12 +38,12 @@
          th:text="${(a.level == 'RED' ? '⚠ ' : '• ') + a.message}">Alerte</div>
 </div>
 
-<!-- Onglets -->
-<div class="tabs" style="margin-top:16px;">
-    <button class="tab active" onclick="showTab('pregnancy')">Grossesse</button>
-    <button class="tab" onclick="showTab('visits')">Consultations CPN</button>
-    <button class="tab" onclick="showTab('delivery')">Accouchement</button>
-    <button class="tab" onclick="showTab('newborn')">Nouveau-né</button>
+<!-- Onglets (deep-linkables via #hash + ARIA — même patron que le dossier patient) -->
+<div class="tabs" role="tablist" aria-label="Sections du dossier maternité" style="margin-top:16px;">
+    <button class="tab active" role="tab" aria-selected="true" data-tab="pregnancy">Grossesse</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="visits">Consultations CPN</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="delivery">Accouchement</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="newborn">Nouveau-né</button>
 </div>
 
 <!-- Grossesse -->
@@ -135,19 +135,37 @@
     </div>
 </div>
 
-<div style="margin-top:16px;">
-    <a th:href="@{/maternity}" class="btn btn-ghost">← Liste des grossesses</a>
-    <a th:if="${record.patientId != null}" th:href="@{/patients/{id}(id=${record.patientId})}"
-       class="btn btn-ghost">Dossier patient</a>
+<!-- Le fil d'Ariane couvre le retour au module ; on garde le lien latéral vers le dossier patient (cf. lot Consultations). -->
+<div th:if="${record.patientId != null}" style="margin-top:16px;">
+    <a th:href="@{/patients/{id}(id=${record.patientId})}" class="btn btn-ghost">Dossier patient</a>
 </div>
 
 <script>
-function showTab(name) {
-    document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('tab-' + name).style.display = 'block';
-    event.target.classList.add('active');
-}
+(function () {
+    const tabs = Array.from(document.querySelectorAll('.tab[data-tab]'));
+    const panels = Array.from(document.querySelectorAll('.tab-content'));
+    panels.forEach(p => p.setAttribute('role', 'tabpanel'));
+
+    function activate(name, updateHash) {
+        const panel = document.getElementById('tab-' + name);
+        if (!panel) return;
+        panels.forEach(p => p.style.display = 'none');
+        tabs.forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+        panel.style.display = 'block';
+        const btn = tabs.find(t => t.dataset.tab === name);
+        if (btn) { btn.classList.add('active'); btn.setAttribute('aria-selected', 'true'); }
+        if (updateHash && location.hash !== '#' + name) {
+            history.replaceState(null, '', '#' + name);
+        }
+    }
+
+    tabs.forEach(t => t.addEventListener('click', () => activate(t.dataset.tab, true)));
+    window.addEventListener('hashchange', () => activate((location.hash || '#pregnancy').slice(1), false));
+
+    // Restaure l'onglet depuis l'URL (#visits, #delivery…) : lien partageable + survit au rechargement.
+    const initial = (location.hash || '#pregnancy').slice(1);
+    activate(document.getElementById('tab-' + initial) ? initial : 'pregnancy', false);
+})();
 </script>
 
 </th:block></body>

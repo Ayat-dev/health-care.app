@@ -39,7 +39,7 @@
                 <td th:text="${s.batchNumber ?: '—'}">LOT</td>
                 <td th:text="${s.expiryDate != null ? #temporals.format(s.expiryDate,'dd/MM/yyyy') : '—'}">01/01/2027</td>
                 <td style="text-align:right;"><strong th:text="${s.quantity}">0</strong>
-                    <span th:if="${s.drugUnit}" style="color:#94a3b8;" th:text="' ' + ${s.drugUnit}"></span>
+                    <span th:if="${s.drugUnit}" style="color:var(--text-500);" th:text="' ' + ${s.drugUnit}"></span>
                 </td>
                 <td style="text-align:right;" th:text="${s.quantityAlert}">10</td>
                 <td style="text-align:right;"

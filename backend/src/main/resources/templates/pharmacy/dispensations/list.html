@@ -34,7 +34,7 @@
                 <td th:text="${d.patientName ?: '—'}">Patient</td>
                 <td>
                     <span th:if="${d.prescriptionNumber}" class="badge badge-blue" th:text="${d.prescriptionNumber}">ORD</span>
-                    <span th:unless="${d.prescriptionNumber}" style="color:#94a3b8;">Vente libre</span>
+                    <span th:unless="${d.prescriptionNumber}" style="color:var(--text-500);">Vente libre</span>
                 </td>
                 <td th:text="${d.pharmacistName ?: '—'}">Pharmacien</td>
                 <td style="text-align:right;"

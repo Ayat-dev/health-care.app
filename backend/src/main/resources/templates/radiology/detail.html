@@ -76,7 +76,7 @@
                 <p style="white-space:pre-line;" th:text="${request.findings ?: '—'}">—</p></div>
             <div><div class="detail-label">Conclusion</div>
                 <p style="white-space:pre-line;" th:text="${request.conclusion ?: '—'}">—</p></div>
-            <p style="margin-top:10px; color:#475569; font-size:13px;">
+            <p style="margin-top:10px; color:var(--text-500); font-size:13px;">
                 Rédigé par <strong th:text="${request.radiologistName ?: '—'}">Dr.</strong>
                 <span th:if="${request.validatedByName != null}">
                     · Validé par <strong th:text="${request.validatedByName}">Dr.</strong>
@@ -95,17 +95,17 @@
         <div th:if="${request.images.isEmpty()}" class="empty-state">Aucune image attachée.</div>
         <div th:unless="${request.images.isEmpty()}" class="radio-gallery">
             <figure th:each="img : ${request.images}" class="radio-thumb">
-                <a th:href="${img.url}" target="_blank"><img th:src="${img.url}" alt="Image"/></a>
+                <a th:href="${img.url}" target="_blank"><img th:src="${img.url}"
+                   th:alt="${(img.caption != null and !img.caption.isEmpty()) ? img.caption : 'Image radiologique'}"/></a>
                 <figcaption th:text="${img.caption ?: ''}"></figcaption>
             </figure>
         </div>
     </div>
 </div>
 
-<div style="margin-top:16px;">
-    <a th:href="@{/radiology}" class="btn btn-ghost">← Travail du jour</a>
-    <a th:if="${request.patientId != null}" th:href="@{/patients/{id}(id=${request.patientId})}"
-       class="btn btn-ghost">Dossier patient</a>
+<!-- Fil d'Ariane + onglets de module couvrent le retour ; on garde le lien latéral vers le dossier patient. -->
+<div th:if="${request.patientId != null}" style="margin-top:16px;">
+    <a th:href="@{/patients/{id}(id=${request.patientId})}" class="btn btn-ghost">Dossier patient</a>
 </div>
 
 </th:block></body>

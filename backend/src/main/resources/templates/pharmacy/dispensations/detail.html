@@ -13,7 +13,7 @@
     <div style="padding:16px 20px; display:grid; grid-template-columns:repeat(2,1fr); gap:12px;">
         <div><span style="color:#64748b;">Patient :</span>
             <strong th:text="${dispensation.patientName}">Patient</strong>
-            <span th:if="${dispensation.patientRecordNumber}" style="color:#94a3b8;"
+            <span th:if="${dispensation.patientRecordNumber}" style="color:var(--text-500);"
                   th:text="' · ' + ${dispensation.patientRecordNumber}"></span>
         </div>
         <div><span style="color:#64748b;">Date :</span>

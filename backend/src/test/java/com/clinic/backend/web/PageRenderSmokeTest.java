@@ -166,4 +166,41 @@ class PageRenderSmokeTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("← Retour")));
     }
+
+    /** Dossier maternité (polish P6 WS5) : onglets refondus en patron deep-linkable + ARIA
+     *  (role=tablist / data-tab), comme le dossier patient — fin du global {@code event}. */
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void dossier_maternite_rend_onglets_aria() throws Exception {
+        mvc.perform(get("/maternity/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("role=\"tablist\"")))
+                .andExpect(content().string(containsString("data-tab=\"visits\"")));
+    }
+
+    /** Détail séjour : exerce le bloc actions (transfert/sortie) après retrait de la
+     *  cross-nav d'en-tête (couverte par fil d'Ariane + onglets, P6 WS5 polish). */
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void detail_sejour_rend_200() throws Exception {
+        mvc.perform(get("/hospitalization/1")).andExpect(status().isOk());
+    }
+
+    /** Détail demande labo : exerce le tableau résultats + le lien latéral dossier patient. */
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void detail_demande_labo_rend_200() throws Exception {
+        mvc.perform(get("/lab/requests/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Analyses &amp; résultats")));
+    }
+
+    /** Détail demande imagerie : exerce le compte-rendu + la galerie d'images (th:alt). */
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void detail_demande_imagerie_rend_200() throws Exception {
+        mvc.perform(get("/radiology/requests/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Compte-rendu")));
+    }
 }

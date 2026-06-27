@@ -254,6 +254,18 @@
       remplacées par les onglets persistants, seules les vraies actions (« + Nouvelle demande », « + Admettre »,
       « + Nouvelle chambre ») restent. Maternité = page unique (`/maternity`) → pas d'onglets. 2 tests de rendu
       ajoutés (sous-nav labo active + 3 onglets hospitalisation). `mvnd test` 162/162.
+- [x] **Polish esthétique fin — détails secondaires + Maternité (2026-06-27)** : guidé par
+      `docs/UX-GUIDELINES.md`. (a) **Maternité** `record.html` : onglets refondus en patron **deep-linkable
+      (`#hash`) + ARIA** (`role=tablist`/`tab`/`tabpanel`, `aria-selected`), **fin du `showTab` à `event`
+      global** (alignement sur le dossier patient lot 4) ; back-link « ← Liste des grossesses » retiré (fil
+      d'Ariane), lien « Dossier patient » conservé. (b) **Cross-nav redondante d'en-tête/pied retirée** sur
+      `hospitalization/detail` (« ← Plan des lits », « Liste des séjours »), `lab/detail` (« ← Travail du
+      jour »), `radiology/detail` (idem) — couverte par fil d'Ariane + `ModuleTabs` ; lien latéral « Dossier
+      patient » gardé. (c) **Correctifs contraste WCAG AA** : remplacement du gris `#94a3b8` (≈2.8:1, échec AA)
+      par `var(--text-500)` sur 4 textes en surimpression (`maternity/form` aide DPA, `pharmacy/stock` unité,
+      `pharmacy/dispensations/{detail,list}`) + 2 légendes `#475569`→token (`lab/detail`, `radiology/detail`).
+      (d) `alt` d'image radiologique descriptif (légende sinon « Image radiologique »). 4 tests de rendu
+      ajoutés (`PageRenderSmokeTest` : tablist maternité + détails séjour/labo/imagerie). `mvnd test` 167/167.
 - **Critère d'acceptation (atteint pour la nav)** : depuis n'importe quelle sous-vue, retour au tableau de
   bord du module **et** à l'accueil en ≤ 1 clic, sans recliquer la sidebar. ✅ (fil d'Ariane).
 
@@ -295,6 +307,7 @@ chargement du skill. Le skill reste invocable à la demande pour un lot de polis
 
 | Date | Chantier | Résultat |
 |---|---|---|
+| 2026-06-27 | WS5 polish fin | **Détails secondaires + Maternité** (guidé par `docs/UX-GUIDELINES.md`). Maternité `record` : onglets deep-linkables + ARIA (fin du `event` global). Cross-nav d'en-tête/pied retirée sur `hospitalization/detail`, `lab/detail`, `radiology/detail` (couverte par fil d'Ariane + tabs ; lien « Dossier patient » gardé). Contraste WCAG AA : `#94a3b8`→`var(--text-500)` sur 4 textes (échec AA ≈2.8:1) + 2 légendes `#475569`→token. `alt` image radio descriptif. 4 tests de rendu ajoutés. `mvnd test` 167/167. |
 | 2026-06-27 | WS5 §6 + Couche 1 | **Clôture WS5.** (a) Bouton **Retour** : case `[~]`→`[x]` (fragment `fragments/ui :: back/backHistory` déjà livré sur 7 templates, 2 smoke tests — checkbox périmée). (b) **`docs/UX-GUIDELINES.md` créé** : principes UX durables distillés du skill `ui-ux-pro-max` (consulté → valide notre système à l'identique : Data-Dense Dashboard, `#2563EB`/`#059669`, WCAG AA), ancrés sur les tokens/classes réels d'`app.css` ; renvoi ajouté dans `CLAUDE.md`. §6 passé en ✅. |
 | 2026-06-26 | WS5 c2 polish | **Catalogues admin.** Cohérence monétaire (Actes/Analyses) : tarifs bruts → convention app `WHITESPACE` + ` F` ; colonnes numériques (tarif/délai/prise en charge) alignées à droite via utilitaire `.text-right` (app.css). Pages admin = entrées sidebar distinctes → pas de `ModuleTabs` (fil d'Ariane suffit). 1 smoke test. `mvnd test` 163/163. |
 | 2026-06-26 | WS5 c2 polish | **Modules secondaires.** Sous-nav `ModuleTabs` câblée pour Labo (Travail du jour/Demandes), Imagerie (idem) et Hospitalisation (Plan des lits/Séjours/Chambres) ; i18n FR/EN/AR. Cross-nav des en-têtes retirée (remplacée par les onglets), seules les vraies actions conservées. Maternité = page unique → pas d'onglets. 2 tests de rendu ajoutés. `mvnd test` 162/162. |
