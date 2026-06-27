@@ -1,14 +1,16 @@
 package com.clinic.backend.clinicconfig;
 
 import com.clinic.backend.dto.ClinicConfigDto;
+import com.clinic.backend.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Reads and updates the single {@link ClinicConfig} row. If the seed row is ever
- * missing (e.g. a wiped dev DB before V4 ran), a default one is created on demand
- * so callers never have to deal with an absent config.
+ * Reads and updates the {@link ClinicConfig} row of the <b>current clinic</b> (multi-tenant P4.2).
+ * If a clinic has no config yet, a default one is created on demand so callers never deal with an
+ * absent config. Hors contexte clinique (SUPER_ADMIN / tâche sans tenant), renvoie un défaut
+ * transitoire non persisté (jamais de clinic_id sentinelle en base).
  */
 @Service
 @RequiredArgsConstructor
@@ -19,10 +21,18 @@ public class ClinicConfigService {
 
     @Transactional(readOnly = true)
     public ClinicConfig getConfig() {
-        return clinicConfigRepository.findFirstByOrderByIdAsc()
+        Long clinicId = TenantContext.currentClinicId();
+        if (clinicId == null) {
+            // Aucune clinique courante → défaut transitoire (non sauvegardé).
+            ClinicConfig c = new ClinicConfig();
+            c.setName("ClinicApp");
+            return c;
+        }
+        return clinicConfigRepository.findByClinicId(clinicId)
                 .orElseGet(() -> {
                     ClinicConfig c = new ClinicConfig();
                     c.setName("ClinicApp");
+                    c.setClinicId(clinicId);
                     return clinicConfigRepository.save(c);
                 });
     }

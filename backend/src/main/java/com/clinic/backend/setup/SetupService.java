@@ -94,9 +94,10 @@ public class SetupService {
         admin.setActive(true);
         userRepository.save(admin);
 
-        // 3) Identité + modules dans le singleton clinic_config.
-        ClinicConfig config = clinicConfigRepository.findFirstByOrderByIdAsc()
+        // 3) Identité + modules dans la config de CETTE clinique (P4.2 : une par clinique).
+        ClinicConfig config = clinicConfigRepository.findByClinicId(clinic.getId())
                 .orElseGet(ClinicConfig::new);
+        config.setClinicId(clinic.getId());
         config.setName(form.getClinicName().trim());
         config.setAddress(trimToNull(form.getClinicAddress()));
         config.setPhone(trimToNull(form.getClinicPhone()));

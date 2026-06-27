@@ -7,4 +7,7 @@ import java.util.Optional;
 public interface ClinicConfigRepository extends JpaRepository<ClinicConfig, Long> {
 
     Optional<ClinicConfig> findFirstByOrderByIdAsc();
+
+    /** Config de la clinique courante (P4.2) — une par clinique (UNIQUE clinic_id). */
+    Optional<ClinicConfig> findByClinicId(Long clinicId);
 }

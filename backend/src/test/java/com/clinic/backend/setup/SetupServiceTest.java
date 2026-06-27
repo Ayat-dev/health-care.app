@@ -80,7 +80,7 @@ class SetupServiceTest {
         when(userRepository.existsByUsername("admin")).thenReturn(false);
         when(clinicRepository.findByCodeIgnoreCase("PRINCIPALE")).thenReturn(Optional.empty());
         when(clinicRepository.save(any(Clinic.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(clinicConfigRepository.findFirstByOrderByIdAsc()).thenReturn(Optional.empty());
+        when(clinicConfigRepository.findByClinicId(any())).thenReturn(Optional.empty());
         when(passwordEncoder.encode("motdepasse1")).thenReturn("HASH");
 
         SetupForm f = validForm();

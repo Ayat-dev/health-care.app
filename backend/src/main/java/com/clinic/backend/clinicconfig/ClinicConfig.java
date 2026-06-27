@@ -8,9 +8,13 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 /**
- * Singleton row holding the clinic's identity, payment options and feature flags.
- * There is always exactly one row (seeded in V4); {@code ClinicConfigService}
- * reads and updates it in place.
+ * One row per clinic (multi-tenant P4.2) holding that clinic's identity, payment options and
+ * feature flags. {@code ClinicConfigService} reads/updates the row of the <b>current</b> clinic.
+ * <p>
+ * Cloisonnement <b>applicatif</b> (colonne {@code clinic_id} simple, résolue via
+ * {@code TenantContext}) plutôt que {@code @TenantId} Hibernate : le singleton est créé à la volée
+ * et à l'installation (hors contexte de requête / de session avec tenant), ce qui se prête mal au
+ * timing de résolution du tenant à l'ouverture de session. Même approche que {@code users.clinic_id}.
  */
 @Entity
 @Table(name = "clinic_config")
@@ -20,6 +24,10 @@ public class ClinicConfig {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /** Clinique propriétaire (P4.2) — une config par clinique. Cloisonnement applicatif. */
+    @Column(name = "clinic_id", nullable = false)
+    private Long clinicId;
 
     // ── Identité ────────────────────────────────────────────────────────────
     @Column(nullable = false, length = 150)

@@ -2,6 +2,8 @@ package com.clinic.backend;
 
 import com.clinic.backend.audit.AuditLog;
 import com.clinic.backend.audit.AuditLogRepository;
+import com.clinic.backend.clinicconfig.ClinicConfig;
+import com.clinic.backend.clinicconfig.ClinicConfigService;
 import com.clinic.backend.hospitalization.HospitalizationRepository;
 import com.clinic.backend.hospitalization.RoomRepository;
 import com.clinic.backend.maternity.MaternityRecordRepository;
@@ -42,6 +44,7 @@ class MultiTenancyTest {
     @Autowired RadiologyRequestRepository radiologyRequestRepository;
     @Autowired RoomRepository roomRepository;
     @Autowired HospitalizationRepository hospitalizationRepository;
+    @Autowired ClinicConfigService clinicConfigService;
 
     private Long clinic1() { return clinicRepository.findByCodeIgnoreCase("CENTRALE").orElseThrow().getId(); }
     private Long clinic2() { return clinicRepository.findByCodeIgnoreCase("PLATEAU").orElseThrow().getId(); }
@@ -115,6 +118,18 @@ class MultiTenancyTest {
         });
         assertThat(TenantContext.callAs(clinic2(), () -> auditLogRepository.count())).isEqualTo(auditC2Avant);
         assertThat(TenantContext.callAs(clinic1(), () -> auditLogRepository.count())).isGreaterThan(0);
+    }
+
+    @Test
+    void config_clinique_resolue_et_distincte_par_tenant() {
+        // Chaque clinique obtient SA config (P4.2) : CENTRALE = la ligne seedée (V4→V29),
+        // PLATEAU = une config créée à la demande sous son tenant. Deux lignes distinctes.
+        ClinicConfig c1 = TenantContext.callAs(clinic1(), () -> clinicConfigService.getConfig());
+        ClinicConfig c2 = TenantContext.callAs(clinic2(), () -> clinicConfigService.getConfig());
+
+        assertThat(c1.getClinicId()).isEqualTo(clinic1());
+        assertThat(c2.getClinicId()).isEqualTo(clinic2());
+        assertThat(c1.getId()).isNotEqualTo(c2.getId());
     }
 
     @Test
