@@ -199,9 +199,12 @@
       plus long préfixe d'URL) ; `base.html` rend la barre `.module-tabs` sous le fil d'Ariane ;
       i18n FR/EN/AR. **1er module câblé : Pharmacie** (Tableau de bord · Médicaments · Stock · Dispensations ·
       File ordonnances). Testé (`BreadcrumbNavigationTest`). Autres modules = ajouter une entrée au registre.
-- [~] Bouton **Retour** : les formulaires/détails pharmacie ont déjà des affordances cohérentes (« Annuler »
-      → liste, « ← Historique »), désormais doublées par fil d'Ariane + onglets. Un fragment Retour générique
-      reste à généraliser aux autres modules en Couche 2.
+- [x] Bouton **Retour** généralisé : fragment réutilisable dans `templates/fragments/ui.html` —
+      `back(href)` (retour in-app vers une URL connue) + `backHistory` (`history.back()` pour les pages
+      d'impression autonomes). Appliqué à 7 templates : `patients/detail`, `lab/result-entry`,
+      `radiology/report-form` (in-app) + `prescriptions/print`, `lab/bulletin`, `radiology/bulletin`,
+      `billing/invoices/receipt` (toolbars d'impression). 2 smoke tests. Les affordances pharmacie existantes
+      (« Annuler » → liste) restent, désormais doublées par fil d'Ariane + onglets.
 
 **Couche 2 — polish UX par lot (skill `ui-ux-pro-max`)**
 - [x] **Lot 1 — Pharmacie** : skill `ui-ux-pro-max` consulté (style « Data-Dense Dashboard », palette
@@ -256,23 +259,20 @@
 
 ---
 
-## 6. Adopter le skill `ui-ux-pro-max`
+## 6. Adopter le skill `ui-ux-pro-max` — ✅ FAIT (2026-06-27)
 
-**Constat 2026-06-25** : recherche dans `~/.claude/skills`, `~/.claude/plugins` (+ marketplaces) et dans le
-repo → **le skill `ui-ux-pro-max` est introuvable / non détecté**. Claude ne peut invoquer qu'un skill *surfacé*
-au démarrage de session ; tel quel, il **ne peut pas** l'utiliser.
+**Constat initial 2026-06-25** : le skill était introuvable/non surfacé → non invocable.
 
-**Pour le rendre adoptable (au choix)** :
-1. **Vérifier l'emplacement** : un skill personnel doit être à
-   `~/.claude/skills/ui-ux-pro-max/SKILL.md` (ou fourni par un plugin installé). Confirmer ce chemin.
-2. **Redémarrer la session** Claude Code après installation : les skills sont chargés à l'ouverture.
-   Une fois surfacé, il s'invoque via `/ui-ux-pro-max` (ou Claude l'appelle via l'outil Skill).
-3. **Le plus fiable / durable** : copier ses principes directeurs dans le repo
-   (`docs/UX-GUIDELINES.md`, et un renvoi depuis `CLAUDE.md`) pour qu'**ils soient en contexte à chaque
-   session** sans dépendre du chargement d'un skill. *Recommandé* pour WS5.
+**Résolu (2026-06-27)** : le skill est désormais surfacé (`~/.claude/skills/ui-ux-pro-max`) et a été
+consulté pour « healthcare clinic management dashboard / data-dense ». **Sa reco valide notre système
+existant à l'identique** (style « Data-Dense Dashboard », primaire `#2563EB`, accent vert `#059669`,
+statuts green/amber/red, WCAG AA) — aucun pivot, on confirme le cap.
 
-> **Action à clarifier avec l'utilisateur** : fournir le chemin du skill **ou** coller son contenu, afin de
-> l'intégrer en `docs/UX-GUIDELINES.md`.
+**Option durable retenue (la n°3)** : ses principes directeurs sont distillés dans **`docs/UX-GUIDELINES.md`**
+(accessibilité → interaction → layout → typo/couleur → tables denses → formulaires → iconographie → nav →
+impression + checklist de livraison + pièges Thymeleaf), **ancrés sur les tokens/classes réels d'`app.css`**.
+Renvoi ajouté depuis `CLAUDE.md` (§ Design system) → en contexte à **chaque** session sans dépendre du
+chargement du skill. Le skill reste invocable à la demande pour un lot de polish ciblé.
 
 ---
 
@@ -295,6 +295,7 @@ au démarrage de session ; tel quel, il **ne peut pas** l'utiliser.
 
 | Date | Chantier | Résultat |
 |---|---|---|
+| 2026-06-27 | WS5 §6 + Couche 1 | **Clôture WS5.** (a) Bouton **Retour** : case `[~]`→`[x]` (fragment `fragments/ui :: back/backHistory` déjà livré sur 7 templates, 2 smoke tests — checkbox périmée). (b) **`docs/UX-GUIDELINES.md` créé** : principes UX durables distillés du skill `ui-ux-pro-max` (consulté → valide notre système à l'identique : Data-Dense Dashboard, `#2563EB`/`#059669`, WCAG AA), ancrés sur les tokens/classes réels d'`app.css` ; renvoi ajouté dans `CLAUDE.md`. §6 passé en ✅. |
 | 2026-06-26 | WS5 c2 polish | **Catalogues admin.** Cohérence monétaire (Actes/Analyses) : tarifs bruts → convention app `WHITESPACE` + ` F` ; colonnes numériques (tarif/délai/prise en charge) alignées à droite via utilitaire `.text-right` (app.css). Pages admin = entrées sidebar distinctes → pas de `ModuleTabs` (fil d'Ariane suffit). 1 smoke test. `mvnd test` 163/163. |
 | 2026-06-26 | WS5 c2 polish | **Modules secondaires.** Sous-nav `ModuleTabs` câblée pour Labo (Travail du jour/Demandes), Imagerie (idem) et Hospitalisation (Plan des lits/Séjours/Chambres) ; i18n FR/EN/AR. Cross-nav des en-têtes retirée (remplacée par les onglets), seules les vraies actions conservées. Maternité = page unique → pas d'onglets. 2 tests de rendu ajoutés. `mvnd test` 162/162. |
 | 2026-06-25 | Doc | Création de ce plan ; constats code vérifiés ; décisions D1–D3 verrouillées ; rien d'implémenté encore. |

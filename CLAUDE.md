@@ -119,6 +119,10 @@ Use `@PreAuthorize("hasRole('ADMIN')")` on controller methods for role checks.
 CSS is in `backend/src/main/resources/static/css/app.css`.  
 Style: clean medical, dark sidebar (`#0f172a`), white surfaces, blue/green accents.
 
+> **UX principles:** read **`docs/UX-GUIDELINES.md`** before any UI work — durable directing
+> principles (layout, typography, data-dense tables, forms, interaction states, accessibility,
+> Thymeleaf pitfalls) distilled from the `ui-ux-pro-max` skill and grounded in `app.css` tokens.
+
 **Key CSS classes to use in templates:**
 - Layout: `.layout`, `.sidebar`, `.main`, `.topbar`, `.page-content`
 - Navigation: `.nav-item`, `.nav-item.active`, `.nav-section`
