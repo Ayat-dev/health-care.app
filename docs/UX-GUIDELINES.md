@@ -94,6 +94,9 @@ dans `:root`). **Ne pas régresser.**
   `.num` + l'alignement à droite `.text-right`.
 - **Tokens sémantiques, pas de hex brut** dans les templates : référencer `--blue` / `--green` / `--red`
   / `--amber` (et leurs `*-light`), jamais `#2563eb` en dur dans une vue.
+- **Utilitaires de texte** (au lieu d'un `style="color:…"` répété) : `.text-muted` (texte secondaire —
+  légendes, unités, méta ; `var(--text-500)`, AA-safe) et `.text-danger` (montant dû / impayé / échéance ;
+  `var(--red-strong)` = rouge assombri qui reste ≥4,5:1, contrairement à `--red` trop clair pour du texte).
 - **Monnaie** : `BigDecimal` côté code ; au rendu, `#numbers.formatDecimal(x, 1, 'WHITESPACE', 2)`
   + suffixe ` F` (convention Niger/XOF), colonne **alignée à droite**. ⚠ le mot-clé milliers est
   `WHITESPACE`, **pas** `SPACE` (sinon 500 au rendu — cf. memory).
@@ -157,6 +160,10 @@ C'est le style retenu (« Data-Dense Dashboard ») : maximiser la lisibilité sa
 - **Localisation active** toujours mise en évidence (`.nav-item.active`, onglet actif).
 - **Deep-linking** : les vues clés sont atteignables par URL ; les onglets du dossier patient survivent
   au rechargement via `#hash`.
+- **Onglets** : logique mutualisée dans **`static/js/ui.js`** (chargé partout, no-op sans onglets). Pour
+  rendre une page à onglets : une barre `.tabs[role=tablist]` de boutons `.tab[data-tab="x"]` + un panneau
+  `#tab-x.tab-content` chacun ; l'onglet par défaut porte la classe `active`. **Aucun JS inline**, aucun
+  `onclick`/`event` global.
 
 ---
 

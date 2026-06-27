@@ -19,7 +19,7 @@
         <div><span class="detail-label">Déjà encaissé</span>
              <span th:text="${#numbers.formatDecimal(invoice.paidAmount,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</span></div>
         <div><span class="detail-label">Reste à payer</span>
-             <strong style="color:#b91c1c;"
+             <strong class="text-danger"
                      th:text="${#numbers.formatDecimal(invoice.balanceDue,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</strong></div>
     </div>
 
@@ -57,7 +57,7 @@
             <div style="font-weight:600; margin-bottom:8px;">Faire scanner ce QR AmanaTa au patient</div>
             <img th:if="${config.amanataQrUrl}" th:src="@{${config.amanataQrUrl}}" alt="QR AmanaTa"
                  style="width:200px;height:200px;object-fit:contain;background:#fff;padding:8px;border-radius:8px;"/>
-            <div th:unless="${config.amanataQrUrl}" style="color:#b91c1c;">
+            <div th:unless="${config.amanataQrUrl}" class="text-danger">
                 Aucun QR AmanaTa configuré — voir Administration → Configuration.
             </div>
             <div th:if="${config.amanataMerchantId}" style="margin-top:8px;">
@@ -68,7 +68,7 @@
             <div style="font-weight:600; margin-bottom:8px;">Faire scanner ce QR MyNITA au patient</div>
             <img th:if="${config.mynitaQrUrl}" th:src="@{${config.mynitaQrUrl}}" alt="QR MyNITA"
                  style="width:200px;height:200px;object-fit:contain;background:#fff;padding:8px;border-radius:8px;"/>
-            <div th:unless="${config.mynitaQrUrl}" style="color:#b91c1c;">
+            <div th:unless="${config.mynitaQrUrl}" class="text-danger">
                 Aucun QR MyNITA configuré — voir Administration → Configuration.
             </div>
             <div th:if="${config.mynitaMerchantId}" style="margin-top:8px;">

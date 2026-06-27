@@ -21,6 +21,7 @@
   --orange-light:#fff7ed;
   --red:         #dc2626;
   --red-light:   #fee2e2;
+  --red-strong:  #b91c1c; /* rouge texte (impayé/échéance) : ≥4.5:1 sur blanc, contrairement à --red */
   --amber:       #d97706;
   --amber-light: #fef9c3;
 
@@ -1515,6 +1516,12 @@ summary:focus-visible {
 .num { font-variant-numeric: tabular-nums; }
 /* Colonne numérique (tarifs, quantités) alignée à droite pour comparer les ordres de grandeur. */
 .text-right { text-align: right; }
+
+/* Utilitaires de texte sémantiques (cf. docs/UX-GUIDELINES.md : tokens, pas de hex brut en vue).
+   .text-muted = texte secondaire (légendes, unités, méta) ; respecte le contraste AA (var(--text-500)).
+   .text-danger = montant dû / impayé / échéance ; rouge assombri pour rester ≥4.5:1 sur blanc. */
+.text-muted  { color: var(--text-500); }
+.text-danger { color: var(--red-strong); }
 
 /* ── Cockpit de pilotage (P6 WS5 c2 — hiérarchie KPI) ─────────────────────── */
 .stat-card-value { font-variant-numeric: tabular-nums; }

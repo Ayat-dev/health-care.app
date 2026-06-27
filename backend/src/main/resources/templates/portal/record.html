@@ -2,7 +2,7 @@
 <body><th:block th:fragment="content">
 
     <h1 style="margin-bottom:4px;" th:text="${patient.fullName}">Patient</h1>
-    <p style="color:var(--text-500); margin-bottom:24px;">
+    <p class="text-muted" style="margin-bottom:24px;">
         Dossier <span th:text="${patient.recordNumber}">—</span>
     </p>
 
@@ -36,7 +36,7 @@
             <div th:unless="${validated.isEmpty()}" th:each="lr : ${validated}" style="margin:0 16px 16px;">
                 <div style="font-weight:600; margin:12px 0 6px;">
                     <span th:text="${lr.requestNumber}">LAB-…</span>
-                    <span style="color:var(--text-500); font-weight:400;"
+                    <span class="text-muted" style="font-weight:400;"
                           th:text="${lr.requestedAt != null ? ' — ' + #temporals.format(lr.requestedAt, 'dd/MM/yyyy') : ''}"></span>
                 </div>
                 <div class="table-wrap">
@@ -69,7 +69,7 @@
             <div th:unless="${validatedRad.isEmpty()}" th:each="rr : ${validatedRad}" style="margin:0 16px 16px;">
                 <div style="font-weight:600; margin:12px 0 6px;">
                     <span th:text="${rr.requestNumber}">RAD-…</span>
-                    <span style="color:var(--text-500); font-weight:400;"
+                    <span class="text-muted" style="font-weight:400;"
                           th:text="${rr.requestedAt != null ? ' — ' + #temporals.format(rr.requestedAt, 'dd/MM/yyyy') : ''}"></span>
                 </div>
                 <p th:if="${rr.conclusion}" style="margin-bottom:4px;">

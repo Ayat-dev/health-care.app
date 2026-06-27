@@ -31,7 +31,7 @@
     <div class="stat-card">
         <div class="stat-card-label">Facturé (part patient)</div>
         <div class="stat-card-value" th:text="${#numbers.formatDecimal(report.totalInvoiced,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</div>
-        <div style="font-size:.8rem; color:#64748b; margin-top:4px;" th:text="${report.invoiceCount} + ' facture(s)'">0</div>
+        <div class="text-muted" style="font-size:.8rem; margin-top:4px;" th:text="${report.invoiceCount} + ' facture(s)'">0</div>
     </div>
     <div class="stat-card">
         <div class="stat-card-label">Encaissé</div>

@@ -76,7 +76,7 @@
                 <p style="white-space:pre-line;" th:text="${request.findings ?: '—'}">—</p></div>
             <div><div class="detail-label">Conclusion</div>
                 <p style="white-space:pre-line;" th:text="${request.conclusion ?: '—'}">—</p></div>
-            <p style="margin-top:10px; color:var(--text-500); font-size:13px;">
+            <p class="text-muted" style="margin-top:10px; font-size:13px;">
                 Rédigé par <strong th:text="${request.radiologistName ?: '—'}">Dr.</strong>
                 <span th:if="${request.validatedByName != null}">
                     · Validé par <strong th:text="${request.validatedByName}">Dr.</strong>

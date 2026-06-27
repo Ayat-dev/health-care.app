@@ -34,12 +34,12 @@
             <tr th:each="s : ${stock}">
                 <td>
                     <strong th:text="${s.drugName}">Médicament</strong>
-                    <span th:if="${s.drugDosage}" style="color:#64748b;" th:text="' · ' + ${s.drugDosage}"></span>
+                    <span th:if="${s.drugDosage}" class="text-muted" th:text="' · ' + ${s.drugDosage}"></span>
                 </td>
                 <td th:text="${s.batchNumber ?: '—'}">LOT</td>
                 <td th:text="${s.expiryDate != null ? #temporals.format(s.expiryDate,'dd/MM/yyyy') : '—'}">01/01/2027</td>
                 <td style="text-align:right;"><strong th:text="${s.quantity}">0</strong>
-                    <span th:if="${s.drugUnit}" style="color:var(--text-500);" th:text="' ' + ${s.drugUnit}"></span>
+                    <span th:if="${s.drugUnit}" class="text-muted" th:text="' ' + ${s.drugUnit}"></span>
                 </td>
                 <td style="text-align:right;" th:text="${s.quantityAlert}">10</td>
                 <td style="text-align:right;"

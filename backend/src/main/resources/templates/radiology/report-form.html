@@ -14,7 +14,7 @@
             <span th:if="${request.priority == 'URGENT'}" class="badge badge-red">URGENT</span>
         </span>
     </div>
-    <div style="padding:8px 16px; color:#475569; font-size:13px;">
+    <div class="text-muted" style="padding:8px 16px; font-size:13px;">
         <div th:if="${request.clinicalInfo}" th:text="'Renseignements : ' + ${request.clinicalInfo}">Renseignements</div>
         <div>Examens :
             <span th:each="it,iter : ${request.items}"

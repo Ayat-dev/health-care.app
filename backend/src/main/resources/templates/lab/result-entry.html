@@ -13,7 +13,7 @@
             <span th:if="${request.priority == 'URGENT'}" class="badge badge-red">URGENT</span>
         </span>
     </div>
-    <div style="padding:8px 16px; color:#475569; font-size:13px;"
+    <div class="text-muted" style="padding:8px 16px; font-size:13px;"
          th:if="${request.notes}" th:text="'Renseignements : ' + ${request.notes}">Renseignements</div>
 </div>
 
@@ -52,7 +52,7 @@
                 </tbody>
             </table>
         </div>
-        <p style="padding:6px 16px; color:#64748b; font-size:12px;">
+        <p class="text-muted" style="padding:6px 16px; font-size:12px;">
             Laissez la valeur vide pour les analyses non encore réalisées. La case « Anormal » est aussi
             cochée automatiquement si la valeur sort des bornes de référence numériques.
         </p>

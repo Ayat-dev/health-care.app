@@ -11,24 +11,24 @@
     </div>
 
     <div style="padding:16px 20px; display:grid; grid-template-columns:repeat(2,1fr); gap:12px;">
-        <div><span style="color:#64748b;">Patient :</span>
+        <div><span class="text-muted">Patient :</span>
             <strong th:text="${dispensation.patientName}">Patient</strong>
-            <span th:if="${dispensation.patientRecordNumber}" style="color:var(--text-500);"
+            <span th:if="${dispensation.patientRecordNumber}" class="text-muted"
                   th:text="' · ' + ${dispensation.patientRecordNumber}"></span>
         </div>
-        <div><span style="color:#64748b;">Date :</span>
+        <div><span class="text-muted">Date :</span>
             <strong th:text="${#temporals.format(dispensation.dispensedAt,'dd/MM/yyyy HH:mm')}">01/01 09:00</strong>
         </div>
-        <div><span style="color:#64748b;">Ordonnance :</span>
+        <div><span class="text-muted">Ordonnance :</span>
             <span th:if="${dispensation.prescriptionNumber}" class="badge badge-blue"
                   th:text="${dispensation.prescriptionNumber}">ORD</span>
             <span th:unless="${dispensation.prescriptionNumber}">Vente libre</span>
         </div>
-        <div><span style="color:#64748b;">Pharmacien :</span>
+        <div><span class="text-muted">Pharmacien :</span>
             <strong th:text="${dispensation.pharmacistName ?: '—'}">Pharmacien</strong>
         </div>
         <div th:if="${dispensation.notes}" style="grid-column:1/3;">
-            <span style="color:#64748b;">Note :</span> <span th:text="${dispensation.notes}">Note</span>
+            <span class="text-muted">Note :</span> <span th:text="${dispensation.notes}">Note</span>
         </div>
     </div>
 </div>

@@ -90,7 +90,7 @@
             <tr>
                 <td colspan="3" style="text-align:right;"><strong>Reste à payer</strong></td>
                 <td style="text-align:right;">
-                    <strong th:style="${invoice.balanceDue.signum() > 0} ? 'color:#b91c1c'"
+                    <strong th:classappend="${invoice.balanceDue.signum() > 0} ? 'text-danger'"
                             th:text="${#numbers.formatDecimal(invoice.balanceDue,1,'WHITESPACE',0,'POINT')}">0</strong>
                 </td>
             </tr>

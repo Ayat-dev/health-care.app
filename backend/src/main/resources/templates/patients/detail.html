@@ -346,34 +346,7 @@
     </div>
 </div>
 
-<script>
-(function () {
-    const tabs = Array.from(document.querySelectorAll('.tab[data-tab]'));
-    const panels = Array.from(document.querySelectorAll('.tab-content'));
-    panels.forEach(p => p.setAttribute('role', 'tabpanel'));
-
-    function activate(name, updateHash) {
-        const panel = document.getElementById('tab-' + name);
-        if (!panel) return;
-        panels.forEach(p => p.style.display = 'none');
-        tabs.forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
-        panel.style.display = 'block';
-        const btn = tabs.find(t => t.dataset.tab === name);
-        if (btn) { btn.classList.add('active'); btn.setAttribute('aria-selected', 'true'); }
-        if (updateHash && location.hash !== '#' + name) {
-            history.replaceState(null, '', '#' + name);
-        }
-    }
-
-    tabs.forEach(t => t.addEventListener('click', () => activate(t.dataset.tab, true)));
-    window.addEventListener('hashchange', () => activate((location.hash || '#overview').slice(1), false));
-
-    // Restaure l'onglet depuis l'URL (#lab, #billing…) : lien partageable + survit au rechargement
-    // (ex. après « Modifier » qui revient sur le dossier).
-    const initial = (location.hash || '#overview').slice(1);
-    activate(document.getElementById('tab-' + initial) ? initial : 'overview', false);
-})();
-</script>
+<!-- Onglets : logique mutualisée dans js/ui.js (deep-link #hash + ARIA). -->
 
 </th:block></body>
 </html>

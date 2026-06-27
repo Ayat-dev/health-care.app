@@ -73,7 +73,7 @@
                         <strong th:text="${it.resultValue} + (${it.unit != null} ? ' ' + ${it.unit} : '')">12.5 g/dL</strong>
                         <span th:if="${it.abnormal}" class="badge badge-red">⚠ Anormal</span>
                     </span>
-                    <span th:unless="${it.resultValue != null}" style="color:var(--text-500);">en attente</span>
+                    <span th:unless="${it.resultValue != null}" class="text-muted">en attente</span>
                 </td>
                 <td th:text="${it.referenceRange ?: (it.catalogReferenceRange ?: '—')}">—</td>
                 <td><span class="badge" th:text="${it.status}">EN_ATTENTE</span></td>
@@ -83,7 +83,7 @@
         </table>
     </div>
     <div th:if="${request.status == 'VALIDE' or request.status == 'LIVRE'}"
-         style="padding:10px 16px; color:var(--text-500); font-size:13px;">
+         class="text-muted" style="padding:10px 16px; font-size:13px;">
         Validé par <strong th:text="${request.items[0].validatedByName ?: '—'}">Dr.</strong>
         <span th:if="${request.items[0].validatedAt != null}"
               th:text="' le ' + ${#temporals.format(request.items[0].validatedAt,'dd/MM/yyyy HH:mm')}"> le —</span>

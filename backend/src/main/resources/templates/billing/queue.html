@@ -49,7 +49,7 @@
                 <td style="text-align:right;" th:text="${#numbers.formatDecimal(inv.patientAmount,1,'WHITESPACE',0,'POINT')}">0</td>
                 <td style="text-align:right;" th:text="${#numbers.formatDecimal(inv.paidAmount,1,'WHITESPACE',0,'POINT')}">0</td>
                 <td style="text-align:right;">
-                    <strong style="color:#b91c1c"
+                    <strong class="text-danger"
                             th:text="${#numbers.formatDecimal(inv.balanceDue,1,'WHITESPACE',0,'POINT')}">0</strong>
                 </td>
                 <td><span class="badge" th:classappend="'badge-' + ${inv.status}" th:text="${inv.status}">EN_ATTENTE</span></td>
