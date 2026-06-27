@@ -12,8 +12,10 @@
     <meta name="theme-color" content="#0f172a"/>
     <link rel="apple-touch-icon" th:href="@{/images/icon.svg}"/>
     <script th:src="@{/js/pwa.js}" defer></script>
+    <script th:src="@{/js/ui.js}" defer></script>
 </head>
 <body>
+<svg th:replace="~{fragments/icons :: sprite}"></svg>
 <div class="portal-shell">
     <header class="portal-header">
         <span class="brand-icon">⚕</span>
@@ -27,6 +29,20 @@
                th:classappend="${#strings.startsWith(currentUri, '/portal/record')} ? 'active'">Mon dossier</a>
         </nav>
         <div class="portal-user">
+            <details class="lang-dropdown">
+                <summary th:title="#{lang.label}">
+                    <svg class="nav-icon" aria-hidden="true"><use href="#ic-globe"></use></svg>
+                    <span th:text="#{${'lang.' + #locale.language}}">Français</span>
+                </summary>
+                <nav class="lang-menu" th:aria-label="#{lang.label}">
+                    <a th:href="@{${currentUri}(lang='fr')}" th:text="#{lang.fr}"
+                       th:classappend="${#locale.language == 'fr'} ? 'active'">Français</a>
+                    <a th:href="@{${currentUri}(lang='en')}" th:text="#{lang.en}"
+                       th:classappend="${#locale.language == 'en'} ? 'active'">English</a>
+                    <a th:href="@{${currentUri}(lang='ar')}" th:text="#{lang.ar}"
+                       th:classappend="${#locale.language == 'ar'} ? 'active'">العربية</a>
+                </nav>
+            </details>
             <span sec:authentication="name">Patient</span>
             <form th:action="@{/logout}" method="post" style="display:inline;">
                 <button type="submit" class="btn btn-ghost btn-sm">Déconnexion</button>

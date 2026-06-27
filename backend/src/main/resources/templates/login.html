@@ -12,6 +12,7 @@
     <meta name="theme-color" content="#0f172a"/>
     <link rel="apple-touch-icon" th:href="@{/images/icon.svg}"/>
     <script th:src="@{/js/pwa.js}" defer></script>
+    <script th:src="@{/js/ui.js}" defer></script>
     <style>
         body {
             margin: 0;
@@ -98,16 +99,12 @@
             font-size: 13px;
             margin-bottom: 16px;
         }
-        .login-lang {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 13px;
-        }
-        .login-lang a { color: #64748b; text-decoration: none; margin: 0 6px; }
-        .login-lang a.active { color: #2563eb; font-weight: 600; }
+        .login-lang { text-align: center; margin-top: 20px; }
+        .login-lang .lang-dropdown { display: inline-block; text-align: start; }
     </style>
 </head>
 <body>
+<svg th:replace="~{fragments/icons :: sprite}"></svg>
 <div class="login-wrapper">
     <div class="login-logo">
         <h1>ClinicApp</h1>
@@ -137,17 +134,25 @@
             <button type="submit" class="btn-login" th:text="#{login.submit}">Se connecter</button>
         </form>
     </div>
-    <nav class="login-lang" th:aria-label="#{lang.label}">
-        <a th:href="@{/login(lang='fr')}" th:text="#{lang.fr}"
-           th:classappend="${#locale.language == 'fr'} ? 'active'"
-           th:aria-current="${#locale.language == 'fr'} ? 'true' : null">Français</a>
-        <a th:href="@{/login(lang='en')}" th:text="#{lang.en}"
-           th:classappend="${#locale.language == 'en'} ? 'active'"
-           th:aria-current="${#locale.language == 'en'} ? 'true' : null">English</a>
-        <a th:href="@{/login(lang='ar')}" th:text="#{lang.ar}"
-           th:classappend="${#locale.language == 'ar'} ? 'active'"
-           th:aria-current="${#locale.language == 'ar'} ? 'true' : null">العربية</a>
-    </nav>
+    <div class="login-lang">
+        <details class="lang-dropdown">
+            <summary th:title="#{lang.label}">
+                <svg class="nav-icon" aria-hidden="true"><use href="#ic-globe"></use></svg>
+                <span th:text="#{${'lang.' + #locale.language}}">Français</span>
+            </summary>
+            <nav class="lang-menu" th:aria-label="#{lang.label}">
+                <a th:href="@{/login(lang='fr')}" th:text="#{lang.fr}"
+                   th:classappend="${#locale.language == 'fr'} ? 'active'"
+                   th:aria-current="${#locale.language == 'fr'} ? 'true' : null">Français</a>
+                <a th:href="@{/login(lang='en')}" th:text="#{lang.en}"
+                   th:classappend="${#locale.language == 'en'} ? 'active'"
+                   th:aria-current="${#locale.language == 'en'} ? 'true' : null">English</a>
+                <a th:href="@{/login(lang='ar')}" th:text="#{lang.ar}"
+                   th:classappend="${#locale.language == 'ar'} ? 'active'"
+                   th:aria-current="${#locale.language == 'ar'} ? 'true' : null">العربية</a>
+            </nav>
+        </details>
+    </div>
 </div>
 </body>
 </html>
