@@ -1,7 +1,9 @@
 package com.clinic.backend;
 
+import com.clinic.backend.maternity.MaternityRecordRepository;
 import com.clinic.backend.patient.Patient;
 import com.clinic.backend.patient.PatientRepository;
+import com.clinic.backend.pharmacy.StockItemRepository;
 import com.clinic.backend.tenant.ClinicRepository;
 import com.clinic.backend.tenant.TenantContext;
 import org.junit.jupiter.api.AfterEach;
@@ -27,6 +29,8 @@ class MultiTenancyTest {
 
     @Autowired PatientRepository patientRepository;
     @Autowired ClinicRepository clinicRepository;
+    @Autowired StockItemRepository stockItemRepository;
+    @Autowired MaternityRecordRepository maternityRecordRepository;
 
     private Long clinic1() { return clinicRepository.findByCodeIgnoreCase("CENTRALE").orElseThrow().getId(); }
     private Long clinic2() { return clinicRepository.findByCodeIgnoreCase("PLATEAU").orElseThrow().getId(); }
@@ -54,6 +58,20 @@ class MultiTenancyTest {
         // Le même id n'est PAS atteignable depuis l'autre clinique (filtre @TenantId sur le find).
         assertThat(TenantContext.callAs(clinic2(), () -> patientRepository.findById(p1Id))).isEmpty();
         assertThat(TenantContext.callAs(clinic1(), () -> patientRepository.findById(p1Id))).isPresent();
+    }
+
+    @Test
+    void stock_et_maternite_cloisonnes_par_clinique() {
+        // CENTRALE (clinic1) porte le stock seedé + un dossier maternité (p1) ; PLATEAU (clinic2) n'en a aucun.
+        long stockC1 = TenantContext.callAs(clinic1(), () -> stockItemRepository.count());
+        long stockC2 = TenantContext.callAs(clinic2(), () -> stockItemRepository.count());
+        long matC1   = TenantContext.callAs(clinic1(), () -> maternityRecordRepository.count());
+        long matC2   = TenantContext.callAs(clinic2(), () -> maternityRecordRepository.count());
+
+        assertThat(stockC1).isGreaterThan(0);
+        assertThat(stockC2).isZero();
+        assertThat(matC1).isGreaterThan(0);
+        assertThat(matC2).isZero();
     }
 
     @Test

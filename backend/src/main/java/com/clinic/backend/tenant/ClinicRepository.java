@@ -12,4 +12,7 @@ public interface ClinicRepository extends JpaRepository<Clinic, Long> {
     boolean existsByCodeIgnoreCase(String code);
 
     List<Clinic> findAllByOrderByNameAsc();
+
+    /** Cliniques actives — itérées par les tâches de fond multi-tenant (schedulers). */
+    List<Clinic> findByActiveTrue();
 }
