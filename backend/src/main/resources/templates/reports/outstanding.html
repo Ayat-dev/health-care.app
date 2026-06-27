@@ -21,7 +21,7 @@
     </div>
 </div>
 
-<div class="panel" style="margin-top:16px;">
+<div class="panel mt-16">
     <div class="panel-header"><span>Détail</span></div>
     <div th:if="${report.invoices.isEmpty()}" class="empty-state">Aucune facture impayée. 🎉</div>
     <div th:unless="${report.invoices.isEmpty()}" class="table-wrap">

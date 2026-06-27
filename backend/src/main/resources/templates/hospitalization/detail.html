@@ -14,7 +14,7 @@
             <span class="badge" th:classappend="'badge-' + ${stay.status}" th:text="${stay.status}">ADMIS</span>
         </span>
     </div>
-    <div class="form-grid-2" style="padding:12px 16px;">
+    <div class="form-grid-2 panel-body">
         <div><span class="detail-label">Chambre</span>
              <span th:text="'Ch. ' + ${stay.roomNumber} + ' (' + ${stay.roomType} + ')'">Ch. 101</span></div>
         <div><span class="detail-label">Service</span> <span th:text="${stay.departmentName ?: '—'}">—</span></div>
@@ -31,9 +31,9 @@
 </div>
 
 <!-- Facturation prévisionnelle -->
-<div class="panel" style="margin-top:16px;">
+<div class="panel mt-16">
     <div class="panel-header"><span>Facturation prévisionnelle (séjour)</span></div>
-    <div class="form-grid-2" style="padding:12px 16px;">
+    <div class="form-grid-2 panel-body">
         <div><span class="detail-label">Tarif journalier</span>
              <span th:text="${stay.dailyRate != null ? #numbers.formatDecimal(stay.dailyRate,1,'WHITESPACE',0,'POINT') + ' F' : '—'}">—</span></div>
         <div><span class="detail-label">Nuits</span> <span th:text="${stay.nights}">1</span></div>
@@ -46,9 +46,9 @@
 </div>
 
 <!-- Actions (séjour en cours) -->
-<div th:if="${stay.status == 'ADMIS'}" class="panel" style="margin-top:16px;">
+<div th:if="${stay.status == 'ADMIS'}" class="panel mt-16">
     <div class="panel-header"><span>Actions</span></div>
-    <div class="form-grid-2" style="padding:12px 16px; align-items:start;">
+    <div class="form-grid-2 panel-body" style="align-items:start;">
 
         <!-- Transfert -->
         <form method="post" th:action="@{/hospitalization/{id}/transfer(id=${stay.id})}">
@@ -81,7 +81,7 @@
 </div>
 
 <!-- Fil d'Ariane + onglets de module couvrent le retour ; on garde le lien latéral vers le dossier patient. -->
-<div th:if="${stay.patientId != null}" style="margin-top:16px;">
+<div th:if="${stay.patientId != null}" class="mt-16">
     <a th:href="@{/patients/{id}(id=${stay.patientId})}" class="btn btn-ghost">Dossier patient</a>
 </div>
 

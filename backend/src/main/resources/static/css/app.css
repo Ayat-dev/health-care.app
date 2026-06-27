@@ -1523,6 +1523,12 @@ summary:focus-visible {
 .text-muted  { color: var(--text-500); }
 .text-danger { color: var(--red-strong); }
 
+/* Espacement — rythme vertical standard (cf. docs/UX-GUIDELINES.md §3 : pas de margin/padding inline ad hoc).
+   .panel-body = corps de contenu d'un panneau (padding standard, pendant de .panel-header).
+   .mt-16 = séparation entre panneaux empilés / rangée d'actions en pied. */
+.panel-body { padding: 12px 16px; }
+.mt-16      { margin-top: 16px; }
+
 /* ── Cockpit de pilotage (P6 WS5 c2 — hiérarchie KPI) ─────────────────────── */
 .stat-card-value { font-variant-numeric: tabular-nums; }
 

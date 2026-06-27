@@ -159,7 +159,7 @@
         <div><span class="detail-label">Médecin référent</span>
              <span th:text="${patient.assignedDoctor != null ? patient.assignedDoctor.fullName : '—'}">—</span></div>
     </div>
-    <div style="margin-top:16px">
+    <div class="mt-16">
         <div class="detail-label">Allergies</div>
         <p th:text="${patient.allergies ?: 'Aucune allergie connue'}">—</p>
     </div>

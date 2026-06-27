@@ -49,7 +49,7 @@
     </div>
 </div>
 
-<div class="panel" style="margin-top:16px;">
+<div class="panel mt-16">
     <div class="panel-header"><span>Consultations par service</span></div>
     <div th:if="${report.consultationsByDepartment.isEmpty()}" class="empty-state">Aucune consultation sur la période.</div>
     <div th:unless="${report.consultationsByDepartment.isEmpty()}" class="table-wrap">

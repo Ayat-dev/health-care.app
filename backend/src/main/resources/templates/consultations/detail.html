@@ -28,7 +28,7 @@
             </form>
         </div>
     </div>
-    <div class="form-grid-2" style="padding:12px 16px;">
+    <div class="form-grid-2 panel-body">
         <div><span class="detail-label">Médecin</span> <span th:text="${consultation.doctorName ?: '—'}">—</span></div>
         <div><span class="detail-label">Service</span> <span th:text="${consultation.departmentName ?: '—'}">—</span></div>
         <div><span class="detail-label">Date</span>
@@ -41,7 +41,7 @@
 <!-- Constantes vitales -->
 <div class="panel">
     <div class="panel-header"><span>Constantes vitales</span></div>
-    <div class="form-grid-2" style="padding:12px 16px;">
+    <div class="form-grid-2 panel-body">
         <div><span class="detail-label">Poids</span> <span th:text="${consultation.weightKg != null ? consultation.weightKg + ' kg' : '—'}">—</span></div>
         <div><span class="detail-label">Taille</span> <span th:text="${consultation.heightCm != null ? consultation.heightCm + ' cm' : '—'}">—</span></div>
         <div><span class="detail-label">Température</span> <span th:text="${consultation.temperatureC != null ? consultation.temperatureC + ' °C' : '—'}">—</span></div>
@@ -56,7 +56,7 @@
 <!-- Clinique -->
 <div class="panel">
     <div class="panel-header"><span>Examen clinique</span></div>
-    <div style="padding:12px 16px;">
+    <div class="panel-body">
         <div style="margin-bottom:10px;"><div class="detail-label">Motif</div><p th:text="${consultation.chiefComplaint ?: '—'}">—</p></div>
         <div style="margin-bottom:10px;"><div class="detail-label">Anamnèse</div><p th:text="${consultation.history ?: '—'}">—</p></div>
         <div style="margin-bottom:10px;"><div class="detail-label">Examen physique</div><p th:text="${consultation.physicalExam ?: '—'}">—</p></div>
@@ -77,7 +77,7 @@
                target="_blank" class="btn btn-primary btn-sm">Imprimer</a>
         </div>
     </div>
-    <div style="padding:12px 16px;">
+    <div class="panel-body">
         <div th:if="${prescription == null}" class="empty-state">Aucune ordonnance pour cette consultation.</div>
         <div th:if="${prescription != null}">
             <p><span class="detail-label">N°</span> <strong th:text="${prescription.prescriptionNumber}">ORD-…</strong>
@@ -103,7 +103,7 @@
      éviter quatre panneaux quasi vides). -->
 <div class="panel">
     <div class="panel-header"><span>Actions cliniques</span></div>
-    <div style="padding:12px 16px; display:flex; flex-wrap:wrap; gap:10px;">
+    <div class="panel-body" style="display:flex; flex-wrap:wrap; gap:10px;">
         <a th:href="@{/lab/requests/new(consultationId=${consultation.id},patientId=${consultation.patientId})}"
            class="btn btn-ghost">🔬 Demander des analyses</a>
         <a th:href="@{/radiology/requests/new(consultationId=${consultation.id},patientId=${consultation.patientId})}"

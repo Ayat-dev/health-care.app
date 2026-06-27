@@ -39,7 +39,7 @@
 </div>
 
 <!-- Onglets (deep-linkables via #hash + ARIA — même patron que le dossier patient) -->
-<div class="tabs" role="tablist" aria-label="Sections du dossier maternité" style="margin-top:16px;">
+<div class="tabs mt-16" role="tablist" aria-label="Sections du dossier maternité">
     <button class="tab active" role="tab" aria-selected="true" data-tab="pregnancy">Grossesse</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="visits">Consultations CPN</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="delivery">Accouchement</button>
@@ -48,7 +48,7 @@
 
 <!-- Grossesse -->
 <div id="tab-pregnancy" class="tab-content active panel">
-    <div class="form-grid-2" style="padding:12px 16px;">
+    <div class="form-grid-2 panel-body">
         <div><span class="detail-label">Suivi par</span> <span th:text="${record.doctorName ?: '—'}">—</span></div>
         <div><span class="detail-label">Gravidité / Parité</span>
              <span th:text="${(record.gravidity ?: '—') + ' G / ' + (record.parity ?: '—') + ' P'}">— G / — P</span></div>
@@ -111,7 +111,7 @@
         <a th:if="${record.status == 'EN_COURS'}" th:href="@{/maternity/{id}/delivery(id=${record.id})}"
            class="btn btn-primary btn-sm" style="margin-left:8px;">Enregistrer l'accouchement</a>
     </div>
-    <div th:unless="${record.deliveryDate == null}" class="form-grid-2" style="padding:12px 16px;">
+    <div th:unless="${record.deliveryDate == null}" class="form-grid-2 panel-body">
         <div><span class="detail-label">Date d'accouchement</span>
              <span th:text="${#temporals.format(record.deliveryDate,'dd/MM/yyyy')}">—</span></div>
         <div><span class="detail-label">Type</span> <span th:text="${record.deliveryType ?: '—'}">—</span></div>
@@ -124,7 +124,7 @@
 <!-- Nouveau-né -->
 <div id="tab-newborn" class="tab-content panel" style="display:none">
     <div th:if="${record.deliveryDate == null}" class="empty-state">Données disponibles après l'accouchement.</div>
-    <div th:unless="${record.deliveryDate == null}" class="form-grid-2" style="padding:12px 16px;">
+    <div th:unless="${record.deliveryDate == null}" class="form-grid-2 panel-body">
         <div><span class="detail-label">Sexe</span> <span th:text="${record.newbornGender ?: '—'}">—</span></div>
         <div><span class="detail-label">Poids de naissance</span>
              <span th:text="${record.newbornWeightG != null ? record.newbornWeightG + ' g' : '—'}">—</span></div>
@@ -136,7 +136,7 @@
 </div>
 
 <!-- Le fil d'Ariane couvre le retour au module ; on garde le lien latéral vers le dossier patient (cf. lot Consultations). -->
-<div th:if="${record.patientId != null}" style="margin-top:16px;">
+<div th:if="${record.patientId != null}" class="mt-16">
     <a th:href="@{/patients/{id}(id=${record.patientId})}" class="btn btn-ghost">Dossier patient</a>
 </div>
 

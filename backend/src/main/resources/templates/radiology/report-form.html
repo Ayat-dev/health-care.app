@@ -45,7 +45,7 @@
 </form>
 
 <!-- Images -->
-<div class="form-card" style="margin-top:16px;">
+<div class="form-card mt-16">
     <div class="panel-header"><span th:text="'Images (' + ${request.imageCount} + ')'">Images</span></div>
 
     <form method="post" th:action="@{/radiology/requests/{id}/images(id=${request.id})}"

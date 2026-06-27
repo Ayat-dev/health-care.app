@@ -38,7 +38,7 @@
             </form>
         </div>
     </div>
-    <div class="form-grid-2" style="padding:12px 16px;">
+    <div class="form-grid-2 panel-body">
         <div><span class="detail-label">Patient</span> <span th:text="${request.patientName}">—</span></div>
         <div><span class="detail-label">Prescripteur</span> <span th:text="${request.doctorName ?: '—'}">—</span></div>
         <div><span class="detail-label">Demandé le</span>
@@ -48,7 +48,7 @@
 </div>
 
 <!-- Examens -->
-<div class="panel" style="margin-top:16px;">
+<div class="panel mt-16">
     <div class="panel-header"><span>Examens demandés</span></div>
     <div class="table-wrap">
         <table class="table">
@@ -67,9 +67,9 @@
 </div>
 
 <!-- Compte-rendu -->
-<div class="panel" style="margin-top:16px;">
+<div class="panel mt-16">
     <div class="panel-header"><span>Compte-rendu</span></div>
-    <div style="padding:12px 16px;">
+    <div class="panel-body">
         <div th:if="${!request.hasReport}" class="empty-state">Aucun compte-rendu saisi.</div>
         <div th:if="${request.hasReport}">
             <div style="margin-bottom:10px;"><div class="detail-label">Résultats / Description</div>
@@ -89,9 +89,9 @@
 </div>
 
 <!-- Images -->
-<div class="panel" style="margin-top:16px;">
+<div class="panel mt-16">
     <div class="panel-header"><span th:text="'Images (' + ${request.imageCount} + ')'">Images</span></div>
-    <div style="padding:12px 16px;">
+    <div class="panel-body">
         <div th:if="${request.images.isEmpty()}" class="empty-state">Aucune image attachée.</div>
         <div th:unless="${request.images.isEmpty()}" class="radio-gallery">
             <figure th:each="img : ${request.images}" class="radio-thumb">
@@ -104,7 +104,7 @@
 </div>
 
 <!-- Fil d'Ariane + onglets de module couvrent le retour ; on garde le lien latéral vers le dossier patient. -->
-<div th:if="${request.patientId != null}" style="margin-top:16px;">
+<div th:if="${request.patientId != null}" class="mt-16">
     <a th:href="@{/patients/{id}(id=${request.patientId})}" class="btn btn-ghost">Dossier patient</a>
 </div>
 

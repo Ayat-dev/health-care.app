@@ -43,7 +43,7 @@
     </div>
 </div>
 
-<div class="panel" style="margin-top:16px;">
+<div class="panel mt-16">
     <div class="panel-header"><span>Encaissements par mode de paiement</span></div>
     <div th:if="${report.collectedByMethod.isEmpty()}" class="empty-state">Aucun encaissement sur la période.</div>
     <div th:unless="${report.collectedByMethod.isEmpty()}" class="table-wrap">
