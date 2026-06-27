@@ -7,6 +7,7 @@ import com.clinic.backend.notification.NotificationRepository;
 import com.clinic.backend.patient.Patient;
 import com.clinic.backend.patient.PatientRepository;
 import com.clinic.backend.pharmacy.StockItemRepository;
+import com.clinic.backend.radiology.RadiologyRequestRepository;
 import com.clinic.backend.tenant.ClinicRepository;
 import com.clinic.backend.tenant.TenantContext;
 import org.junit.jupiter.api.AfterEach;
@@ -36,6 +37,7 @@ class MultiTenancyTest {
     @Autowired MaternityRecordRepository maternityRecordRepository;
     @Autowired NotificationRepository notificationRepository;
     @Autowired AuditLogRepository auditLogRepository;
+    @Autowired RadiologyRequestRepository radiologyRequestRepository;
 
     private Long clinic1() { return clinicRepository.findByCodeIgnoreCase("CENTRALE").orElseThrow().getId(); }
     private Long clinic2() { return clinicRepository.findByCodeIgnoreCase("PLATEAU").orElseThrow().getId(); }
@@ -66,17 +68,21 @@ class MultiTenancyTest {
     }
 
     @Test
-    void stock_et_maternite_cloisonnes_par_clinique() {
-        // CENTRALE (clinic1) porte le stock seedé + un dossier maternité (p1) ; PLATEAU (clinic2) n'en a aucun.
+    void stock_maternite_imagerie_cloisonnes_par_clinique() {
+        // CENTRALE (clinic1) porte stock + dossier maternité + demandes d'imagerie seedés ; PLATEAU (clinic2) aucun.
         long stockC1 = TenantContext.callAs(clinic1(), () -> stockItemRepository.count());
         long stockC2 = TenantContext.callAs(clinic2(), () -> stockItemRepository.count());
         long matC1   = TenantContext.callAs(clinic1(), () -> maternityRecordRepository.count());
         long matC2   = TenantContext.callAs(clinic2(), () -> maternityRecordRepository.count());
+        long radC1   = TenantContext.callAs(clinic1(), () -> radiologyRequestRepository.count());
+        long radC2   = TenantContext.callAs(clinic2(), () -> radiologyRequestRepository.count());
 
         assertThat(stockC1).isGreaterThan(0);
         assertThat(stockC2).isZero();
         assertThat(matC1).isGreaterThan(0);
         assertThat(matC2).isZero();
+        assertThat(radC1).isGreaterThan(0);
+        assertThat(radC2).isZero();
     }
 
     @Test

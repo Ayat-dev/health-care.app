@@ -77,8 +77,14 @@ public interface RadiologyRequestRepository extends JpaRepository<RadiologyReque
         """)
     List<RadiologyRequest> findByPatient(@Param("patientId") Long patientId);
 
-    /** Highest sequence used for a numbering prefix (e.g. "RAD-2026-"); 0 if none. */
-    @Query("SELECT COALESCE(MAX(CAST(SUBSTRING(r.requestNumber, 10) AS int)), 0) " +
-           "FROM RadiologyRequest r WHERE r.requestNumber LIKE :prefix%")
+    /**
+     * Highest sequence used for a numbering prefix (e.g. "RAD-2026-"); 0 if none.
+     * <b>Native</b> (donc NON filtré par {@code @TenantId}) → la numérotation RAD reste
+     * globalement unique entre cliniques, comme la contrainte UNIQUE sur request_number
+     * (même choix que lab/factures en P4.2). Une requête JPQL deviendrait par-clinique
+     * et deux cliniques pourraient générer le même numéro.
+     */
+    @Query(value = "SELECT COALESCE(MAX(CAST(SUBSTR(request_number, 10) AS INTEGER)), 0) " +
+                   "FROM radiology_requests WHERE request_number LIKE CONCAT(:prefix, '%')", nativeQuery = true)
     int findMaxSequence(@Param("prefix") String prefix);
 }
