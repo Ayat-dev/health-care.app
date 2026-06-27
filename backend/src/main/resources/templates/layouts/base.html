@@ -25,7 +25,7 @@
 <a class="skip-link" href="#main-content" th:text="#{a11y.skip_to_content}">Aller au contenu principal</a>
 <div class="layout">
     <!-- Sidebar -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <span class="brand-icon" aria-hidden="true">⚕</span>
             <span class="brand-name">ClinicApp</span>
@@ -111,10 +111,17 @@
             </form>
         </div>
     </aside>
+    <!-- Voile (mobile) : assombrit le contenu quand le tiroir sidebar est ouvert -->
+    <div class="sidebar-scrim" id="sidebar-scrim" hidden></div>
 
     <!-- Contenu principal -->
     <main class="main" id="main-content" tabindex="-1">
         <div class="topbar">
+            <!-- Bouton tiroir (visible uniquement sur petit écran) -->
+            <button type="button" class="topbar-burger" id="sidebar-toggle"
+                    aria-controls="sidebar" aria-expanded="false" th:aria-label="#{a11y.toggle_menu}">
+                <svg class="nav-icon" aria-hidden="true"><use href="#ic-menu"></use></svg>
+            </button>
             <h1 class="topbar-title" th:text="${title}">Page</h1>
             <div class="topbar-actions">
                 <!-- Recherche globale (P3.5) — ouvre la palette (clic ou Ctrl/⌘+K) -->
@@ -124,18 +131,24 @@
                     <span class="topbar-search-text" th:text="#{search.open}">Rechercher</span>
                     <kbd class="topbar-search-kbd" aria-hidden="true">Ctrl K</kbd>
                 </button>
-                <!-- Sélecteur de langue (P3.2) — bascule ?lang=, conserve la page courante -->
-                <nav class="lang-switch" th:aria-label="#{lang.label}">
-                    <a th:href="@{${currentUri}(lang='fr')}" th:text="#{lang.fr}"
-                       th:classappend="${#locale.language == 'fr'} ? 'active'"
-                       th:aria-current="${#locale.language == 'fr'} ? 'true' : null">FR</a>
-                    <a th:href="@{${currentUri}(lang='en')}" th:text="#{lang.en}"
-                       th:classappend="${#locale.language == 'en'} ? 'active'"
-                       th:aria-current="${#locale.language == 'en'} ? 'true' : null">EN</a>
-                    <a th:href="@{${currentUri}(lang='ar')}" th:text="#{lang.ar}"
-                       th:classappend="${#locale.language == 'ar'} ? 'active'"
-                       th:aria-current="${#locale.language == 'ar'} ? 'true' : null">AR</a>
-                </nav>
+                <!-- Sélecteur de langue (P3.2) — menu déroulant ; bascule ?lang=, conserve la page -->
+                <details class="lang-dropdown">
+                    <summary class="lang-current" th:title="#{lang.label}">
+                        <svg class="nav-icon" aria-hidden="true"><use href="#ic-globe"></use></svg>
+                        <span th:text="#{${'lang.' + #locale.language}}">FR</span>
+                    </summary>
+                    <nav class="lang-menu" th:aria-label="#{lang.label}">
+                        <a th:href="@{${currentUri}(lang='fr')}" th:text="#{lang.fr}"
+                           th:classappend="${#locale.language == 'fr'} ? 'active'"
+                           th:aria-current="${#locale.language == 'fr'} ? 'true' : null">Français</a>
+                        <a th:href="@{${currentUri}(lang='en')}" th:text="#{lang.en}"
+                           th:classappend="${#locale.language == 'en'} ? 'active'"
+                           th:aria-current="${#locale.language == 'en'} ? 'true' : null">English</a>
+                        <a th:href="@{${currentUri}(lang='ar')}" th:text="#{lang.ar}"
+                           th:classappend="${#locale.language == 'ar'} ? 'active'"
+                           th:aria-current="${#locale.language == 'ar'} ? 'true' : null">العربية</a>
+                    </nav>
+                </details>
                 <span class="badge badge-blue" sec:authentication="name">User</span>
             </div>
         </div>
