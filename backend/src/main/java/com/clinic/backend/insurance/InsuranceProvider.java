@@ -1,6 +1,7 @@
 package com.clinic.backend.insurance;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.TenantId;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,7 +10,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "insurance_providers")
+@Table(name = "insurance_providers", uniqueConstraints = @UniqueConstraint(
+        name = "uq_insurance_providers_clinic_code", columnNames = {"clinic_id", "code"}))
 @Getter @Setter @NoArgsConstructor
 public class InsuranceProvider {
 
@@ -17,10 +19,15 @@ public class InsuranceProvider {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** Discriminant multi-tenant (P4.2) — rempli par Hibernate à l'insert depuis le tenant courant. */
+    @TenantId
+    @Column(name = "clinic_id")
+    private Long clinicId;
+
     @Column(nullable = false, length = 150)
     private String name;
 
-    @Column(unique = true, length = 30)
+    @Column(length = 30)
     private String code;
 
     @Column(length = 30)

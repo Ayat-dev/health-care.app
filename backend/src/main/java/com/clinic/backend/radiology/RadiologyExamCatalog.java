@@ -1,6 +1,7 @@
 package com.clinic.backend.radiology;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.TenantId;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,7 +15,8 @@ import java.time.LocalDateTime;
  * The radiology analogue of {@link com.clinic.backend.catalog.LabTestCatalog}.
  */
 @Entity
-@Table(name = "radiology_exam_catalog")
+@Table(name = "radiology_exam_catalog", uniqueConstraints = @UniqueConstraint(
+        name = "uq_radiology_exam_catalog_clinic_code", columnNames = {"clinic_id", "code"}))
 @Getter @Setter @NoArgsConstructor
 public class RadiologyExamCatalog {
 
@@ -22,7 +24,12 @@ public class RadiologyExamCatalog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 30)
+    /** Discriminant multi-tenant (P4.2) — rempli par Hibernate à l'insert depuis le tenant courant. */
+    @TenantId
+    @Column(name = "clinic_id")
+    private Long clinicId;
+
+    @Column(nullable = false, length = 30)
     private String code;
 
     @Column(nullable = false, length = 150)

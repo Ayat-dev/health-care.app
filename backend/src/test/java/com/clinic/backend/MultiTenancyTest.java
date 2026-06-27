@@ -2,8 +2,11 @@ package com.clinic.backend;
 
 import com.clinic.backend.audit.AuditLog;
 import com.clinic.backend.audit.AuditLogRepository;
+import com.clinic.backend.catalog.ActCatalogRepository;
 import com.clinic.backend.clinicconfig.ClinicConfig;
 import com.clinic.backend.clinicconfig.ClinicConfigService;
+import com.clinic.backend.department.DepartmentRepository;
+import com.clinic.backend.radiology.RadiologyExamCatalogRepository;
 import com.clinic.backend.hospitalization.HospitalizationRepository;
 import com.clinic.backend.hospitalization.RoomRepository;
 import com.clinic.backend.maternity.MaternityRecordRepository;
@@ -45,6 +48,9 @@ class MultiTenancyTest {
     @Autowired RoomRepository roomRepository;
     @Autowired HospitalizationRepository hospitalizationRepository;
     @Autowired ClinicConfigService clinicConfigService;
+    @Autowired DepartmentRepository departmentRepository;
+    @Autowired ActCatalogRepository actCatalogRepository;
+    @Autowired RadiologyExamCatalogRepository radiologyExamCatalogRepository;
 
     private Long clinic1() { return clinicRepository.findByCodeIgnoreCase("CENTRALE").orElseThrow().getId(); }
     private Long clinic2() { return clinicRepository.findByCodeIgnoreCase("PLATEAU").orElseThrow().getId(); }
@@ -130,6 +136,18 @@ class MultiTenancyTest {
         assertThat(c1.getClinicId()).isEqualTo(clinic1());
         assertThat(c2.getClinicId()).isEqualTo(clinic2());
         assertThat(c1.getId()).isNotEqualTo(c2.getId());
+    }
+
+    @Test
+    void catalogues_cloisonnes_par_clinique() {
+        // Catalogues seedés par migration SQL (departments V3, acts V4, examens imagerie V9) → CENTRALE ;
+        // PLATEAU n'en a aucun (chaque clinique configure les siens). ICD-10 reste partagé (non testé ici).
+        assertThat(TenantContext.callAs(clinic1(), () -> departmentRepository.count())).isGreaterThan(0);
+        assertThat(TenantContext.callAs(clinic2(), () -> departmentRepository.count())).isZero();
+        assertThat(TenantContext.callAs(clinic1(), () -> actCatalogRepository.count())).isGreaterThan(0);
+        assertThat(TenantContext.callAs(clinic2(), () -> actCatalogRepository.count())).isZero();
+        assertThat(TenantContext.callAs(clinic1(), () -> radiologyExamCatalogRepository.count())).isGreaterThan(0);
+        assertThat(TenantContext.callAs(clinic2(), () -> radiologyExamCatalogRepository.count())).isZero();
     }
 
     @Test

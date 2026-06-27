@@ -2,6 +2,7 @@ package com.clinic.backend.catalog;
 
 import com.clinic.backend.department.Department;
 import jakarta.persistence.*;
+import org.hibernate.annotations.TenantId;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,7 +15,8 @@ import java.time.LocalDateTime;
  * reference these to pre-fill descriptions and prices.
  */
 @Entity
-@Table(name = "act_catalog")
+@Table(name = "act_catalog", uniqueConstraints = @UniqueConstraint(
+        name = "uq_act_catalog_clinic_code", columnNames = {"clinic_id", "code"}))
 @Getter @Setter @NoArgsConstructor
 public class ActCatalog {
 
@@ -22,7 +24,12 @@ public class ActCatalog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 30)
+    /** Discriminant multi-tenant (P4.2) — rempli par Hibernate à l'insert depuis le tenant courant. */
+    @TenantId
+    @Column(name = "clinic_id")
+    private Long clinicId;
+
+    @Column(nullable = false, length = 30)
     private String code;
 
     @Column(nullable = false, length = 150)

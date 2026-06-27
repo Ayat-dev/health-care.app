@@ -1,6 +1,7 @@
 package com.clinic.backend.catalog;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.TenantId;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,7 +14,8 @@ import java.time.LocalDateTime;
  * Lab requests reference these entries.
  */
 @Entity
-@Table(name = "lab_test_catalog")
+@Table(name = "lab_test_catalog", uniqueConstraints = @UniqueConstraint(
+        name = "uq_lab_test_catalog_clinic_code", columnNames = {"clinic_id", "code"}))
 @Getter @Setter @NoArgsConstructor
 public class LabTestCatalog {
 
@@ -21,7 +23,12 @@ public class LabTestCatalog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 30)
+    /** Discriminant multi-tenant (P4.2) — rempli par Hibernate à l'insert depuis le tenant courant. */
+    @TenantId
+    @Column(name = "clinic_id")
+    private Long clinicId;
+
+    @Column(nullable = false, length = 30)
     private String code;
 
     @Column(nullable = false, length = 150)

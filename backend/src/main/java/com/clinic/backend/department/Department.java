@@ -1,6 +1,7 @@
 package com.clinic.backend.department;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.TenantId;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -8,7 +9,8 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "departments")
+@Table(name = "departments", uniqueConstraints = @UniqueConstraint(
+        name = "uq_departments_clinic_code", columnNames = {"clinic_id", "code"}))
 @Getter @Setter @NoArgsConstructor
 public class Department {
 
@@ -16,7 +18,12 @@ public class Department {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 20)
+    /** Discriminant multi-tenant (P4.2) — rempli par Hibernate à l'insert depuis le tenant courant. */
+    @TenantId
+    @Column(name = "clinic_id")
+    private Long clinicId;
+
+    @Column(nullable = false, length = 20)
     private String code; // MED_GEN, MATERNITE, DENTAIRE…
 
     @Column(nullable = false, length = 100)
