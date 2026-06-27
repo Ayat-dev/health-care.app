@@ -13,7 +13,7 @@
         </th:block>
     </div>
 
-    <form method="get" th:action="@{/pharmacy/drugs}" class="search-bar" style="align-items:center;">
+    <form method="get" th:action="@{/pharmacy/drugs}" class="search-bar">
         <input type="text" name="q" th:value="${q}" class="form-control"
                placeholder="Nom, DCI ou code…" style="max-width:280px;"/>
         <select name="category" class="form-control" style="max-width:220px;">

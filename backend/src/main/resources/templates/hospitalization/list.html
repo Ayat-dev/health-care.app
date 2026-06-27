@@ -11,7 +11,7 @@
         <a th:href="@{/hospitalization/admit}" class="btn btn-primary btn-sm">+ Admettre un patient</a>
     </div>
 
-    <form method="get" th:action="@{/hospitalization/list}" class="search-bar" style="align-items:center;">
+    <form method="get" th:action="@{/hospitalization/list}" class="search-bar">
         <select name="status" class="form-control" style="max-width:200px;">
             <option value="">— Tous statuts —</option>
             <option value="ADMIS" th:selected="${status == 'ADMIS'}">Admis</option>

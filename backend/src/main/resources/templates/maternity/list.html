@@ -11,16 +11,13 @@
         <a th:href="@{/maternity/new}" class="btn btn-primary btn-sm">+ Ouvrir un dossier</a>
     </div>
 
-    <form method="get" th:action="@{/maternity}" style="display:flex; gap:.5rem; padding:12px 16px; align-items:flex-end;">
-        <div class="form-group" style="margin:0;">
-            <label class="form-label">Statut</label>
-            <select name="status" class="form-control" onchange="this.form.submit()">
-                <option value="">Tous</option>
-                <option value="EN_COURS"  th:selected="${status == 'EN_COURS'}">En cours</option>
-                <option value="ACCOUCHEE" th:selected="${status == 'ACCOUCHEE'}">Accouchée</option>
-                <option value="CLOTURE"   th:selected="${status == 'CLOTURE'}">Clôturé</option>
-            </select>
-        </div>
+    <form method="get" th:action="@{/maternity}" class="search-bar">
+        <select name="status" class="form-control" style="max-width:200px;" onchange="this.form.submit()">
+            <option value="">— Tous statuts —</option>
+            <option value="EN_COURS"  th:selected="${status == 'EN_COURS'}">En cours</option>
+            <option value="ACCOUCHEE" th:selected="${status == 'ACCOUCHEE'}">Accouchée</option>
+            <option value="CLOTURE"   th:selected="${status == 'CLOTURE'}">Clôturé</option>
+        </select>
     </form>
 
     <div class="table-wrap">

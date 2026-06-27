@@ -12,7 +12,7 @@
     </div>
 
     <!-- Navigation semaine + filtre médecin -->
-    <form method="get" th:action="@{/appointments/week}" class="search-bar" style="align-items:center;">
+    <form method="get" th:action="@{/appointments/week}" class="search-bar">
         <a th:href="@{/appointments/week(date=${prevWeek},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm">← Semaine préc.</a>
         <a th:href="@{/appointments/week(date=${nextWeek},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm">Semaine suiv. →</a>
         <a th:href="@{/appointments/week(date=${today},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm">Cette semaine</a>

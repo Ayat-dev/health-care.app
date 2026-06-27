@@ -15,7 +15,7 @@
     </div>
 
     <!-- Barre de navigation date + filtre médecin -->
-    <form method="get" th:action="@{/appointments}" class="search-bar" style="align-items:center;">
+    <form method="get" th:action="@{/appointments}" class="search-bar">
         <a th:href="@{/appointments(date=${prevDay},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm">← Veille</a>
         <input type="date" name="date" th:value="${date}" class="form-control" style="max-width:180px;"/>
         <a th:href="@{/appointments(date=${nextDay},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm">Lendemain →</a>

@@ -11,7 +11,7 @@
         <a th:href="@{/radiology/requests/new}" class="btn btn-primary btn-sm">+ Nouvelle demande</a>
     </div>
 
-    <form method="get" th:action="@{/radiology/requests}" class="search-bar" style="align-items:center;">
+    <form method="get" th:action="@{/radiology/requests}" class="search-bar">
         <input type="date" name="from" th:value="${from}" class="form-control" style="max-width:170px;"/>
         <span>→</span>
         <input type="date" name="to" th:value="${to}" class="form-control" style="max-width:170px;"/>
