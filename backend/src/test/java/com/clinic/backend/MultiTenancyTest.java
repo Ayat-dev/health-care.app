@@ -1,6 +1,9 @@
 package com.clinic.backend;
 
+import com.clinic.backend.audit.AuditLog;
+import com.clinic.backend.audit.AuditLogRepository;
 import com.clinic.backend.maternity.MaternityRecordRepository;
+import com.clinic.backend.notification.NotificationRepository;
 import com.clinic.backend.patient.Patient;
 import com.clinic.backend.patient.PatientRepository;
 import com.clinic.backend.pharmacy.StockItemRepository;
@@ -31,6 +34,8 @@ class MultiTenancyTest {
     @Autowired ClinicRepository clinicRepository;
     @Autowired StockItemRepository stockItemRepository;
     @Autowired MaternityRecordRepository maternityRecordRepository;
+    @Autowired NotificationRepository notificationRepository;
+    @Autowired AuditLogRepository auditLogRepository;
 
     private Long clinic1() { return clinicRepository.findByCodeIgnoreCase("CENTRALE").orElseThrow().getId(); }
     private Long clinic2() { return clinicRepository.findByCodeIgnoreCase("PLATEAU").orElseThrow().getId(); }
@@ -72,6 +77,25 @@ class MultiTenancyTest {
         assertThat(stockC2).isZero();
         assertThat(matC1).isGreaterThan(0);
         assertThat(matC2).isZero();
+    }
+
+    @Test
+    void notifications_et_audit_cloisonnes_par_clinique() {
+        // 4 notifications seedées en CENTRALE (clinic1) ; PLATEAU (clinic2) n'en a aucune.
+        assertThat(TenantContext.callAs(clinic1(), () -> notificationRepository.count())).isGreaterThan(0);
+        assertThat(TenantContext.callAs(clinic2(), () -> notificationRepository.count())).isZero();
+
+        // Audit : une entrée écrite sous clinic1 n'est jamais visible depuis clinic2 (@TenantId à l'insert + au read).
+        long auditC2Avant = TenantContext.callAs(clinic2(), () -> auditLogRepository.count());
+        TenantContext.runAs(clinic1(), () -> {
+            AuditLog a = new AuditLog();
+            a.setUsername("test");
+            a.setAction("TEST_ISOLATION");
+            a.setEntityType("Test");
+            auditLogRepository.save(a);
+        });
+        assertThat(TenantContext.callAs(clinic2(), () -> auditLogRepository.count())).isEqualTo(auditC2Avant);
+        assertThat(TenantContext.callAs(clinic1(), () -> auditLogRepository.count())).isGreaterThan(0);
     }
 
     @Test

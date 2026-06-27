@@ -1,6 +1,7 @@
 package com.clinic.backend.audit;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.TenantId;
 import java.time.LocalDateTime;
 
 /**
@@ -14,6 +15,11 @@ public class AuditLog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /** Discriminant multi-tenant (P4.2) — rempli par Hibernate à l'insert depuis le tenant courant. */
+    @TenantId
+    @Column(name = "clinic_id")
+    private Long clinicId;
 
     private Long userId;
     private String username;
@@ -37,6 +43,7 @@ public class AuditLog {
     }
 
     public Long getId() { return id; }
+    public Long getClinicId() { return clinicId; }
     public Long getUserId() { return userId; }
     public String getUsername() { return username; }
     public String getAction() { return action; }

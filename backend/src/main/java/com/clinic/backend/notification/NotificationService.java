@@ -1,7 +1,9 @@
 package com.clinic.backend.notification;
 
 import com.clinic.backend.appointment.Appointment;
+import com.clinic.backend.appointment.AppointmentRepository;
 import com.clinic.backend.billing.Invoice;
+import com.clinic.backend.billing.InvoiceRepository;
 import com.clinic.backend.clinicconfig.ClinicConfig;
 import com.clinic.backend.clinicconfig.ClinicConfigService;
 import com.clinic.backend.dto.NotificationDto;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.clinic.backend.config.RoleProfile;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -43,6 +46,8 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final ClinicConfigService clinicConfigService;
+    private final AppointmentRepository appointmentRepository;
+    private final InvoiceRepository invoiceRepository;
     private final List<NotificationSender> senders;
 
     // ── Enqueue (bas niveau) ─────────────────────────────────────────────────────
@@ -153,6 +158,33 @@ public class NotificationService {
         }
         if (sent > 0) log.info("[Notif] File drainée : {} message(s) traité(s).", sent);
         return sent;
+    }
+
+    /**
+     * Rappels RDV J-1 (appelé par le scheduler, une fois par clinique active). {@code @Transactional}
+     * hérité de la classe → la session s'ouvre dans le contexte tenant déjà posé par
+     * {@code TenantContext.runAs} (les requêtes RDV étant filtrées {@code @TenantId}). Renvoie le nombre programmé.
+     */
+    public int runAppointmentReminders() {
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        List<Appointment> due = appointmentRepository.findPendingReminders(
+                tomorrow.atStartOfDay(), tomorrow.plusDays(1).atStartOfDay());
+        for (Appointment a : due) {
+            notifyAppointmentReminder(a);
+            a.setReminderSent(true);
+            appointmentRepository.save(a);
+        }
+        return due.size();
+    }
+
+    /** Relances des factures impayées depuis plus de {@code overdueDays} jours (scheduler, par clinique). */
+    public int runInvoiceDunning(int overdueDays) {
+        LocalDateTime cutoff = LocalDate.now().minusDays(overdueDays).atStartOfDay();
+        List<Invoice> overdue = invoiceRepository.findOverdueUnpaid(cutoff);
+        for (Invoice inv : overdue) {
+            notifyInvoiceOverdue(inv);
+        }
+        return overdue.size();
     }
 
     private boolean dispatch(Notification n) {
