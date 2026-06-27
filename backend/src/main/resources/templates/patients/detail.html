@@ -17,7 +17,7 @@
         <form th:action="@{/patients/{id}/photo(id=${patient.id})}" method="post"
               enctype="multipart/form-data" class="photo-upload-form">
             <label class="btn btn-ghost btn-sm photo-upload-btn">
-                <span th:text="${patient.photoUrl == null ? 'Ajouter une photo' : 'Changer'}">Ajouter une photo</span>
+                <span th:text="${patient.photoUrl == null} ? #{patients.detail.photo_add} : #{patients.detail.photo_change}">Ajouter une photo</span>
                 <input type="file" name="file" accept="image/jpeg,image/png,image/webp"
                        hidden required onchange="this.form.submit()"/>
             </label>
@@ -27,29 +27,29 @@
         <h2 th:text="${patient.fullName}">Nom Prénom</h2>
         <div class="patient-meta">
             <span class="badge badge-blue" th:text="${patient.recordNumber}">PAT-2026-00001</span>
-            <span th:if="${patient.gender == 'M'}" class="badge badge-green">Masculin</span>
-            <span th:if="${patient.gender == 'F'}" class="badge badge-yellow">Féminin</span>
+            <span th:if="${patient.gender == 'M'}" class="badge badge-green" th:text="#{patients.form.gender_m}">Masculin</span>
+            <span th:if="${patient.gender == 'F'}" class="badge badge-yellow" th:text="#{patients.form.gender_f}">Féminin</span>
             <span th:if="${patient.birthDate != null}"
-                  th:text="'Né(e) le ' + ${#temporals.format(patient.birthDate,'dd/MM/yyyy')}">—</span>
+                  th:text="#{patients.detail.born} + ' ' + ${#temporals.format(patient.birthDate,'dd/MM/yyyy')}">—</span>
         </div>
     </div>
     <div class="patient-actions">
-        <a th:href="@{/patients/{id}/edit(id=${patient.id})}" class="btn btn-primary btn-sm">Modifier</a>
+        <a th:href="@{/patients/{id}/edit(id=${patient.id})}" class="btn btn-primary btn-sm" th:text="#{common.edit}">Modifier</a>
         <a th:replace="~{fragments/ui :: back(@{/patients})}"></a>
     </div>
 </div>
 
 <!-- Onglets (deep-linkables via #hash, sémantique ARIA tablist) -->
-<div class="tabs" role="tablist" aria-label="Sections du dossier">
-    <button class="tab active" role="tab" aria-selected="true" data-tab="overview">Aperçu</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="info">Informations</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="medical">Médical</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="consultations">Consultations</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="lab">Laboratoire</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="imaging">Imagerie</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="stays">Séjours</button>
-    <button th:if="${patient.gender == 'F'}" class="tab" role="tab" aria-selected="false" data-tab="maternity">Maternité</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="billing">Facturation</button>
+<div class="tabs" role="tablist" th:aria-label="#{patients.detail.tabs_aria}">
+    <button class="tab active" role="tab" aria-selected="true" data-tab="overview" th:text="#{patients.detail.tab_overview}">Aperçu</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="info" th:text="#{patients.detail.tab_info}">Informations</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="medical" th:text="#{patients.detail.tab_medical}">Médical</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="consultations" th:text="#{patients.detail.tab_consultations}">Consultations</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="lab" th:text="#{patients.detail.tab_lab}">Laboratoire</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="imaging" th:text="#{patients.detail.tab_imaging}">Imagerie</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="stays" th:text="#{patients.detail.tab_stays}">Séjours</button>
+    <button th:if="${patient.gender == 'F'}" class="tab" role="tab" aria-selected="false" data-tab="maternity" th:text="#{patients.detail.tab_maternity}">Maternité</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="billing" th:text="#{patients.detail.tab_billing}">Facturation</button>
 </div>
 
 <!-- Onglet Aperçu (coup d'œil + timeline) — P3.6 -->
@@ -67,26 +67,23 @@
     <!-- Cartes synthèse -->
     <div class="overview-grid">
         <div class="ov-card">
-            <div class="detail-label">Âge</div>
-            <div class="ov-value" th:text="${overview.ageYears != null ? overview.ageYears + ' ans' : '—'}">—</div>
+            <div class="detail-label" th:text="#{patients.detail.age}">Âge</div>
+            <div class="ov-value" th:text="${overview.ageYears != null} ? #{patients.detail.years(${overview.ageYears})} : '—'">—</div>
         </div>
         <div class="ov-card">
-            <div class="detail-label">Groupe sanguin</div>
+            <div class="detail-label" th:text="#{patients.detail.blood_type}">Groupe sanguin</div>
             <div class="ov-value" th:text="${overview.bloodType ?: '—'}">—</div>
         </div>
         <div class="ov-card ov-card-wide">
-            <div class="detail-label">Allergies</div>
+            <div class="detail-label" th:text="#{patients.detail.allergies}">Allergies</div>
             <div class="ov-value" th:classappend="${overview.hasAllergies} ? 'ov-danger'"
-                 th:text="${overview.hasAllergies ? overview.allergies : 'Aucune allergie connue'}">—</div>
+                 th:text="${overview.hasAllergies} ? ${overview.allergies} : #{patients.detail.no_allergies}">—</div>
         </div>
     </div>
 
     <!-- Dernières constantes -->
     <div th:if="${overview.hasVitals}" style="margin-top:18px;">
-        <div class="detail-label">Dernières constantes
-            <span class="text-muted"
-                  th:text="'· ' + ${#temporals.format(overview.vitalsDate,'dd/MM/yyyy')}">· 01/01</span>
-        </div>
+        <div class="detail-label" th:text="#{patients.detail.last_vitals} + ' · ' + ${#temporals.format(overview.vitalsDate,'dd/MM/yyyy')}">Dernières constantes</div>
         <div class="vitals-row">
             <span class="vital" th:if="${overview.bloodPressure != null}">
                 <strong th:text="${overview.bloodPressure}">120/80</strong> mmHg</span>
@@ -103,8 +100,8 @@
 
     <!-- Chronologie unifiée -->
     <div style="margin-top:24px;">
-        <div class="detail-label">Chronologie du dossier</div>
-        <div th:if="${overview.timeline.isEmpty()}" class="empty-state">
+        <div class="detail-label" th:text="#{patients.detail.timeline}">Chronologie du dossier</div>
+        <div th:if="${overview.timeline.isEmpty()}" class="empty-state" th:text="#{patients.detail.timeline_empty}">
             Aucun évènement enregistré pour ce patient.
         </div>
         <ul th:unless="${overview.timeline.isEmpty()}" class="timeline">
@@ -114,7 +111,7 @@
                     <div class="tl-head">
                         <a th:href="@{${e.url}}" class="tl-title" th:text="${e.title}">Titre</a>
                         <span th:if="${e.status != null}" class="badge"
-                              th:classappend="'badge-' + ${e.status}" th:text="${e.status}">STATUT</span>
+                              th:classappend="'badge-' + ${e.status}" th:text="#{${'status.' + e.status}}">STATUT</span>
                     </div>
                     <div class="tl-sub">
                         <span class="tl-cat" th:text="${e.category}">Catégorie</span>
@@ -132,21 +129,21 @@
 <!-- Onglet Informations -->
 <div id="tab-info" class="tab-content panel" style="display:none">
     <div class="form-grid-2">
-        <div><span class="detail-label">Téléphone</span>
+        <div><span class="detail-label" th:text="#{patients.detail.info_phone}">Téléphone</span>
              <span th:text="${patient.phone ?: '—'}">—</span></div>
-        <div><span class="detail-label">Email</span>
+        <div><span class="detail-label" th:text="#{patients.detail.info_email}">Email</span>
              <span th:text="${patient.email ?: '—'}">—</span></div>
-        <div><span class="detail-label">Adresse</span>
+        <div><span class="detail-label" th:text="#{patients.detail.info_address}">Adresse</span>
              <span th:text="${patient.address ?: '—'}">—</span></div>
-        <div><span class="detail-label">Ville</span>
+        <div><span class="detail-label" th:text="#{patients.detail.info_city}">Ville</span>
              <span th:text="${patient.city ?: '—'}">—</span></div>
-        <div><span class="detail-label">N° CNI</span>
+        <div><span class="detail-label" th:text="#{patients.detail.info_national_id}">N° CNI</span>
              <span th:text="${patient.nationalId ?: '—'}">—</span></div>
-        <div><span class="detail-label">Nationalité</span>
+        <div><span class="detail-label" th:text="#{patients.detail.info_nationality}">Nationalité</span>
              <span th:text="${patient.nationality ?: '—'}">—</span></div>
-        <div><span class="detail-label">Contact urgence</span>
+        <div><span class="detail-label" th:text="#{patients.detail.info_emergency}">Contact urgence</span>
              <span th:text="${patient.emergencyContactName ?: '—'}">—</span></div>
-        <div><span class="detail-label">Tél. urgence</span>
+        <div><span class="detail-label" th:text="#{patients.detail.info_emergency_phone}">Tél. urgence</span>
              <span th:text="${patient.emergencyContactPhone ?: '—'}">—</span></div>
     </div>
 </div>
@@ -154,17 +151,17 @@
 <!-- Onglet Médical -->
 <div id="tab-medical" class="tab-content panel" style="display:none">
     <div class="form-grid-2">
-        <div><span class="detail-label">Groupe sanguin</span>
+        <div><span class="detail-label" th:text="#{patients.detail.blood_type}">Groupe sanguin</span>
              <span th:text="${patient.bloodType ?: '—'}">—</span></div>
-        <div><span class="detail-label">Médecin référent</span>
+        <div><span class="detail-label" th:text="#{patients.detail.doctor}">Médecin référent</span>
              <span th:text="${patient.assignedDoctor != null ? patient.assignedDoctor.fullName : '—'}">—</span></div>
     </div>
     <div class="mt-16">
-        <div class="detail-label">Allergies</div>
-        <p th:text="${patient.allergies ?: 'Aucune allergie connue'}">—</p>
+        <div class="detail-label" th:text="#{patients.detail.allergies}">Allergies</div>
+        <p th:text="${patient.allergies} ?: #{patients.detail.no_allergies}">—</p>
     </div>
     <div style="margin-top:12px">
-        <div class="detail-label">Antécédents / Maladies chroniques</div>
+        <div class="detail-label" th:text="#{patients.detail.chronic}">Antécédents / Maladies chroniques</div>
         <p th:text="${patient.chronicConditions ?: '—'}">—</p>
     </div>
 </div>
@@ -172,16 +169,16 @@
 <!-- Onglet Consultations -->
 <div id="tab-consultations" class="tab-content panel" style="display:none">
     <div class="panel-header" style="padding:0 0 12px;">
-        <span>Historique des consultations</span>
-        <a th:href="@{/consultations/new(patientId=${patient.id})}" class="btn btn-primary btn-sm">+ Nouvelle consultation</a>
+        <span th:text="#{patients.detail.consultations_history}">Historique des consultations</span>
+        <a th:href="@{/consultations/new(patientId=${patient.id})}" class="btn btn-primary btn-sm" th:text="#{patients.detail.new_consultation}">+ Nouvelle consultation</a>
     </div>
-    <div th:if="${consultations == null or consultations.isEmpty()}" class="empty-state">
+    <div th:if="${consultations == null or consultations.isEmpty()}" class="empty-state" th:text="#{patients.detail.consultations_empty}">
         Aucune consultation enregistrée pour ce patient.
     </div>
     <div th:unless="${consultations == null or consultations.isEmpty()}" class="table-wrap">
         <table class="table">
             <thead>
-            <tr><th>Date</th><th>Médecin</th><th>Motif</th><th>Diagnostic</th><th>Statut</th><th></th></tr>
+            <tr><th th:text="#{patients.detail.col_date}">Date</th><th th:text="#{patients.detail.col_doctor}">Médecin</th><th th:text="#{patients.detail.col_reason}">Motif</th><th th:text="#{patients.detail.col_diagnosis}">Diagnostic</th><th th:text="#{common.status}">Statut</th><th></th></tr>
             </thead>
             <tbody>
             <tr th:each="c : ${consultations}">
@@ -189,8 +186,8 @@
                 <td th:text="${c.doctor != null ? c.doctor.fullName : '—'}">Médecin</td>
                 <td th:text="${c.chiefComplaint ?: '—'}">Motif</td>
                 <td th:text="${c.diagnosis ?: '—'}">Diagnostic</td>
-                <td><span class="badge" th:classappend="'badge-' + ${c.status}" th:text="${c.status}">EN_COURS</span></td>
-                <td><a th:href="@{/consultations/{id}(id=${c.id})}" class="btn btn-ghost btn-sm">Voir</a></td>
+                <td><span class="badge" th:classappend="'badge-' + ${c.status}" th:text="#{${'status.' + c.status}}">EN_COURS</span></td>
+                <td><a th:href="@{/consultations/{id}(id=${c.id})}" class="btn btn-ghost btn-sm" th:text="#{common.view}">Voir</a></td>
             </tr>
             </tbody>
         </table>
@@ -200,16 +197,16 @@
 <!-- Onglet Laboratoire -->
 <div id="tab-lab" class="tab-content panel" style="display:none">
     <div class="panel-header" style="padding:0 0 12px;">
-        <span>Historique des analyses</span>
-        <a th:href="@{/lab/requests/new(patientId=${patient.id})}" class="btn btn-primary btn-sm">+ Nouvelle demande</a>
+        <span th:text="#{patients.detail.lab_history}">Historique des analyses</span>
+        <a th:href="@{/lab/requests/new(patientId=${patient.id})}" class="btn btn-primary btn-sm" th:text="#{patients.detail.new_lab}">+ Nouvelle demande</a>
     </div>
-    <div th:if="${labRequests == null or labRequests.isEmpty()}" class="empty-state">
+    <div th:if="${labRequests == null or labRequests.isEmpty()}" class="empty-state" th:text="#{patients.detail.lab_empty}">
         Aucune analyse pour ce patient.
     </div>
     <div th:unless="${labRequests == null or labRequests.isEmpty()}" class="table-wrap">
         <table class="table">
             <thead>
-            <tr><th>N°</th><th>Date</th><th>Analyses</th><th>Statut</th><th></th></tr>
+            <tr><th th:text="#{patients.detail.col_number}">N°</th><th th:text="#{patients.detail.col_date}">Date</th><th th:text="#{patients.detail.col_tests}">Analyses</th><th th:text="#{common.status}">Statut</th><th></th></tr>
             </thead>
             <tbody>
             <tr th:each="r : ${labRequests}">
@@ -219,10 +216,10 @@
                     <span th:each="it,iter : ${r.items}"
                           th:text="${it.testCode} + (${iter.last} ? '' : ', ')">NFS</span>
                     <span th:if="${r.abnormalCount > 0}" class="badge badge-red"
-                          th:text="${r.abnormalCount} + ' anormal'">anormal</span>
+                          th:text="#{patients.detail.abnormal(${r.abnormalCount})}">anormal</span>
                 </td>
-                <td><span class="badge" th:classappend="'badge-' + ${r.status}" th:text="${r.status}">EN_ATTENTE</span></td>
-                <td><a th:href="@{/lab/requests/{id}(id=${r.id})}" class="btn btn-ghost btn-sm">Voir</a></td>
+                <td><span class="badge" th:classappend="'badge-' + ${r.status}" th:text="#{${'status.' + r.status}}">EN_ATTENTE</span></td>
+                <td><a th:href="@{/lab/requests/{id}(id=${r.id})}" class="btn btn-ghost btn-sm" th:text="#{common.view}">Voir</a></td>
             </tr>
             </tbody>
         </table>
@@ -232,16 +229,16 @@
 <!-- Onglet Imagerie -->
 <div id="tab-imaging" class="tab-content panel" style="display:none">
     <div class="panel-header" style="padding:0 0 12px;">
-        <span>Historique d'imagerie</span>
-        <a th:href="@{/radiology/requests/new(patientId=${patient.id})}" class="btn btn-primary btn-sm">+ Nouvelle demande</a>
+        <span th:text="#{patients.detail.imaging_history}">Historique d'imagerie</span>
+        <a th:href="@{/radiology/requests/new(patientId=${patient.id})}" class="btn btn-primary btn-sm" th:text="#{patients.detail.new_lab}">+ Nouvelle demande</a>
     </div>
-    <div th:if="${radiologyRequests == null or radiologyRequests.isEmpty()}" class="empty-state">
+    <div th:if="${radiologyRequests == null or radiologyRequests.isEmpty()}" class="empty-state" th:text="#{patients.detail.imaging_empty}">
         Aucune imagerie pour ce patient.
     </div>
     <div th:unless="${radiologyRequests == null or radiologyRequests.isEmpty()}" class="table-wrap">
         <table class="table">
             <thead>
-            <tr><th>N°</th><th>Date</th><th>Examens</th><th>Statut</th><th></th></tr>
+            <tr><th th:text="#{patients.detail.col_number}">N°</th><th th:text="#{patients.detail.col_date}">Date</th><th th:text="#{patients.detail.col_exams}">Examens</th><th th:text="#{common.status}">Statut</th><th></th></tr>
             </thead>
             <tbody>
             <tr th:each="r : ${radiologyRequests}">
@@ -251,10 +248,10 @@
                     <span th:each="it,iter : ${r.items}"
                           th:text="${it.examCode} + (${iter.last} ? '' : ', ')">RX_THORAX</span>
                     <span th:if="${r.imageCount > 0}" class="badge badge-blue"
-                          th:text="${r.imageCount} + ' image(s)'">images</span>
+                          th:text="#{patients.detail.images(${r.imageCount})}">images</span>
                 </td>
-                <td><span class="badge" th:classappend="'badge-' + ${r.status}" th:text="${r.status}">EN_ATTENTE</span></td>
-                <td><a th:href="@{/radiology/requests/{id}(id=${r.id})}" class="btn btn-ghost btn-sm">Voir</a></td>
+                <td><span class="badge" th:classappend="'badge-' + ${r.status}" th:text="#{${'status.' + r.status}}">EN_ATTENTE</span></td>
+                <td><a th:href="@{/radiology/requests/{id}(id=${r.id})}" class="btn btn-ghost btn-sm" th:text="#{common.view}">Voir</a></td>
             </tr>
             </tbody>
         </table>
@@ -264,26 +261,26 @@
 <!-- Onglet Séjours -->
 <div id="tab-stays" class="tab-content panel" style="display:none">
     <div class="panel-header" style="padding:0 0 12px;">
-        <span>Historique des hospitalisations</span>
-        <a th:href="@{/hospitalization/admit(patientId=${patient.id})}" class="btn btn-primary btn-sm">+ Admettre</a>
+        <span th:text="#{patients.detail.stays_history}">Historique des hospitalisations</span>
+        <a th:href="@{/hospitalization/admit(patientId=${patient.id})}" class="btn btn-primary btn-sm" th:text="#{patients.detail.admit}">+ Admettre</a>
     </div>
-    <div th:if="${hospitalizations == null or hospitalizations.isEmpty()}" class="empty-state">
+    <div th:if="${hospitalizations == null or hospitalizations.isEmpty()}" class="empty-state" th:text="#{patients.detail.stays_empty}">
         Aucun séjour hospitalier pour ce patient.
     </div>
     <div th:unless="${hospitalizations == null or hospitalizations.isEmpty()}" class="table-wrap">
         <table class="table">
             <thead>
-            <tr><th>Chambre</th><th>Admis le</th><th>Sortie</th><th>Durée</th><th>Statut</th><th></th></tr>
+            <tr><th th:text="#{patients.detail.col_room}">Chambre</th><th th:text="#{patients.detail.col_admitted}">Admis le</th><th th:text="#{patients.detail.col_discharge}">Sortie</th><th th:text="#{patients.detail.col_duration}">Durée</th><th th:text="#{common.status}">Statut</th><th></th></tr>
             </thead>
             <tbody>
             <tr th:each="h : ${hospitalizations}">
-                <td><span th:text="'Ch. ' + ${h.roomNumber}">Ch. 101</span>
+                <td><span th:text="#{patients.detail.room_prefix} + ' ' + ${h.roomNumber}">Ch. 101</span>
                     <small th:text="${h.departmentName ?: ''}">Service</small></td>
                 <td th:text="${#temporals.format(h.admissionDate,'dd/MM/yyyy')}">01/01</td>
                 <td th:text="${h.dischargeDate != null ? #temporals.format(h.dischargeDate,'dd/MM/yyyy') : '—'}">—</td>
-                <td th:text="${h.nights} + ' nuit(s)'">1 nuit(s)</td>
-                <td><span class="badge" th:classappend="'badge-' + ${h.status}" th:text="${h.status}">ADMIS</span></td>
-                <td><a th:href="@{/hospitalization/{id}(id=${h.id})}" class="btn btn-ghost btn-sm">Voir</a></td>
+                <td th:text="#{patients.detail.nights(${h.nights})}">1 nuit(s)</td>
+                <td><span class="badge" th:classappend="'badge-' + ${h.status}" th:text="#{${'status.' + h.status}}">ADMIS</span></td>
+                <td><a th:href="@{/hospitalization/{id}(id=${h.id})}" class="btn btn-ghost btn-sm" th:text="#{common.view}">Voir</a></td>
             </tr>
             </tbody>
         </table>
@@ -293,27 +290,27 @@
 <!-- Onglet Maternité (patientes uniquement) -->
 <div th:if="${patient.gender == 'F'}" id="tab-maternity" class="tab-content panel" style="display:none">
     <div class="panel-header" style="padding:0 0 12px;">
-        <span>Suivi de grossesse</span>
+        <span th:text="#{patients.detail.maternity_followup}">Suivi de grossesse</span>
         <a th:if="${maternityRecord == null}" th:href="@{/maternity/new(patientId=${patient.id})}"
-           class="btn btn-primary btn-sm">+ Ouvrir un dossier maternité</a>
+           class="btn btn-primary btn-sm" th:text="#{patients.detail.maternity_open}">+ Ouvrir un dossier maternité</a>
         <a th:if="${maternityRecord != null}" th:href="@{/maternity/{id}(id=${maternityRecord.id})}"
-           class="btn btn-ghost btn-sm">Ouvrir le dossier</a>
+           class="btn btn-ghost btn-sm" th:text="#{patients.detail.maternity_open_existing}">Ouvrir le dossier</a>
     </div>
-    <div th:if="${maternityRecord == null}" class="empty-state">
+    <div th:if="${maternityRecord == null}" class="empty-state" th:text="#{patients.detail.maternity_empty}">
         Aucun dossier maternité pour cette patiente.
     </div>
     <div th:if="${maternityRecord != null}" class="form-grid-2">
-        <div><span class="detail-label">Statut</span>
+        <div><span class="detail-label" th:text="#{common.status}">Statut</span>
              <span class="badge" th:classappend="'badge-' + ${maternityRecord.status}"
-                   th:text="${maternityRecord.status}">EN_COURS</span></div>
-        <div><span class="detail-label">DPA</span>
+                   th:text="#{${'status.' + maternityRecord.status}}">EN_COURS</span></div>
+        <div><span class="detail-label" th:text="#{patients.detail.edd}">DPA</span>
              <span th:text="${maternityRecord.expectedDueDate != null ? #temporals.format(maternityRecord.expectedDueDate,'dd/MM/yyyy') : '—'}">—</span></div>
-        <div><span class="detail-label">Âge gestationnel</span>
-             <span th:text="${maternityRecord.currentGestationalAgeWeeks != null ? maternityRecord.currentGestationalAgeWeeks + ' SA' : '—'}">—</span></div>
-        <div><span class="detail-label">CPN réalisées</span>
+        <div><span class="detail-label" th:text="#{patients.detail.gestational_age}">Âge gestationnel</span>
+             <span th:text="${maternityRecord.currentGestationalAgeWeeks != null} ? #{patients.detail.weeks(${maternityRecord.currentGestationalAgeWeeks})} : '—'">—</span></div>
+        <div><span class="detail-label" th:text="#{patients.detail.cpn_done}">CPN réalisées</span>
              <span th:text="${maternityRecord.completedVisits}">0</span></div>
         <div th:if="${!maternityRecord.alerts.isEmpty()}" style="grid-column:1 / -1;">
-            <span class="badge badge-red" th:text="${maternityRecord.alerts.size()} + ' alerte(s) grossesse à risque'">alertes</span>
+            <span class="badge badge-red" th:text="#{patients.detail.maternity_alerts(${maternityRecord.alerts.size()})}">alertes</span>
         </div>
     </div>
 </div>
@@ -321,16 +318,16 @@
 <!-- Onglet Facturation -->
 <div id="tab-billing" class="tab-content panel" style="display:none">
     <div class="panel-header" style="padding:0 0 12px;">
-        <span>Factures</span>
-        <a th:href="@{/billing/invoices/new(patientId=${patient.id})}" class="btn btn-primary btn-sm">+ Nouvelle facture</a>
+        <span th:text="#{patients.detail.invoices}">Factures</span>
+        <a th:href="@{/billing/invoices/new(patientId=${patient.id})}" class="btn btn-primary btn-sm" th:text="#{patients.detail.new_invoice}">+ Nouvelle facture</a>
     </div>
-    <div th:if="${invoices == null or invoices.isEmpty()}" class="empty-state">
+    <div th:if="${invoices == null or invoices.isEmpty()}" class="empty-state" th:text="#{patients.detail.invoices_empty}">
         Aucune facture pour ce patient.
     </div>
     <div th:unless="${invoices == null or invoices.isEmpty()}" class="table-wrap">
         <table class="table">
             <thead>
-            <tr><th>N°</th><th>Date</th><th style="text-align:right;">Part patient</th><th style="text-align:right;">Reste</th><th>Statut</th><th></th></tr>
+            <tr><th th:text="#{patients.detail.col_number}">N°</th><th th:text="#{patients.detail.col_date}">Date</th><th style="text-align:right;" th:text="#{patients.detail.col_patient_part}">Part patient</th><th style="text-align:right;" th:text="#{patients.detail.col_balance}">Reste</th><th th:text="#{common.status}">Statut</th><th></th></tr>
             </thead>
             <tbody>
             <tr th:each="inv : ${invoices}">
@@ -338,8 +335,8 @@
                 <td th:text="${#temporals.format(inv.createdAt,'dd/MM/yyyy')}">01/01</td>
                 <td style="text-align:right;" th:text="${#numbers.formatDecimal(inv.patientAmount,1,'WHITESPACE',0,'POINT')}">0</td>
                 <td style="text-align:right;" th:text="${#numbers.formatDecimal(inv.balanceDue,1,'WHITESPACE',0,'POINT')}">0</td>
-                <td><span class="badge" th:classappend="'badge-' + ${inv.status}" th:text="${inv.status}">EN_ATTENTE</span></td>
-                <td><a th:href="@{/billing/invoices/{id}(id=${inv.id})}" class="btn btn-ghost btn-sm">Voir</a></td>
+                <td><span class="badge" th:classappend="'badge-' + ${inv.status}" th:text="#{${'status.' + inv.status}}">EN_ATTENTE</span></td>
+                <td><a th:href="@{/billing/invoices/{id}(id=${inv.id})}" class="btn btn-ghost btn-sm" th:text="#{common.view}">Voir</a></td>
             </tr>
             </tbody>
         </table>

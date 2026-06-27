@@ -2,25 +2,50 @@ package com.clinic.backend;
 
 import com.clinic.backend.consultation.Consultation;
 import com.clinic.backend.dto.*;
+import com.clinic.backend.i18n.WebI18n;
 import com.clinic.backend.model.User;
 import com.clinic.backend.patient.Patient;
 import com.clinic.backend.patient.PatientOverviewService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.context.support.ResourceBundleMessageSource;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Coup d'œil patient + timeline (P3.6) : dérivation des alertes (priorité RED→ORANGE→INFO),
- * dernières constantes, et agrégation/tri de la timeline. Pur, sans Spring ni base.
+ * dernières constantes, et agrégation/tri de la timeline. Pur, sans Spring ni base — mais
+ * les libellés (alertes/catégories) sont désormais i18n (slice 1), donc on câble un
+ * MessageSource réel sur le bundle FR et on force la locale française pour les assertions.
  */
 class PatientOverviewServiceTest {
 
-    private final PatientOverviewService service = new PatientOverviewService();
+    private final PatientOverviewService service;
+
+    {
+        ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
+        ms.setBasename("messages");
+        ms.setDefaultEncoding("UTF-8");
+        service = new PatientOverviewService(new WebI18n(ms));
+    }
+
+    @BeforeEach
+    void frenchLocale() {
+        LocaleContextHolder.setLocale(Locale.FRENCH);
+    }
+
+    @AfterEach
+    void resetLocale() {
+        LocaleContextHolder.resetLocaleContext();
+    }
 
     @Test
     void agrege_les_alertes_et_trie_la_timeline() {

@@ -66,6 +66,20 @@ class PageRenderSmokeTest {
         mvc.perform(get("/appointments")).andExpect(status().isOk());
     }
 
+    /** i18n slice 1 (docs/I18N-PLAN.md) : la liste patients porte des clés #{} et bascule
+     *  en anglais via ?lang=en (LocaleChangeInterceptor). Exerce aussi les statuts dynamiques
+     *  du dossier (#{${'status.' + …}}) via /patients/1. */
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void patients_liste_i18n_fr_puis_en() throws Exception {
+        mvc.perform(get("/patients"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Liste des patients")));
+        mvc.perform(get("/patients").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Patient list")));
+    }
+
     /** Dossier patient : exerce l'agrégat coup d'œil + timeline (P3.6). */
     @Test
     @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")

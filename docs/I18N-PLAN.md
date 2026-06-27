@@ -13,7 +13,8 @@
 
 ## 0. État (2026-06-28)
 - **Fait** : `base.html` (chrome/sidebar/topbar/breadcrumb/module-tabs), `login.html`, `dashboard*`,
-  dropdown de langue (`base` + `login` + `portal`). **5 / 88 templates** portent des clés `#{...}`.
+  dropdown de langue (`base` + `login` + `portal`), **socle transverse** (slice 0) et **Patients**
+  (slice 1 : `list/form/detail` + dossier + overview Java). **8 / 88 templates** portent des clés `#{...}`.
 - **Bundles** : `backend/src/main/resources/messages{,_en,_ar}.properties` (UTF-8, `fallback-to-system-locale=false`).
 - **À traduire** : les ~83 autres templates + flash contrôleurs (~150 chaînes : Appointment 18, Hospit 16,
   Consultation 12, Billing 10, …) + libellés d'enum (statuts, méthodes de paiement, priorités, types).
@@ -67,10 +68,10 @@ qu'en cas de réel problème d'alignement (le socle gère déjà le gros).
 > module traduit SES templates **+** ses flash messages **+** ses statuts, **en FR/EN/AR**, et ajoute/renforce
 > un test de rendu (assertion qu'une clé se résout, et `?lang=en` bascule).
 
-- [ ] **Slice 0 — Socle transverse** : `common.*` (boutons/labels fréquents) + `status.*` (tous statuts) +
-      `paymethod.*` + helper `WebI18n.t(...)`. Migrer `@paymentMethods.label` → `MessageSource`. Aucun template
+- [x] **Slice 0 — Socle transverse** : `common.*` (boutons/labels fréquents) + `status.*` (tous statuts) +
+      `priority.*` + `paymethod.*` + helper `WebI18n.t(...)`. Migrer `@paymentMethods.label` → `MessageSource`. Aucun template
       module encore, mais ces clés débloquent tous les suivants. Test : `status.*` se résout en 3 langues.
-- [ ] **Slice 1 — Patients** (`patients/list,detail,form` + dossier) + flash `PatientWebController`.
+- [x] **Slice 1 — Patients** (`patients/list,detail,form` + dossier) + flash `PatientWebController`.
 - [ ] **Slice 2 — Rendez-vous** (`appointments/list,week,form`) + flash (18 chaînes).
 - [ ] **Slice 3 — Consultations** (`consultations/list,detail,form` + `prescriptions/*`) + flash (12).
 - [ ] **Slice 4 — Facturation** (`billing/dashboard,queue,invoices/*`) + flash (10) + `paymethod.*` appliqué.
@@ -103,3 +104,5 @@ qu'en cas de réel problème d'alignement (le socle gère déjà le gros).
 | Date | Slice | Résultat |
 |---|---|---|
 | 2026-06-28 | (plan) | Plan créé. Socle P3.2 fait (5/88 templates). Conventions verrouillées ; ordre par trafic ; impression exclue. |
+| 2026-06-28 | 0 — Socle | `common.*` complété (add/confirm/status/date/name/none/required) + `status.*` (20 statuts) + `priority.*` (NORMAL/URGENT, namespace ajouté) + `paymethod.*` (9 modes) dans les 3 bundles, alignés. Helper `i18n/WebI18n.t(...)` créé. `PaymentMethods.label` migré sur `MessageSource` (suit la locale ; fallback code-brut/« — » conservé). Test `I18nBundleTest` (3 langues) + smoke vert (22 tests). |
+| 2026-06-28 | 1 — Patients | `patients/{list,form,detail}` clés `#{}` (+ titres layout, statuts dynamiques `#{${'status.'+x}}`, `common.view/clear` ajoutés). Flash photo via `i18n.t`. `PatientOverviewService` (alertes + timeline P3.6) i18n via `WebI18n` (args paramétrés, locale du thread requête). Test render FR+`?lang=en` ajouté au smoke ; `PatientOverviewServiceTest` recâblé (MessageSource FR réel). Suite complète verte (175 tests). |

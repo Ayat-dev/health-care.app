@@ -2,6 +2,7 @@ package com.clinic.backend.patient;
 
 import com.clinic.backend.consultation.Consultation;
 import com.clinic.backend.dto.*;
+import com.clinic.backend.i18n.WebI18n;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -21,6 +22,12 @@ import java.util.Objects;
  */
 @Service
 public class PatientOverviewService {
+
+    private final WebI18n i18n;
+
+    public PatientOverviewService(WebI18n i18n) {
+        this.i18n = i18n;
+    }
 
     public PatientOverviewDto build(Patient patient,
                                     List<Consultation> consultations,
@@ -62,26 +69,28 @@ public class PatientOverviewService {
         List<OverviewAlertDto> a = o.getAlerts();
 
         if (o.isHasAllergies()) {
-            a.add(new OverviewAlertDto("RED", "⚠️", "Allergies : " + patient.getAllergies().trim()));
+            a.add(new OverviewAlertDto("RED", "⚠️",
+                    i18n.t("patients.overview.alert_allergies", patient.getAllergies().trim())));
         }
         if (maternity != null && maternity.getAlerts() != null && !maternity.getAlerts().isEmpty()) {
             a.add(new OverviewAlertDto("RED", "🤰",
-                    "Grossesse à risque — " + maternity.getAlerts().size() + " alerte(s)"));
+                    i18n.t("patients.overview.alert_maternity", maternity.getAlerts().size())));
         }
         if (stays != null) {
             stays.stream().filter(h -> "ADMIS".equals(h.getStatus())).findFirst()
                     .ifPresent(h -> a.add(new OverviewAlertDto("ORANGE", "🏥",
-                            "Actuellement hospitalisé — Chambre " + h.getRoomNumber())));
+                            i18n.t("patients.overview.alert_hospitalized", h.getRoomNumber()))));
         }
         if (vit != null && ((vit.getBpSystolic() != null && vit.getBpSystolic() > 140)
                 || (vit.getBpDiastolic() != null && vit.getBpDiastolic() > 90))) {
-            a.add(new OverviewAlertDto("ORANGE", "🫀", "Tension élevée — " + o.getBloodPressure() + " mmHg"));
+            a.add(new OverviewAlertDto("ORANGE", "🫀",
+                    i18n.t("patients.overview.alert_bp_high", o.getBloodPressure())));
         }
         if (labs != null) {
             long abnormal = labs.stream().mapToLong(LabRequestDto::getAbnormalCount).sum();
             if (abnormal > 0) {
                 a.add(new OverviewAlertDto("ORANGE", "🔬",
-                        "Résultats de laboratoire anormaux (" + abnormal + ")"));
+                        i18n.t("patients.overview.alert_lab_abnormal", abnormal)));
             }
         }
         if (invoices != null) {
@@ -92,50 +101,55 @@ public class PatientOverviewService {
                 BigDecimal due = unpaid.stream().map(InvoiceDto::getBalanceDue)
                         .filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
                 a.add(new OverviewAlertDto("ORANGE", "💳",
-                        unpaid.size() + " facture(s) impayée(s) — reste " + money(due) + " F"));
+                        i18n.t("patients.overview.alert_unpaid", unpaid.size(), money(due))));
             }
         }
         if (hasText(patient.getChronicConditions())) {
             a.add(new OverviewAlertDto("INFO", "🩺",
-                    "Antécédents : " + patient.getChronicConditions().trim()));
+                    i18n.t("patients.overview.alert_chronic", patient.getChronicConditions().trim())));
         }
 
         // ── Timeline unifiée (plus récent en premier) ────────────────────────
         List<TimelineEventDto> tl = o.getTimeline();
         if (consultations != null) {
             for (Consultation c : consultations) {
-                tl.add(new TimelineEventDto(c.getConsultationDate(), "🩺", "Consultation",
-                        hasText(c.getChiefComplaint()) ? c.getChiefComplaint() : "Consultation",
+                tl.add(new TimelineEventDto(c.getConsultationDate(), "🩺",
+                        i18n.t("patients.overview.cat_consultation"),
+                        hasText(c.getChiefComplaint()) ? c.getChiefComplaint()
+                                : i18n.t("patients.overview.tl_consultation_default"),
                         consultationSubtitle(c), c.getStatus(), "/consultations/" + c.getId()));
             }
         }
         if (labs != null) {
             for (LabRequestDto r : labs) {
-                String sub = (r.getItems() == null ? 0 : r.getItems().size()) + " analyse(s)"
-                        + (r.getAbnormalCount() > 0 ? " · " + r.getAbnormalCount() + " anormal" : "");
-                tl.add(new TimelineEventDto(r.getRequestedAt(), "🔬", "Laboratoire",
+                String sub = i18n.t("patients.overview.tl_analyses", r.getItems() == null ? 0 : r.getItems().size())
+                        + (r.getAbnormalCount() > 0
+                            ? i18n.t("patients.overview.tl_abnormal_suffix", r.getAbnormalCount()) : "");
+                tl.add(new TimelineEventDto(r.getRequestedAt(), "🔬", i18n.t("patients.overview.cat_lab"),
                         r.getRequestNumber(), sub, r.getStatus(), "/lab/requests/" + r.getId()));
             }
         }
         if (radios != null) {
             for (RadiologyRequestDto r : radios) {
-                String sub = (r.getItems() == null ? 0 : r.getItems().size()) + " examen(s)";
-                tl.add(new TimelineEventDto(r.getRequestedAt(), "🩻", "Imagerie",
+                String sub = i18n.t("patients.overview.tl_exams", r.getItems() == null ? 0 : r.getItems().size());
+                tl.add(new TimelineEventDto(r.getRequestedAt(), "🩻", i18n.t("patients.overview.cat_imaging"),
                         r.getRequestNumber(), sub, r.getStatus(), "/radiology/requests/" + r.getId()));
             }
         }
         if (stays != null) {
             for (HospitalizationDto h : stays) {
                 String sub = (h.getDepartmentName() != null ? h.getDepartmentName() + " · " : "")
-                        + h.getNights() + " nuit(s)";
-                tl.add(new TimelineEventDto(h.getAdmissionDate(), "🏥", "Hospitalisation",
-                        "Chambre " + h.getRoomNumber(), sub, h.getStatus(), "/hospitalization/" + h.getId()));
+                        + i18n.t("patients.overview.tl_nights", h.getNights());
+                tl.add(new TimelineEventDto(h.getAdmissionDate(), "🏥", i18n.t("patients.overview.cat_hospitalization"),
+                        i18n.t("patients.overview.tl_room", h.getRoomNumber()), sub, h.getStatus(),
+                        "/hospitalization/" + h.getId()));
             }
         }
         if (invoices != null) {
             for (InvoiceDto i : invoices) {
-                tl.add(new TimelineEventDto(i.getCreatedAt(), "💳", "Facturation",
-                        i.getInvoiceNumber(), "Part patient " + money(i.getPatientAmount()) + " F",
+                tl.add(new TimelineEventDto(i.getCreatedAt(), "💳", i18n.t("patients.overview.cat_billing"),
+                        i.getInvoiceNumber(),
+                        i18n.t("patients.overview.tl_patient_part", money(i.getPatientAmount())),
                         i.getStatus(), "/billing/invoices/" + i.getId()));
             }
         }

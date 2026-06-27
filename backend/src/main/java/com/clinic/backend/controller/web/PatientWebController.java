@@ -36,6 +36,7 @@ public class PatientWebController {
     private final com.clinic.backend.hospitalization.HospitalizationService hospitalizationService;
     private final com.clinic.backend.maternity.MaternityService maternityService;
     private final com.clinic.backend.billing.BillingService billingService;
+    private final com.clinic.backend.i18n.WebI18n i18n;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER','SECRETAIRE','PHARMACIEN','LABORANTIN','CAISSIER')")
@@ -118,7 +119,7 @@ public class PatientWebController {
                               RedirectAttributes ra) {
         try {
             patientService.uploadPhoto(id, file);
-            ra.addFlashAttribute("success", "Photo du patient mise à jour.");
+            ra.addFlashAttribute("success", i18n.t("patients.flash.photo_updated"));
         } catch (IllegalArgumentException e) {
             ra.addFlashAttribute("error", e.getMessage());
         }
