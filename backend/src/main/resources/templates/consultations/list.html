@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Consultations', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{consultations.list.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${success}" class="alert alert-info" th:text="${success}">OK</div>
@@ -7,8 +7,8 @@
 
 <div class="panel">
     <div class="panel-header">
-        <span>Consultations</span>
-        <a th:href="@{/consultations/new}" class="btn btn-primary btn-sm">+ Nouvelle consultation</a>
+        <span th:text="#{consultations.list.heading}">Consultations</span>
+        <a th:href="@{/consultations/new}" class="btn btn-primary btn-sm" th:text="#{consultations.list.new}">+ Nouvelle consultation</a>
     </div>
 
     <form method="get" th:action="@{/consultations}" class="search-bar">
@@ -16,35 +16,35 @@
         <span>→</span>
         <input type="date" name="to" th:value="${to}" class="form-control" style="max-width:170px;"/>
         <select name="doctorId" class="form-control" style="max-width:240px;">
-            <option value="">— Tous les médecins —</option>
+            <option value="" th:text="#{consultations.list.all_doctors}">— Tous les médecins —</option>
             <option th:each="d : ${doctors}" th:value="${d.id}" th:text="${d.fullName}"
                     th:selected="${selectedDoctorId != null and selectedDoctorId == d.id}">Dr.</option>
         </select>
         <select name="status" class="form-control" style="max-width:170px;">
-            <option value="">— Tous statuts —</option>
-            <option value="EN_COURS" th:selected="${status == 'EN_COURS'}">En cours</option>
-            <option value="TERMINE" th:selected="${status == 'TERMINE'}">Terminé</option>
-            <option value="ANNULE" th:selected="${status == 'ANNULE'}">Annulé</option>
+            <option value="" th:text="#{consultations.list.all_statuses}">— Tous statuts —</option>
+            <option value="EN_COURS" th:selected="${status == 'EN_COURS'}" th:text="#{status.EN_COURS}">En cours</option>
+            <option value="TERMINE" th:selected="${status == 'TERMINE'}" th:text="#{status.TERMINE}">Terminé</option>
+            <option value="ANNULE" th:selected="${status == 'ANNULE'}" th:text="#{status.ANNULE}">Annulé</option>
         </select>
-        <button type="submit" class="btn btn-primary btn-sm">Filtrer</button>
+        <button type="submit" class="btn btn-primary btn-sm" th:text="#{common.filter}">Filtrer</button>
     </form>
 
     <div class="table-wrap">
         <table class="table">
             <thead>
             <tr>
-                <th>Date</th>
-                <th>Patient</th>
-                <th>Médecin</th>
-                <th>Motif</th>
-                <th>Diagnostic</th>
-                <th>Statut</th>
-                <th>Actions</th>
+                <th th:text="#{common.date}">Date</th>
+                <th th:text="#{consultations.list.col_patient}">Patient</th>
+                <th th:text="#{consultations.list.col_doctor}">Médecin</th>
+                <th th:text="#{consultations.list.col_reason}">Motif</th>
+                <th th:text="#{consultations.list.col_diagnosis}">Diagnostic</th>
+                <th th:text="#{common.status}">Statut</th>
+                <th th:text="#{common.actions}">Actions</th>
             </tr>
             </thead>
             <tbody>
             <tr th:if="${consultations.isEmpty()}">
-                <td colspan="7" class="empty-state">Aucune consultation.</td>
+                <td colspan="7" class="empty-state" th:text="#{consultations.list.empty}">Aucune consultation.</td>
             </tr>
             <tr th:each="c : ${consultations}">
                 <td><strong th:text="${#temporals.format(c.consultationDate,'dd/MM/yyyy HH:mm')}">01/01 09:00</strong></td>
@@ -52,9 +52,9 @@
                 <td th:text="${c.doctor != null ? c.doctor.fullName : '—'}">Médecin</td>
                 <td th:text="${c.chiefComplaint ?: '—'}">Motif</td>
                 <td th:text="${c.diagnosis ?: '—'}">Diagnostic</td>
-                <td><span class="badge" th:classappend="'badge-' + ${c.status}" th:text="${c.status}">EN_COURS</span></td>
+                <td><span class="badge" th:classappend="'badge-' + ${c.status}" th:text="#{${'status.' + c.status}}">EN_COURS</span></td>
                 <td style="white-space:nowrap;">
-                    <a th:href="@{/consultations/{id}(id=${c.id})}" class="btn btn-ghost btn-sm">Voir</a>
+                    <a th:href="@{/consultations/{id}(id=${c.id})}" class="btn btn-ghost btn-sm" th:text="#{common.view}">Voir</a>
                 </td>
             </tr>
             </tbody>

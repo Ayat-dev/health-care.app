@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Fiche de consultation', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{consultations.detail.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
@@ -11,80 +11,86 @@
         <span>
             <strong th:text="${consultation.patientName}">Patient</strong>
             <span class="badge badge-blue" th:text="${consultation.patientRecordNumber}">PAT-…</span>
-            <span class="badge" th:classappend="'badge-' + ${consultation.status}" th:text="${consultation.status}">EN_COURS</span>
-            <span th:if="${consultation.emergency}" class="badge badge-red">URGENCE</span>
+            <span class="badge" th:classappend="'badge-' + ${consultation.status}" th:text="#{${'status.' + consultation.status}}">EN_COURS</span>
+            <span th:if="${consultation.emergency}" class="badge badge-red" th:text="#{consultations.detail.emergency}">URGENCE</span>
         </span>
         <div style="display:flex; gap:.5rem;">
             <a th:href="@{/consultations/{id}/edit(id=${consultation.id})}"
-               th:if="${consultation.status != 'TERMINE'}" class="btn btn-ghost btn-sm">Modifier</a>
+               th:if="${consultation.status != 'TERMINE'}" class="btn btn-ghost btn-sm" th:text="#{common.edit}">Modifier</a>
             <form th:if="${consultation.status == 'EN_COURS'}" method="post"
                   th:action="@{/consultations/{id}/complete(id=${consultation.id})}" style="display:inline;">
-                <button class="btn btn-primary btn-sm">Clôturer</button>
+                <button class="btn btn-primary btn-sm" th:text="#{consultations.detail.complete}">Clôturer</button>
             </form>
             <form th:if="${consultation.status == 'EN_COURS'}" method="post"
                   th:action="@{/consultations/{id}/cancel(id=${consultation.id})}" style="display:inline;"
-                  onsubmit="return confirm('Annuler cette consultation ?');">
-                <button class="btn btn-ghost btn-sm">Annuler</button>
+                  th:onsubmit="'return confirm(\'' + #{consultations.detail.cancel_confirm} + '\');'">
+                <button class="btn btn-ghost btn-sm" th:text="#{common.cancel}">Annuler</button>
             </form>
         </div>
     </div>
     <div class="form-grid-2 panel-body">
-        <div><span class="detail-label">Médecin</span> <span th:text="${consultation.doctorName ?: '—'}">—</span></div>
-        <div><span class="detail-label">Service</span> <span th:text="${consultation.departmentName ?: '—'}">—</span></div>
-        <div><span class="detail-label">Date</span>
+        <div><span class="detail-label" th:text="#{consultations.detail.doctor}">Médecin</span> <span th:text="${consultation.doctorName ?: '—'}">—</span></div>
+        <div><span class="detail-label" th:text="#{consultations.detail.department}">Service</span> <span th:text="${consultation.departmentName ?: '—'}">—</span></div>
+        <div><span class="detail-label" th:text="#{common.date}">Date</span>
              <span th:text="${#temporals.format(consultation.consultationDate,'dd/MM/yyyy HH:mm')}">—</span></div>
-        <div><span class="detail-label">Suivi prévu</span>
+        <div><span class="detail-label" th:text="#{consultations.detail.followup}">Suivi prévu</span>
              <span th:text="${consultation.followUpDate != null ? #temporals.format(consultation.followUpDate,'dd/MM/yyyy') : '—'}">—</span></div>
     </div>
 </div>
 
 <!-- Constantes vitales -->
 <div class="panel">
-    <div class="panel-header"><span>Constantes vitales</span></div>
+    <div class="panel-header"><span th:text="#{consultations.vitals.title}">Constantes vitales</span></div>
     <div class="form-grid-2 panel-body">
-        <div><span class="detail-label">Poids</span> <span th:text="${consultation.weightKg != null ? consultation.weightKg + ' kg' : '—'}">—</span></div>
-        <div><span class="detail-label">Taille</span> <span th:text="${consultation.heightCm != null ? consultation.heightCm + ' cm' : '—'}">—</span></div>
-        <div><span class="detail-label">Température</span> <span th:text="${consultation.temperatureC != null ? consultation.temperatureC + ' °C' : '—'}">—</span></div>
-        <div><span class="detail-label">Pouls</span> <span th:text="${consultation.pulseBpm != null ? consultation.pulseBpm + ' bpm' : '—'}">—</span></div>
-        <div><span class="detail-label">Tension</span>
+        <div><span class="detail-label" th:text="#{consultations.vitals.weight}">Poids</span> <span th:text="${consultation.weightKg != null ? consultation.weightKg + ' kg' : '—'}">—</span></div>
+        <div><span class="detail-label" th:text="#{consultations.vitals.height}">Taille</span> <span th:text="${consultation.heightCm != null ? consultation.heightCm + ' cm' : '—'}">—</span></div>
+        <div><span class="detail-label" th:text="#{consultations.vitals.temperature}">Température</span> <span th:text="${consultation.temperatureC != null ? consultation.temperatureC + ' °C' : '—'}">—</span></div>
+        <div><span class="detail-label" th:text="#{consultations.vitals.pulse}">Pouls</span> <span th:text="${consultation.pulseBpm != null ? consultation.pulseBpm + ' bpm' : '—'}">—</span></div>
+        <div><span class="detail-label" th:text="#{consultations.vitals.bp}">Tension</span>
              <span th:text="${consultation.bpSystolic != null ? consultation.bpSystolic + '/' + consultation.bpDiastolic + ' mmHg' : '—'}">—</span></div>
-        <div><span class="detail-label">SpO₂</span> <span th:text="${consultation.spo2Percent != null ? consultation.spo2Percent + ' %' : '—'}">—</span></div>
-        <div><span class="detail-label">Fréq. respiratoire</span> <span th:text="${consultation.respiratoryRate ?: '—'}">—</span></div>
+        <div><span class="detail-label" th:text="#{consultations.vitals.spo2}">SpO₂</span> <span th:text="${consultation.spo2Percent != null ? consultation.spo2Percent + ' %' : '—'}">—</span></div>
+        <div><span class="detail-label" th:text="#{consultations.vitals.resp_rate}">Fréq. respiratoire</span> <span th:text="${consultation.respiratoryRate ?: '—'}">—</span></div>
     </div>
 </div>
 
 <!-- Clinique -->
 <div class="panel">
-    <div class="panel-header"><span>Examen clinique</span></div>
+    <div class="panel-header"><span th:text="#{consultations.clinical.title}">Examen clinique</span></div>
     <div class="panel-body">
-        <div style="margin-bottom:10px;"><div class="detail-label">Motif</div><p th:text="${consultation.chiefComplaint ?: '—'}">—</p></div>
-        <div style="margin-bottom:10px;"><div class="detail-label">Anamnèse</div><p th:text="${consultation.history ?: '—'}">—</p></div>
-        <div style="margin-bottom:10px;"><div class="detail-label">Examen physique</div><p th:text="${consultation.physicalExam ?: '—'}">—</p></div>
-        <div style="margin-bottom:10px;"><div class="detail-label">Diagnostic</div><p th:text="${consultation.diagnosis ?: '—'}">—</p></div>
-        <div style="margin-bottom:10px;"><div class="detail-label">Codes CIM-10</div><p th:text="${consultation.icd10Codes ?: '—'}">—</p></div>
-        <div><div class="detail-label">Plan de traitement</div><p th:text="${consultation.treatmentPlan ?: '—'}">—</p></div>
+        <div style="margin-bottom:10px;"><div class="detail-label" th:text="#{consultations.clinical.complaint}">Motif</div><p th:text="${consultation.chiefComplaint ?: '—'}">—</p></div>
+        <div style="margin-bottom:10px;"><div class="detail-label" th:text="#{consultations.clinical.history}">Anamnèse</div><p th:text="${consultation.history ?: '—'}">—</p></div>
+        <div style="margin-bottom:10px;"><div class="detail-label" th:text="#{consultations.clinical.physical}">Examen physique</div><p th:text="${consultation.physicalExam ?: '—'}">—</p></div>
+        <div style="margin-bottom:10px;"><div class="detail-label" th:text="#{consultations.clinical.diagnosis}">Diagnostic</div><p th:text="${consultation.diagnosis ?: '—'}">—</p></div>
+        <div style="margin-bottom:10px;"><div class="detail-label" th:text="#{consultations.clinical.icd10}">Codes CIM-10</div><p th:text="${consultation.icd10Codes ?: '—'}">—</p></div>
+        <div><div class="detail-label" th:text="#{consultations.clinical.treatment}">Plan de traitement</div><p th:text="${consultation.treatmentPlan ?: '—'}">—</p></div>
     </div>
 </div>
 
 <!-- Ordonnance -->
 <div class="panel">
     <div class="panel-header">
-        <span>Ordonnance</span>
+        <span th:text="#{consultations.prescription.title}">Ordonnance</span>
         <div style="display:flex; gap:.5rem;">
             <a th:href="@{/consultations/{id}/prescription(id=${consultation.id})}" class="btn btn-ghost btn-sm"
-               th:text="${prescription == null ? '+ Créer une ordonnance' : 'Modifier l''ordonnance'}">Ordonnance</a>
+               th:text="${prescription == null} ? #{consultations.prescription.create} : #{consultations.prescription.edit}">Ordonnance</a>
             <a th:if="${prescription != null}" th:href="@{/prescriptions/{id}/print(id=${prescription.id})}"
-               target="_blank" class="btn btn-primary btn-sm">Imprimer</a>
+               target="_blank" class="btn btn-primary btn-sm" th:text="#{common.print}">Imprimer</a>
         </div>
     </div>
     <div class="panel-body">
-        <div th:if="${prescription == null}" class="empty-state">Aucune ordonnance pour cette consultation.</div>
+        <div th:if="${prescription == null}" class="empty-state" th:text="#{consultations.prescription.empty}">Aucune ordonnance pour cette consultation.</div>
         <div th:if="${prescription != null}">
-            <p><span class="detail-label">N°</span> <strong th:text="${prescription.prescriptionNumber}">ORD-…</strong>
-               · <span th:text="'délivrée le ' + ${#temporals.format(prescription.issueDate,'dd/MM/yyyy')}">—</span>
-               · <span th:text="'valable ' + ${prescription.validityDays} + ' jours'">—</span></p>
+            <p><span class="detail-label" th:text="#{consultations.prescription.number}">N°</span> <strong th:text="${prescription.prescriptionNumber}">ORD-…</strong>
+               · <span th:text="#{consultations.prescription.issued_on(${#temporals.format(prescription.issueDate,'dd/MM/yyyy')})}">—</span>
+               · <span th:text="#{consultations.prescription.validity(${prescription.validityDays})}">—</span></p>
             <table class="table" style="margin-top:8px;">
-                <thead><tr><th>Médicament</th><th>Posologie</th><th>Fréquence</th><th>Durée</th><th>Qté</th></tr></thead>
+                <thead><tr>
+                    <th th:text="#{consultations.prescription.col_drug}">Médicament</th>
+                    <th th:text="#{consultations.prescription.col_dosage}">Posologie</th>
+                    <th th:text="#{consultations.prescription.col_frequency}">Fréquence</th>
+                    <th th:text="#{consultations.prescription.col_duration}">Durée</th>
+                    <th th:text="#{consultations.prescription.col_qty}">Qté</th>
+                </tr></thead>
                 <tbody>
                 <tr th:each="it : ${prescription.items}">
                     <td th:text="${it.drugName}">Médicament</td>
@@ -102,25 +108,25 @@
 <!-- Actions cliniques — raccourcis vers les modules de suivi (regroupés pour
      éviter quatre panneaux quasi vides). -->
 <div class="panel">
-    <div class="panel-header"><span>Actions cliniques</span></div>
+    <div class="panel-header"><span th:text="#{consultations.actions.title}">Actions cliniques</span></div>
     <div class="panel-body" style="display:flex; flex-wrap:wrap; gap:10px;">
         <a th:href="@{/lab/requests/new(consultationId=${consultation.id},patientId=${consultation.patientId})}"
-           class="btn btn-ghost">🔬 Demander des analyses</a>
+           class="btn btn-ghost" th:text="#{consultations.actions.lab}">🔬 Demander des analyses</a>
         <a th:href="@{/radiology/requests/new(consultationId=${consultation.id},patientId=${consultation.patientId})}"
-           class="btn btn-ghost">🩻 Demander une imagerie</a>
+           class="btn btn-ghost" th:text="#{consultations.actions.radiology}">🩻 Demander une imagerie</a>
         <a th:href="@{/hospitalization/admit(consultationId=${consultation.id},patientId=${consultation.patientId})}"
-           class="btn btn-ghost">🏥 Admettre le patient</a>
+           class="btn btn-ghost" th:text="#{consultations.actions.admit}">🏥 Admettre le patient</a>
         <a th:href="@{/billing/invoices/new(consultationId=${consultation.id},patientId=${consultation.patientId})}"
-           class="btn btn-ghost">💳 Créer une facture</a>
+           class="btn btn-ghost" th:text="#{consultations.actions.invoice}">💳 Créer une facture</a>
     </div>
-    <p class="form-hint" style="padding:0 16px 14px;">
+    <p class="form-hint" style="padding:0 16px 14px;" th:text="#{consultations.actions.hint}">
         Le suivi (résultats, comptes-rendus, séjour, encaissement) se poursuit dans le module correspondant.
     </p>
 </div>
 
 <div style="display:flex; gap:.5rem;">
     <a th:if="${consultation.patientId != null}" th:href="@{/patients/{id}(id=${consultation.patientId})}"
-       class="btn btn-ghost">Dossier patient</a>
+       class="btn btn-ghost" th:text="#{consultations.detail.patient_record}">Dossier patient</a>
 </div>
 
 </th:block></body>

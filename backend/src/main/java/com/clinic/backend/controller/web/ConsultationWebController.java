@@ -9,6 +9,7 @@ import com.clinic.backend.dto.ConsultationDto;
 import com.clinic.backend.dto.Icd10CodeDto;
 import com.clinic.backend.dto.PrescriptionDto;
 import com.clinic.backend.dto.PrescriptionItemDto;
+import com.clinic.backend.i18n.WebI18n;
 import com.clinic.backend.model.User;
 import com.clinic.backend.patient.PatientService;
 import com.clinic.backend.repository.UserRepository;
@@ -39,6 +40,7 @@ public class ConsultationWebController {
     private final UserRepository userRepository;
     private final Icd10Service icd10Service;
     private final ScribeService scribeService;
+    private final WebI18n i18n;
 
     // ── Liste ───────────────────────────────────────────────────────────────
     @GetMapping
@@ -83,7 +85,7 @@ public class ConsultationWebController {
     public String create(@ModelAttribute ConsultationDto dto, RedirectAttributes ra, Model model) {
         try {
             Consultation created = consultationService.create(dto);
-            ra.addFlashAttribute("success", "Consultation enregistrée.");
+            ra.addFlashAttribute("success", i18n.t("consultations.flash.created"));
             return "redirect:/consultations/" + created.getId();
         } catch (RuntimeException e) {
             model.addAttribute("consultation", dto);
@@ -106,7 +108,7 @@ public class ConsultationWebController {
                          RedirectAttributes ra, Model model) {
         try {
             consultationService.update(id, dto);
-            ra.addFlashAttribute("success", "Consultation mise à jour.");
+            ra.addFlashAttribute("success", i18n.t("consultations.flash.updated"));
             return "redirect:/consultations/" + id;
         } catch (RuntimeException e) {
             dto.setId(id);
@@ -122,7 +124,7 @@ public class ConsultationWebController {
     public String complete(@PathVariable Long id, RedirectAttributes ra) {
         try {
             consultationService.complete(id);
-            ra.addFlashAttribute("success", "Consultation clôturée.");
+            ra.addFlashAttribute("success", i18n.t("consultations.flash.completed"));
         } catch (RuntimeException e) {
             ra.addFlashAttribute("error", e.getMessage());
         }
@@ -132,7 +134,7 @@ public class ConsultationWebController {
     @PostMapping("/{id}/cancel")
     public String cancel(@PathVariable Long id, RedirectAttributes ra) {
         consultationService.cancel(id);
-        ra.addFlashAttribute("success", "Consultation annulée.");
+        ra.addFlashAttribute("success", i18n.t("consultations.flash.cancelled"));
         return "redirect:/consultations/" + id;
     }
 
@@ -165,7 +167,7 @@ public class ConsultationWebController {
             } else {
                 prescriptionService.createForConsultation(consultationId, dto);
             }
-            ra.addFlashAttribute("success", "Ordonnance enregistrée.");
+            ra.addFlashAttribute("success", i18n.t("consultations.flash.prescription_saved"));
             return "redirect:/consultations/" + consultationId;
         } catch (RuntimeException e) {
             model.addAttribute("consultation", consultationService.getDtoById(consultationId));

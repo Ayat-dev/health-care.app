@@ -110,13 +110,28 @@ class PageRenderSmokeTest {
                 .andExpect(content().string(containsString("data-tab=\"lab\"")));
     }
 
-    /** Fiche de consultation : exerce le bloc « Actions cliniques » consolidé (P6 WS5 c2). */
+    /** Fiche de consultation : exerce le bloc « Actions cliniques » consolidé (P6 WS5 c2)
+     *  + i18n slice 3 (docs/I18N-PLAN.md) — clés #{} sur la fiche, statut dynamique
+     *  #{${'status.' + …}}, bascule en anglais via ?lang=en. */
     @Test
     @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
-    void consultation_detail_rend_actions_cliniques() throws Exception {
+    void consultation_detail_i18n_fr_puis_en() throws Exception {
         mvc.perform(get("/consultations/1"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Actions cliniques")));
+        mvc.perform(get("/consultations/1").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Clinical actions")))
+                .andExpect(content().string(containsString("Vital signs")));
+    }
+
+    /** i18n slice 3 : la liste consultations porte des clés #{} et bascule en anglais. */
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void consultations_liste_i18n_fr_puis_en() throws Exception {
+        mvc.perform(get("/consultations").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("+ New consultation")));
     }
 
     @Test
