@@ -64,6 +64,10 @@ public class ReportService {
     private final LabService labService;
     private final AppointmentService appointmentService;
 
+    // Libellés démographiques (sexe / tranches d'âge) localisés via le bundle ; la locale
+    // courante est celle de la requête (cookie clinicLang). Cf. docs/I18N-PLAN.md slice 10.
+    private final com.clinic.backend.i18n.WebI18n i18n;
+
     // ══════════════════════════ TABLEAU DE BORD ADMIN ══════════════════════════
 
     public AdminDashboardDto adminDashboard() {
@@ -259,7 +263,7 @@ public class ReportService {
     private List<LabelValueDto> toLabelCounts(List<Object[]> rows) {
         return rows.stream()
                 .map(row -> new LabelValueDto(
-                        row[0] != null ? row[0].toString() : "Non précisé",
+                        row[0] != null ? row[0].toString() : i18n.t("gender.unknown"),
                         ((Number) row[1]).longValue()))
                 .toList();
     }
@@ -271,10 +275,10 @@ public class ReportService {
     }
 
     private String genderLabel(String g) {
-        if (g == null) return "Non précisé";
+        if (g == null) return i18n.t("gender.unknown");
         return switch (g) {
-            case "M" -> "Masculin";
-            case "F" -> "Féminin";
+            case "M" -> i18n.t("gender.M");
+            case "F" -> i18n.t("gender.F");
             default -> g;
         };
     }
@@ -302,12 +306,12 @@ public class ReportService {
             else buckets[4]++;
         }
         List<LabelValueDto> out = new java.util.ArrayList<>();
-        out.add(new LabelValueDto("0-4 ans", buckets[0]));
-        out.add(new LabelValueDto("5-14 ans", buckets[1]));
-        out.add(new LabelValueDto("15-44 ans", buckets[2]));
-        out.add(new LabelValueDto("45-64 ans", buckets[3]));
-        out.add(new LabelValueDto("65 ans et +", buckets[4]));
-        if (buckets[5] > 0) out.add(new LabelValueDto("Âge inconnu", buckets[5]));
+        out.add(new LabelValueDto(i18n.t("reports.age.0_4"), buckets[0]));
+        out.add(new LabelValueDto(i18n.t("reports.age.5_14"), buckets[1]));
+        out.add(new LabelValueDto(i18n.t("reports.age.15_44"), buckets[2]));
+        out.add(new LabelValueDto(i18n.t("reports.age.45_64"), buckets[3]));
+        out.add(new LabelValueDto(i18n.t("reports.age.65_plus"), buckets[4]));
+        if (buckets[5] > 0) out.add(new LabelValueDto(i18n.t("reports.age.unknown"), buckets[5]));
         return out;
     }
 

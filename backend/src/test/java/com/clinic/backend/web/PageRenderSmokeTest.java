@@ -410,4 +410,31 @@ class PageRenderSmokeTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Prescriptions to dispense")));
     }
+
+    /** i18n slice 10 (docs/I18N-PLAN.md) : le module Rapports (cockpit, bilan financier,
+     *  activité, épidémiologie, impayés) porte des clés #{} — statut dynamique des impayés
+     *  #{${'status.' + …}}, libellés démographiques (sexe/âge) localisés côté service — et
+     *  bascule en anglais via ?lang=en. OWNER a accès à tous les onglets de rapports. */
+    @Test
+    @WithUserDetails(value = "owner", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void reports_i18n_fr_puis_en() throws Exception {
+        // cockpit : section « Revenus » en FR
+        mvc.perform(get("/reports"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Revenus")));
+        // cockpit : section « Revenue » traduite
+        mvc.perform(get("/reports").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Revenue")));
+        // bilan financier : titre « Financial report » traduit
+        mvc.perform(get("/reports/financial").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Financial report")));
+        // épidémiologie : en-tête « Distribution by age range » + tranche d'âge localisée
+        // côté service (« 0-4 yrs ») — prouve l'i18n des libellés démographiques.
+        mvc.perform(get("/reports/epidemiology").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Distribution by age range")))
+                .andExpect(content().string(containsString("0-4 yrs")));
+    }
 }

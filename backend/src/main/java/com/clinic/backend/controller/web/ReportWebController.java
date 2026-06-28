@@ -148,8 +148,11 @@ public class ReportWebController {
     private void addPeriod(Model model, int month, int year) {
         model.addAttribute("month", month);
         model.addAttribute("year", year);
+        // Nom de mois localisé : suit la locale courante (cookie clinicLang) pour les vues web.
+        // Les exports PDF (period(), documents officiels) restent en FR — voir docs/I18N-PLAN.md.
         model.addAttribute("monthName",
-                Month.of(month).getDisplayName(TextStyle.FULL, FR));
+                Month.of(month).getDisplayName(TextStyle.FULL,
+                        org.springframework.context.i18n.LocaleContextHolder.getLocale()));
     }
 
     // ── Exports PDF des rapports (template print générique) ──────────────────────

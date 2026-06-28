@@ -1,54 +1,54 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Cockpit — Pilotage', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{reports.dashboard.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <!-- La navigation entre rapports est dans la barre d'onglets du module (sous le titre). -->
 
 <!-- ── Revenus : la métrique n°1 du propriétaire en évidence ─────────────── -->
-<div class="section-title">Revenus</div>
+<div class="section-title" th:text="#{reports.dashboard.revenue}">Revenus</div>
 <div class="stat-card cockpit-hero">
-    <div class="stat-card-label">Encaissé ce mois</div>
+    <div class="stat-card-label" th:text="#{reports.dashboard.collected_month}">Encaissé ce mois</div>
     <div class="cockpit-hero-value"
          th:text="${#numbers.formatDecimal(dashboard.revenueMonth,0,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</div>
     <div class="cockpit-hero-meta">
         <span th:if="${dashboard.revenueMonthVariationPercent != null}"
               class="stat-card-trend"
               th:classappend="${dashboard.revenueMonthVariationPercent.signum() >= 0} ? 'up' : 'down'"
-              th:text="(${dashboard.revenueMonthVariationPercent.signum() >= 0} ? '▲ +' : '▼ ') + ${dashboard.revenueMonthVariationPercent} + ' % vs mois précédent'">▲ +0 %</span>
-        <span th:text="'Aujourd’hui : ' + ${#numbers.formatDecimal(dashboard.revenueToday,0,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">Aujourd’hui : 0</span>
+              th:text="(${dashboard.revenueMonthVariationPercent.signum() >= 0} ? '▲ +' : '▼ ') + ${dashboard.revenueMonthVariationPercent} + ' ' + #{reports.dashboard.vs_prev_month}">▲ +0 %</span>
+        <span th:text="#{reports.dashboard.today} + ' ' + ${#numbers.formatDecimal(dashboard.revenueToday,0,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">Aujourd’hui : 0</span>
     </div>
 </div>
 
 <!-- ── Exploitation : activité & occupation (agrégats, sans nominatif) ────── -->
-<div class="section-title" style="margin-top:8px;">Activité &amp; exploitation</div>
+<div class="section-title" style="margin-top:8px;" th:text="#{reports.dashboard.activity_section}">Activité &amp; exploitation</div>
 <div class="stats-grid">
     <div class="stat-card">
-        <div class="stat-card-label">Consultations (mois)</div>
+        <div class="stat-card-label" th:text="#{reports.dashboard.consultations_month}">Consultations (mois)</div>
         <div class="stat-card-value" th:text="${dashboard.consultationsMonth}">0</div>
         <div class="stat-card-trend"
-             th:text="'Aujourd’hui : ' + ${dashboard.consultationsToday} + ' · 7 j : ' + ${dashboard.consultationsWeek}">—</div>
+             th:text="#{reports.dashboard.today} + ' ' + ${dashboard.consultationsToday} + ' · ' + #{reports.dashboard.last7days} + ' ' + ${dashboard.consultationsWeek}">—</div>
     </div>
     <div class="stat-card">
-        <div class="stat-card-label">Occupation des lits</div>
+        <div class="stat-card-label" th:text="#{reports.dashboard.bed_occupancy}">Occupation des lits</div>
         <div class="stat-card-value" th:text="${dashboard.bedOccupancyRate} + ' %'">0 %</div>
         <div class="stat-card-trend"
-             th:text="${dashboard.occupiedBeds} + ' / ' + ${dashboard.totalBeds} + ' lits occupés'">—</div>
+             th:text="${dashboard.occupiedBeds} + ' / ' + ${dashboard.totalBeds} + ' ' + #{reports.dashboard.beds_occupied}">—</div>
     </div>
     <div class="stat-card">
-        <div class="stat-card-label">Patients (dossiers actifs)</div>
+        <div class="stat-card-label" th:text="#{reports.dashboard.patients_active}">Patients (dossiers actifs)</div>
         <div class="stat-card-value" th:text="${dashboard.patientsTotal}">0</div>
     </div>
 </div>
 
 <!-- ── Alertes : stock sous seuil / lots expirant ────────────────────────── -->
-<div class="section-title" style="margin-top:8px;">Alertes stock</div>
+<div class="section-title" style="margin-top:8px;" th:text="#{reports.dashboard.stock_alerts}">Alertes stock</div>
 <div class="stats-grid">
     <div class="stat-card" th:classappend="${dashboard.lowStockCount > 0} ? 'stat-card--amber'">
-        <div class="stat-card-label">Stock sous seuil d'alerte</div>
+        <div class="stat-card-label" th:text="#{reports.dashboard.low_stock}">Stock sous seuil d'alerte</div>
         <div class="stat-card-value" th:text="${dashboard.lowStockCount}">0</div>
     </div>
     <div class="stat-card" th:classappend="${dashboard.expiringCount > 0} ? 'stat-card--red'">
-        <div class="stat-card-label">Lots expirant (≤ 30 j)</div>
+        <div class="stat-card-label" th:text="#{reports.dashboard.expiring}">Lots expirant (≤ 30 j)</div>
         <div class="stat-card-value" th:text="${dashboard.expiringCount}">0</div>
     </div>
 </div>
@@ -56,11 +56,11 @@
 <!-- ── Détail : pathologies agrégées + encaissements par mode ────────────── -->
 <div class="form-grid-2" style="margin-top:8px; align-items:start;">
     <div class="panel">
-        <div class="panel-header"><span>Top pathologies (ce mois)</span></div>
-        <div th:if="${dashboard.topPathologies.isEmpty()}" class="empty-state">Aucune consultation clôturée ce mois.</div>
+        <div class="panel-header"><span th:text="#{reports.dashboard.top_pathologies}">Top pathologies (ce mois)</span></div>
+        <div th:if="${dashboard.topPathologies.isEmpty()}" class="empty-state" th:text="#{reports.dashboard.no_consultations_month}">Aucune consultation clôturée ce mois.</div>
         <div th:unless="${dashboard.topPathologies.isEmpty()}" class="table-wrap">
             <table class="table">
-                <thead><tr><th>Diagnostic</th><th style="text-align:right;">Cas</th></tr></thead>
+                <thead><tr><th th:text="#{reports.col.diagnosis}">Diagnostic</th><th style="text-align:right;" th:text="#{reports.col.cases}">Cas</th></tr></thead>
                 <tbody>
                 <tr th:each="p : ${dashboard.topPathologies}">
                     <td th:text="${p.label}">Paludisme</td>
@@ -72,11 +72,11 @@
     </div>
 
     <div class="panel">
-        <div class="panel-header"><span>Modes de paiement (ce mois)</span></div>
-        <div th:if="${dashboard.paymentMethodBreakdown.isEmpty()}" class="empty-state">Aucun encaissement ce mois.</div>
+        <div class="panel-header"><span th:text="#{reports.dashboard.payment_methods}">Modes de paiement (ce mois)</span></div>
+        <div th:if="${dashboard.paymentMethodBreakdown.isEmpty()}" class="empty-state" th:text="#{reports.dashboard.no_payments_month}">Aucun encaissement ce mois.</div>
         <div th:unless="${dashboard.paymentMethodBreakdown.isEmpty()}" class="table-wrap">
             <table class="table">
-                <thead><tr><th>Mode</th><th style="text-align:right;">Montant</th></tr></thead>
+                <thead><tr><th th:text="#{reports.col.method}">Mode</th><th style="text-align:right;" th:text="#{reports.col.amount}">Montant</th></tr></thead>
                 <tbody>
                 <tr th:each="m : ${dashboard.paymentMethodBreakdown}">
                     <td><span class="badge" th:text="${@paymentMethods.label(m.key)}">ESPECES</span></td>
