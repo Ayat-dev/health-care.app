@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Demande d’analyses', ~{::content})}"
+<html th:replace="~{layouts/base :: layout(#{lab.detail.title}, ~{::content})}"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body><th:block th:fragment="content">
 
@@ -12,56 +12,56 @@
         <span>
             <strong th:text="${request.requestNumber}">LAB-…</strong>
             <span class="badge badge-blue" th:text="${request.patientRecordNumber}">PAT-…</span>
-            <span class="badge" th:classappend="'badge-' + ${request.status}" th:text="${request.status}">EN_ATTENTE</span>
-            <span th:if="${request.priority == 'URGENT'}" class="badge badge-red">URGENT</span>
+            <span class="badge" th:classappend="'badge-' + ${request.status}" th:text="#{${'status.' + request.status}}">EN_ATTENTE</span>
+            <span th:if="${request.priority == 'URGENT'}" class="badge badge-red" th:text="#{priority.URGENT}">URGENT</span>
             <span th:if="${request.abnormalCount > 0}" class="badge badge-red"
-                  th:text="${request.abnormalCount} + ' valeur(s) anormale(s)'">anormal</span>
+                  th:text="#{lab.detail.abnormal_count(${request.abnormalCount})}">anormal</span>
         </span>
         <div style="display:flex; gap:.5rem;">
             <a th:if="${request.status != 'VALIDE' and request.status != 'LIVRE' and request.status != 'ANNULE'}"
-               th:href="@{/lab/requests/{id}/results(id=${request.id})}" class="btn btn-primary btn-sm">Saisir les résultats</a>
+               th:href="@{/lab/requests/{id}/results(id=${request.id})}" class="btn btn-primary btn-sm" th:text="#{lab.detail.enter_results}">Saisir les résultats</a>
             <th:block sec:authorize="hasAnyRole('MEDECIN','ADMIN')">
                 <form th:if="${request.status == 'EN_COURS' and request.allResultsEntered}" method="post"
                       th:action="@{/lab/requests/{id}/validate(id=${request.id})}" style="display:inline;">
-                    <button class="btn btn-primary btn-sm">Valider</button>
+                    <button class="btn btn-primary btn-sm" th:text="#{lab.detail.validate}">Valider</button>
                 </form>
             </th:block>
             <a th:if="${request.status == 'VALIDE' or request.status == 'LIVRE'}"
                th:href="@{/lab/requests/{id}/bulletin(id=${request.id})}" target="_blank"
-               class="btn btn-ghost btn-sm">Imprimer le bulletin</a>
+               class="btn btn-ghost btn-sm" th:text="#{lab.detail.print_bulletin}">Imprimer le bulletin</a>
             <form th:if="${request.status == 'VALIDE'}" method="post"
                   th:action="@{/lab/requests/{id}/deliver(id=${request.id})}" style="display:inline;">
-                <button class="btn btn-ghost btn-sm">Marquer livré</button>
+                <button class="btn btn-ghost btn-sm" th:text="#{lab.detail.mark_delivered}">Marquer livré</button>
             </form>
             <form th:if="${request.status != 'VALIDE' and request.status != 'LIVRE' and request.status != 'ANNULE'}"
                   method="post" th:action="@{/lab/requests/{id}/cancel(id=${request.id})}" style="display:inline;"
-                  onsubmit="return confirm('Annuler cette demande ?');">
-                <button class="btn btn-ghost btn-sm">Annuler</button>
+                  th:onsubmit="'return confirm(\'' + #{lab.detail.cancel_confirm} + '\');'">
+                <button class="btn btn-ghost btn-sm" th:text="#{common.cancel}">Annuler</button>
             </form>
         </div>
     </div>
     <div class="form-grid-2 panel-body">
-        <div><span class="detail-label">Patient</span> <span th:text="${request.patientName}">—</span></div>
-        <div><span class="detail-label">Prescripteur</span> <span th:text="${request.doctorName ?: '—'}">—</span></div>
-        <div><span class="detail-label">Demandé le</span>
+        <div><span class="detail-label" th:text="#{lab.col.patient}">Patient</span> <span th:text="${request.patientName}">—</span></div>
+        <div><span class="detail-label" th:text="#{lab.col.prescriber}">Prescripteur</span> <span th:text="${request.doctorName ?: '—'}">—</span></div>
+        <div><span class="detail-label" th:text="#{lab.col.requested_at}">Demandé le</span>
              <span th:text="${#temporals.format(request.requestedAt,'dd/MM/yyyy HH:mm')}">—</span></div>
-        <div><span class="detail-label">Renseignements</span> <span th:text="${request.notes ?: '—'}">—</span></div>
+        <div><span class="detail-label" th:text="#{lab.detail.notes}">Renseignements</span> <span th:text="${request.notes ?: '—'}">—</span></div>
     </div>
 </div>
 
 <!-- Résultats -->
 <div class="panel mt-16">
-    <div class="panel-header"><span>Analyses &amp; résultats</span></div>
+    <div class="panel-header"><span th:text="#{lab.detail.results_heading}">Analyses &amp; résultats</span></div>
     <div class="table-wrap">
         <table class="table">
             <thead>
             <tr>
-                <th>Analyse</th>
-                <th>Catégorie</th>
-                <th>Résultat</th>
-                <th>Réf.</th>
-                <th>Statut</th>
-                <th>Saisi par</th>
+                <th th:text="#{lab.detail.col_test}">Analyse</th>
+                <th th:text="#{lab.detail.col_category}">Catégorie</th>
+                <th th:text="#{lab.detail.col_result}">Résultat</th>
+                <th th:text="#{lab.detail.col_ref}">Réf.</th>
+                <th th:text="#{common.status}">Statut</th>
+                <th th:text="#{lab.detail.col_entered_by}">Saisi par</th>
             </tr>
             </thead>
             <tbody>
@@ -71,12 +71,12 @@
                 <td>
                     <span th:if="${it.resultValue != null}">
                         <strong th:text="${it.resultValue} + (${it.unit != null} ? ' ' + ${it.unit} : '')">12.5 g/dL</strong>
-                        <span th:if="${it.abnormal}" class="badge badge-red">⚠ Anormal</span>
+                        <span th:if="${it.abnormal}" class="badge badge-red" th:text="#{lab.detail.abnormal}">⚠ Anormal</span>
                     </span>
-                    <span th:unless="${it.resultValue != null}" class="text-muted">en attente</span>
+                    <span th:unless="${it.resultValue != null}" class="text-muted" th:text="#{lab.detail.result_pending}">en attente</span>
                 </td>
                 <td th:text="${it.referenceRange ?: (it.catalogReferenceRange ?: '—')}">—</td>
-                <td><span class="badge" th:text="${it.status}">EN_ATTENTE</span></td>
+                <td><span class="badge" th:text="#{${'status.' + it.status}}">EN_ATTENTE</span></td>
                 <td th:text="${it.laborantinName ?: '—'}">—</td>
             </tr>
             </tbody>
@@ -84,15 +84,16 @@
     </div>
     <div th:if="${request.status == 'VALIDE' or request.status == 'LIVRE'}"
          class="text-muted" style="padding:10px 16px; font-size:13px;">
-        Validé par <strong th:text="${request.items[0].validatedByName ?: '—'}">Dr.</strong>
+        <span th:text="#{lab.detail.validated_by}">Validé par</span>
+        <strong th:text="${request.items[0].validatedByName ?: '—'}">Dr.</strong>
         <span th:if="${request.items[0].validatedAt != null}"
-              th:text="' le ' + ${#temporals.format(request.items[0].validatedAt,'dd/MM/yyyy HH:mm')}"> le —</span>
+              th:text="#{lab.detail.validated_on(${#temporals.format(request.items[0].validatedAt,'dd/MM/yyyy HH:mm')})}"> le —</span>
     </div>
 </div>
 
 <!-- Fil d'Ariane + onglets de module couvrent le retour ; on garde le lien latéral vers le dossier patient. -->
 <div th:if="${request.patientId != null}" class="mt-16">
-    <a th:href="@{/patients/{id}(id=${request.patientId})}" class="btn btn-ghost">Dossier patient</a>
+    <a th:href="@{/patients/{id}(id=${request.patientId})}" class="btn btn-ghost" th:text="#{lab.detail.patient_record}">Dossier patient</a>
 </div>
 
 </th:block></body>

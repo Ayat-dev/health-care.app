@@ -276,6 +276,29 @@ class PageRenderSmokeTest {
                 .andExpect(content().string(containsString("Analyses &amp; résultats")));
     }
 
+    /** i18n slice 5 (docs/I18N-PLAN.md) : le module Laboratoire (travail du jour, liste,
+     *  formulaire, détail) porte des clés #{} — statuts dynamiques #{${'status.' + …}} +
+     *  priorités #{priority.*} — et bascule en anglais via ?lang=en. */
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void lab_i18n_fr_puis_en() throws Exception {
+        mvc.perform(get("/lab"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Travail du jour")));
+        // travail du jour : colonne partagée (Prescripteur) traduite
+        mvc.perform(get("/lab").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Prescriber")));
+        // formulaire : libellé « Analyses demandées » traduit
+        mvc.perform(get("/lab/requests/new").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Requested tests")));
+        // détail : en-tête « Saisi par » traduit + statut dynamique résolu
+        mvc.perform(get("/lab/requests/1").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Entered by")));
+    }
+
     /** Détail demande imagerie : exerce le compte-rendu + la galerie d'images (th:alt). */
     @Test
     @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")

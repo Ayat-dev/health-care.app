@@ -33,6 +33,7 @@ public class LabWebController {
     private final ClinicConfigService clinicConfigService;
     private final UserRepository userRepository;
     private final com.clinic.backend.export.PdfExportService pdfExportService;
+    private final com.clinic.backend.i18n.WebI18n i18n;
 
     // ── Travail du jour (laborantin) ─────────────────────────────────────────────
     @GetMapping
@@ -78,7 +79,7 @@ public class LabWebController {
     public String create(@ModelAttribute LabRequestDto dto, RedirectAttributes ra, Model model) {
         try {
             LabRequest created = labService.create(dto);
-            ra.addFlashAttribute("success", "Demande d'analyses enregistrée.");
+            ra.addFlashAttribute("success", i18n.t("lab.flash.created"));
             return "redirect:/lab/requests/" + created.getId();
         } catch (RuntimeException e) {
             model.addAttribute("request", dto);
@@ -100,7 +101,7 @@ public class LabWebController {
                               RedirectAttributes ra, Model model) {
         try {
             labService.enterResults(id, form.getItems());
-            ra.addFlashAttribute("success", "Résultats enregistrés.");
+            ra.addFlashAttribute("success", i18n.t("lab.flash.results_saved"));
             return "redirect:/lab/requests/" + id;
         } catch (RuntimeException e) {
             model.addAttribute("request", labService.getDtoById(id));
@@ -114,7 +115,7 @@ public class LabWebController {
     public String validate(@PathVariable Long id, RedirectAttributes ra) {
         try {
             labService.validate(id);
-            ra.addFlashAttribute("success", "Résultats validés.");
+            ra.addFlashAttribute("success", i18n.t("lab.flash.validated"));
         } catch (RuntimeException e) {
             ra.addFlashAttribute("error", e.getMessage());
         }
@@ -125,7 +126,7 @@ public class LabWebController {
     public String deliver(@PathVariable Long id, RedirectAttributes ra) {
         try {
             labService.deliver(id);
-            ra.addFlashAttribute("success", "Bulletin marqué comme livré.");
+            ra.addFlashAttribute("success", i18n.t("lab.flash.delivered"));
         } catch (RuntimeException e) {
             ra.addFlashAttribute("error", e.getMessage());
         }
@@ -136,7 +137,7 @@ public class LabWebController {
     public String cancel(@PathVariable Long id, RedirectAttributes ra) {
         try {
             labService.cancel(id);
-            ra.addFlashAttribute("success", "Demande annulée.");
+            ra.addFlashAttribute("success", i18n.t("lab.flash.cancelled"));
         } catch (RuntimeException e) {
             ra.addFlashAttribute("error", e.getMessage());
         }

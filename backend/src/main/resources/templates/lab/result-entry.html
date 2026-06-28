@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Saisie des résultats', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{lab.result.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
@@ -10,26 +10,26 @@
             <strong th:text="${request.requestNumber}">LAB-…</strong> —
             <span th:text="${request.patientName}">Patient</span>
             <span class="badge badge-blue" th:text="${request.patientRecordNumber}">PAT-…</span>
-            <span th:if="${request.priority == 'URGENT'}" class="badge badge-red">URGENT</span>
+            <span th:if="${request.priority == 'URGENT'}" class="badge badge-red" th:text="#{priority.URGENT}">URGENT</span>
         </span>
     </div>
     <div class="text-muted" style="padding:8px 16px; font-size:13px;"
-         th:if="${request.notes}" th:text="'Renseignements : ' + ${request.notes}">Renseignements</div>
+         th:if="${request.notes}" th:text="#{lab.result.notes_label(${request.notes})}">Renseignements</div>
 </div>
 
 <form method="post" th:action="@{/lab/requests/{id}/results(id=${request.id})}" th:object="${request}">
     <div class="form-card">
-        <div class="panel-header"><span>Résultats par analyse</span></div>
+        <div class="panel-header"><span th:text="#{lab.result.heading}">Résultats par analyse</span></div>
         <div class="table-wrap">
             <table class="table">
                 <thead>
                 <tr>
-                    <th>Analyse</th>
-                    <th style="width:160px;">Valeur</th>
-                    <th style="width:110px;">Unité</th>
-                    <th style="width:180px;">Valeurs de référence</th>
-                    <th style="width:80px;">Anormal</th>
-                    <th>Note</th>
+                    <th th:text="#{lab.result.col_test}">Analyse</th>
+                    <th style="width:160px;" th:text="#{lab.result.col_value}">Valeur</th>
+                    <th style="width:110px;" th:text="#{lab.result.col_unit}">Unité</th>
+                    <th style="width:180px;" th:text="#{lab.result.col_refrange}">Valeurs de référence</th>
+                    <th style="width:80px;" th:text="#{lab.result.col_abnormal}">Anormal</th>
+                    <th th:text="#{lab.result.col_note}">Note</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -52,12 +52,12 @@
                 </tbody>
             </table>
         </div>
-        <p class="text-muted" style="padding:6px 16px; font-size:12px;">
+        <p class="text-muted" style="padding:6px 16px; font-size:12px;" th:text="#{lab.result.help}">
             Laissez la valeur vide pour les analyses non encore réalisées. La case « Anormal » est aussi
             cochée automatiquement si la valeur sort des bornes de référence numériques.
         </p>
         <div style="display:flex; gap:.5rem; margin-top:8px;">
-            <button type="submit" class="btn btn-primary">Enregistrer les résultats</button>
+            <button type="submit" class="btn btn-primary" th:text="#{lab.result.submit}">Enregistrer les résultats</button>
             <a th:replace="~{fragments/ui :: back(@{/lab/requests/{id}(id=${request.id})})}"></a>
         </div>
     </div>
