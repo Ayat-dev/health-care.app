@@ -7,6 +7,7 @@ import com.clinic.backend.dto.RoomDto;
 import com.clinic.backend.hospitalization.Hospitalization;
 import com.clinic.backend.hospitalization.HospitalizationService;
 import com.clinic.backend.hospitalization.RoomService;
+import com.clinic.backend.i18n.WebI18n;
 import com.clinic.backend.model.User;
 import com.clinic.backend.patient.PatientService;
 import com.clinic.backend.repository.UserRepository;
@@ -30,6 +31,7 @@ public class HospitalizationWebController {
     private final PatientService patientService;
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
+    private final WebI18n i18n;
 
     // ── Plan des lits ─────────────────────────────────────────────────────────
     @GetMapping
@@ -70,7 +72,7 @@ public class HospitalizationWebController {
     public String admit(@ModelAttribute HospitalizationDto dto, RedirectAttributes ra, Model model) {
         try {
             Hospitalization created = hospitalizationService.admit(dto);
-            ra.addFlashAttribute("success", "Patient admis.");
+            ra.addFlashAttribute("success", i18n.t("hospitalization.flash.admitted"));
             return "redirect:/hospitalization/" + created.getId();
         } catch (RuntimeException e) {
             model.addAttribute("stay", dto);
@@ -88,7 +90,7 @@ public class HospitalizationWebController {
                            RedirectAttributes ra) {
         try {
             Hospitalization next = hospitalizationService.transfer(id, newRoomId, reason);
-            ra.addFlashAttribute("success", "Patient transféré.");
+            ra.addFlashAttribute("success", i18n.t("hospitalization.flash.transferred"));
             return "redirect:/hospitalization/" + next.getId();
         } catch (RuntimeException e) {
             ra.addFlashAttribute("error", e.getMessage());
@@ -104,7 +106,7 @@ public class HospitalizationWebController {
                             RedirectAttributes ra) {
         try {
             hospitalizationService.discharge(id, status, diagnosis);
-            ra.addFlashAttribute("success", "Sortie enregistrée.");
+            ra.addFlashAttribute("success", i18n.t("hospitalization.flash.discharged"));
         } catch (RuntimeException e) {
             ra.addFlashAttribute("error", e.getMessage());
         }
@@ -129,7 +131,7 @@ public class HospitalizationWebController {
     public String createRoom(@ModelAttribute RoomDto dto, RedirectAttributes ra, Model model) {
         try {
             roomService.create(dto);
-            ra.addFlashAttribute("success", "Chambre créée.");
+            ra.addFlashAttribute("success", i18n.t("hospitalization.flash.room_created"));
             return "redirect:/hospitalization/rooms";
         } catch (RuntimeException e) {
             model.addAttribute("room", dto);
@@ -151,7 +153,7 @@ public class HospitalizationWebController {
                              RedirectAttributes ra, Model model) {
         try {
             roomService.update(id, dto);
-            ra.addFlashAttribute("success", "Chambre mise à jour.");
+            ra.addFlashAttribute("success", i18n.t("hospitalization.flash.room_updated"));
             return "redirect:/hospitalization/rooms";
         } catch (RuntimeException e) {
             dto.setId(id);
@@ -166,7 +168,7 @@ public class HospitalizationWebController {
     public String toggleRoom(@PathVariable Long id, RedirectAttributes ra) {
         try {
             roomService.toggleActive(id);
-            ra.addFlashAttribute("success", "Statut de la chambre mis à jour.");
+            ra.addFlashAttribute("success", i18n.t("hospitalization.flash.room_toggled"));
         } catch (RuntimeException e) {
             ra.addFlashAttribute("error", e.getMessage());
         }

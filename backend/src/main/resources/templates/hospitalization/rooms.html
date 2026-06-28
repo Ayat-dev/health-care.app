@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Chambres & lits', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{hospitalization.rooms.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
@@ -7,42 +7,42 @@
 
 <div class="panel">
     <div class="panel-header">
-        <span>Chambres &amp; lits</span>
-        <a th:href="@{/hospitalization/rooms/new}" class="btn btn-primary btn-sm">+ Nouvelle chambre</a>
+        <span th:text="#{hospitalization.rooms.heading}">Chambres &amp; lits</span>
+        <a th:href="@{/hospitalization/rooms/new}" class="btn btn-primary btn-sm" th:text="#{hospitalization.rooms.new}">+ Nouvelle chambre</a>
     </div>
 
     <div class="table-wrap">
         <table class="table">
             <thead>
             <tr>
-                <th>N°</th>
-                <th>Service</th>
-                <th>Type</th>
-                <th>Capacité</th>
-                <th>Tarif / nuit</th>
-                <th>Statut</th>
-                <th>Actions</th>
+                <th th:text="#{hospitalization.rooms.col_number}">N°</th>
+                <th th:text="#{hospitalization.rooms.col_department}">Service</th>
+                <th th:text="#{hospitalization.rooms.col_type}">Type</th>
+                <th th:text="#{hospitalization.rooms.col_capacity}">Capacité</th>
+                <th th:text="#{hospitalization.rooms.col_rate}">Tarif / nuit</th>
+                <th th:text="#{common.status}">Statut</th>
+                <th th:text="#{common.actions}">Actions</th>
             </tr>
             </thead>
             <tbody>
             <tr th:if="${rooms.isEmpty()}">
-                <td colspan="7" class="empty-state">Aucune chambre.</td>
+                <td colspan="7" class="empty-state" th:text="#{hospitalization.rooms.empty}">Aucune chambre.</td>
             </tr>
             <tr th:each="r : ${rooms}">
                 <td><strong th:text="${r.roomNumber}">101</strong></td>
                 <td th:text="${r.departmentName ?: '—'}">Service</td>
-                <td><span class="badge" th:text="${r.type}">STANDARD</span></td>
-                <td th:text="${r.capacity} + ' lit(s)'">1 lit(s)</td>
+                <td><span class="badge" th:text="${r.type != null} ? #{${'roomtype.' + r.type}} : #{common.none}">STANDARD</span></td>
+                <td th:text="${r.capacity} + ' ' + #{hospitalization.beds_unit}">1 lit(s)</td>
                 <td th:text="${#numbers.formatDecimal(r.dailyRate,1,'WHITESPACE',0,'POINT')} + ' F'">15 000 F</td>
                 <td>
-                    <span th:if="${r.active}" class="badge badge-green">Active</span>
-                    <span th:unless="${r.active}" class="badge badge-red">Désactivée</span>
+                    <span th:if="${r.active}" class="badge badge-green" th:text="#{hospitalization.rooms.active}">Active</span>
+                    <span th:unless="${r.active}" class="badge badge-red" th:text="#{hospitalization.rooms.inactive}">Désactivée</span>
                 </td>
                 <td style="white-space:nowrap;">
-                    <a th:href="@{/hospitalization/rooms/{id}/edit(id=${r.id})}" class="btn btn-ghost btn-sm">Modifier</a>
+                    <a th:href="@{/hospitalization/rooms/{id}/edit(id=${r.id})}" class="btn btn-ghost btn-sm" th:text="#{common.edit}">Modifier</a>
                     <form th:action="@{/hospitalization/rooms/{id}/toggle(id=${r.id})}" method="post" style="display:inline">
                         <button type="submit" class="btn btn-ghost btn-sm"
-                                th:text="${r.active ? 'Désactiver' : 'Activer'}">Désactiver</button>
+                                th:text="${r.active} ? #{hospitalization.rooms.deactivate} : #{hospitalization.rooms.activate}">Désactiver</button>
                     </form>
                 </td>
             </tr>

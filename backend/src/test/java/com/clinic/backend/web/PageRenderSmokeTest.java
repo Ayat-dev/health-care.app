@@ -267,6 +267,34 @@ class PageRenderSmokeTest {
         mvc.perform(get("/hospitalization/1")).andExpect(status().isOk());
     }
 
+    /** i18n slice 8 (docs/I18N-PLAN.md) : le module Hospitalisation (plan des lits, liste,
+     *  admission, détail, chambres) porte des clés #{} — statuts dynamiques #{${'status.' + …}},
+     *  types de chambre #{${'roomtype.' + …}} — et bascule en anglais via ?lang=en. */
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void hospitalization_i18n_fr_puis_en() throws Exception {
+        // plan des lits : en-tête « occupation en temps réel » en FR
+        mvc.perform(get("/hospitalization"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("occupation en temps réel")));
+        // liste des séjours : titre « Inpatient stays » traduit
+        mvc.perform(get("/hospitalization/list").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Inpatient stays")));
+        // formulaire d'admission : libellé « New admission » traduit
+        mvc.perform(get("/hospitalization/admit").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("New admission")));
+        // référentiel chambres : en-tête « Rooms & beds » traduit
+        mvc.perform(get("/hospitalization/rooms").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Rooms &amp; beds")));
+        // détail séjour : type de chambre dynamique + statut résolus (seed séjour 1 = ADMIS)
+        mvc.perform(get("/hospitalization/1").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Attending doctor")));
+    }
+
     /** Détail demande labo : exerce le tableau résultats + le lien latéral dossier patient. */
     @Test
     @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")

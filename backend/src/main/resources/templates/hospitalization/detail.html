@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Séjour hospitalier', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{hospitalization.detail.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
@@ -11,78 +11,78 @@
         <span>
             <strong th:text="${stay.patientName}">Patient</strong>
             <span class="badge badge-blue" th:text="${stay.patientRecordNumber}">PAT-…</span>
-            <span class="badge" th:classappend="'badge-' + ${stay.status}" th:text="${stay.status}">ADMIS</span>
+            <span class="badge" th:classappend="'badge-' + ${stay.status}" th:text="#{${'status.' + stay.status}}">ADMIS</span>
         </span>
     </div>
     <div class="form-grid-2 panel-body">
-        <div><span class="detail-label">Chambre</span>
-             <span th:text="'Ch. ' + ${stay.roomNumber} + ' (' + ${stay.roomType} + ')'">Ch. 101</span></div>
-        <div><span class="detail-label">Service</span> <span th:text="${stay.departmentName ?: '—'}">—</span></div>
-        <div><span class="detail-label">Médecin responsable</span> <span th:text="${stay.doctorName ?: '—'}">—</span></div>
-        <div><span class="detail-label">Admis le</span>
+        <div><span class="detail-label" th:text="#{hospitalization.col.room}">Chambre</span>
+             <span th:text="#{hospitalization.room_prefix} + ${stay.roomNumber} + ' (' + (${stay.roomType != null} ? #{${'roomtype.' + stay.roomType}} : '') + ')'">Ch. 101</span></div>
+        <div><span class="detail-label" th:text="#{hospitalization.detail.department}">Service</span> <span th:text="${stay.departmentName ?: '—'}">—</span></div>
+        <div><span class="detail-label" th:text="#{hospitalization.detail.doctor}">Médecin responsable</span> <span th:text="${stay.doctorName ?: '—'}">—</span></div>
+        <div><span class="detail-label" th:text="#{hospitalization.detail.admitted_on}">Admis le</span>
              <span th:text="${#temporals.format(stay.admissionDate,'dd/MM/yyyy HH:mm')}">—</span></div>
-        <div th:if="${stay.dischargeDate != null}"><span class="detail-label">Sortie le</span>
+        <div th:if="${stay.dischargeDate != null}"><span class="detail-label" th:text="#{hospitalization.detail.discharged_on}">Sortie le</span>
              <span th:text="${#temporals.format(stay.dischargeDate,'dd/MM/yyyy HH:mm')}">—</span></div>
-        <div><span class="detail-label">Durée</span> <span th:text="${stay.nights} + ' nuit(s)'">1 nuit(s)</span></div>
-        <div><span class="detail-label">Motif d'admission</span> <span th:text="${stay.admissionReason ?: '—'}">—</span></div>
-        <div th:if="${stay.diagnosisOnDischarge != null}"><span class="detail-label">Diagnostic de sortie</span>
+        <div><span class="detail-label" th:text="#{hospitalization.col.duration}">Durée</span> <span th:text="${stay.nights} + ' ' + #{hospitalization.nights}">1 nuit(s)</span></div>
+        <div><span class="detail-label" th:text="#{hospitalization.detail.reason}">Motif d'admission</span> <span th:text="${stay.admissionReason ?: '—'}">—</span></div>
+        <div th:if="${stay.diagnosisOnDischarge != null}"><span class="detail-label" th:text="#{hospitalization.detail.discharge_diagnosis}">Diagnostic de sortie</span>
              <span th:text="${stay.diagnosisOnDischarge}">—</span></div>
     </div>
 </div>
 
 <!-- Facturation prévisionnelle -->
 <div class="panel mt-16">
-    <div class="panel-header"><span>Facturation prévisionnelle (séjour)</span></div>
+    <div class="panel-header"><span th:text="#{hospitalization.detail.billing_heading}">Facturation prévisionnelle (séjour)</span></div>
     <div class="form-grid-2 panel-body">
-        <div><span class="detail-label">Tarif journalier</span>
+        <div><span class="detail-label" th:text="#{hospitalization.detail.daily_rate}">Tarif journalier</span>
              <span th:text="${stay.dailyRate != null ? #numbers.formatDecimal(stay.dailyRate,1,'WHITESPACE',0,'POINT') + ' F' : '—'}">—</span></div>
-        <div><span class="detail-label">Nuits</span> <span th:text="${stay.nights}">1</span></div>
-        <div><span class="detail-label">Total estimé (hors actes)</span>
+        <div><span class="detail-label" th:text="#{hospitalization.detail.nights_label}">Nuits</span> <span th:text="${stay.nights}">1</span></div>
+        <div><span class="detail-label" th:text="#{hospitalization.detail.estimated_total}">Total estimé (hors actes)</span>
              <strong th:text="${stay.estimatedCost != null ? #numbers.formatDecimal(stay.estimatedCost,1,'WHITESPACE',0,'POINT') + ' F' : '—'}">—</strong></div>
     </div>
-    <div style="padding:0 16px 12px;" class="empty-state">
+    <div style="padding:0 16px 12px;" class="empty-state" th:text="#{hospitalization.detail.billing_note}">
         La facture finale (séjour + actes) sera générée dans le module Facturation.
     </div>
 </div>
 
 <!-- Actions (séjour en cours) -->
 <div th:if="${stay.status == 'ADMIS'}" class="panel mt-16">
-    <div class="panel-header"><span>Actions</span></div>
+    <div class="panel-header"><span th:text="#{common.actions}">Actions</span></div>
     <div class="form-grid-2 panel-body" style="align-items:start;">
 
         <!-- Transfert -->
         <form method="post" th:action="@{/hospitalization/{id}/transfer(id=${stay.id})}">
-            <div class="detail-label">Transférer vers une autre chambre</div>
+            <div class="detail-label" th:text="#{hospitalization.detail.transfer_to}">Transférer vers une autre chambre</div>
             <select name="newRoomId" class="form-control" required style="margin:6px 0;">
-                <option value="">— Choisir une chambre —</option>
+                <option value="" th:text="#{hospitalization.choose_room}">— Choisir une chambre —</option>
                 <option th:each="r : ${rooms}" th:value="${r.id}"
                         th:disabled="${r.full and r.id != stay.roomId}"
-                        th:text="'Ch. ' + ${r.roomNumber} + ' — ' + ${r.departmentName ?: 'Sans service'}
-                                 + ' (' + ${r.availableCount} + ' libre)'">Ch. 102</option>
+                        th:text="#{hospitalization.room_prefix} + ${r.roomNumber} + ' — ' + ${r.departmentName ?: #messages.msg('hospitalization.no_department')}
+                                 + ' (' + ${r.availableCount} + ' ' + #{hospitalization.free_one} + ')'">Ch. 102</option>
             </select>
-            <input type="text" name="reason" class="form-control" placeholder="Motif du transfert (facultatif)"
+            <input type="text" name="reason" class="form-control" th:placeholder="#{hospitalization.detail.transfer_reason_ph}"
                    style="margin-bottom:6px;"/>
-            <button class="btn btn-ghost btn-sm">Transférer</button>
+            <button class="btn btn-ghost btn-sm" th:text="#{hospitalization.detail.transfer_btn}">Transférer</button>
         </form>
 
         <!-- Sortie -->
         <form method="post" th:action="@{/hospitalization/{id}/discharge(id=${stay.id})}"
-              onsubmit="return confirm('Confirmer la sortie du patient ?');">
-            <div class="detail-label">Enregistrer la sortie</div>
+              th:onsubmit="'return confirm(\'' + #{hospitalization.detail.discharge_confirm} + '\');'">
+            <div class="detail-label" th:text="#{hospitalization.detail.discharge_label}">Enregistrer la sortie</div>
             <select name="status" class="form-control" style="margin:6px 0;">
-                <option value="SORTI">Sortie normale</option>
-                <option value="DECEDE">Décès</option>
+                <option value="SORTI" th:text="#{hospitalization.detail.discharge_normal}">Sortie normale</option>
+                <option value="DECEDE" th:text="#{hospitalization.detail.death}">Décès</option>
             </select>
-            <input type="text" name="diagnosis" class="form-control" placeholder="Diagnostic de sortie (facultatif)"
+            <input type="text" name="diagnosis" class="form-control" th:placeholder="#{hospitalization.detail.discharge_diag_ph}"
                    style="margin-bottom:6px;"/>
-            <button class="btn btn-primary btn-sm">Enregistrer la sortie</button>
+            <button class="btn btn-primary btn-sm" th:text="#{hospitalization.detail.discharge_btn}">Enregistrer la sortie</button>
         </form>
     </div>
 </div>
 
 <!-- Fil d'Ariane + onglets de module couvrent le retour ; on garde le lien latéral vers le dossier patient. -->
 <div th:if="${stay.patientId != null}" class="mt-16">
-    <a th:href="@{/patients/{id}(id=${stay.patientId})}" class="btn btn-ghost">Dossier patient</a>
+    <a th:href="@{/patients/{id}(id=${stay.patientId})}" class="btn btn-ghost" th:text="#{hospitalization.detail.patient_record}">Dossier patient</a>
 </div>
 
 </th:block></body>
