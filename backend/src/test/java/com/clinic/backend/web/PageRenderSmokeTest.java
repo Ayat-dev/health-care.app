@@ -307,4 +307,28 @@ class PageRenderSmokeTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Compte-rendu")));
     }
+
+    /** i18n slice 6 (docs/I18N-PLAN.md) : le module Imagerie (travail du jour, liste,
+     *  formulaire, détail + compte-rendu) porte des clés #{} — statuts dynamiques
+     *  #{${'status.' + …}}, priorités #{priority.*}, types d'examen #{${'examtype.' + …}} —
+     *  et bascule en anglais via ?lang=en. */
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void radiology_i18n_fr_puis_en() throws Exception {
+        mvc.perform(get("/radiology"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Travail du jour")));
+        // travail du jour : colonne « Examens » traduite
+        mvc.perform(get("/radiology").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Exams")));
+        // formulaire : libellé « Examens demandés » traduit + type d'examen dynamique
+        mvc.perform(get("/radiology/requests/new").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Requested exams")));
+        // détail : compte-rendu « Findings / Description » traduit (seed req 1 = VALIDE avec rapport)
+        mvc.perform(get("/radiology/requests/1").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Findings / Description")));
+    }
 }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Demande d’imagerie', ~{::content})}"
+<html th:replace="~{layouts/base :: layout(#{radiology.detail.title}, ~{::content})}"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body><th:block th:fragment="content">
 
@@ -12,53 +12,55 @@
         <span>
             <strong th:text="${request.requestNumber}">RAD-…</strong>
             <span class="badge badge-blue" th:text="${request.patientRecordNumber}">PAT-…</span>
-            <span class="badge" th:classappend="'badge-' + ${request.status}" th:text="${request.status}">EN_ATTENTE</span>
-            <span th:if="${request.priority == 'URGENT'}" class="badge badge-red">URGENT</span>
+            <span class="badge" th:classappend="'badge-' + ${request.status}" th:text="#{${'status.' + request.status}}">EN_ATTENTE</span>
+            <span th:if="${request.priority == 'URGENT'}" class="badge badge-red" th:text="#{priority.URGENT}">URGENT</span>
         </span>
         <div style="display:flex; gap:.5rem;">
             <a th:if="${request.status != 'VALIDE' and request.status != 'LIVRE' and request.status != 'ANNULE'}"
-               th:href="@{/radiology/requests/{id}/report(id=${request.id})}" class="btn btn-primary btn-sm">Saisir le compte-rendu</a>
+               th:href="@{/radiology/requests/{id}/report(id=${request.id})}" class="btn btn-primary btn-sm" th:text="#{radiology.detail.enter_report}">Saisir le compte-rendu</a>
             <th:block sec:authorize="hasAnyRole('MEDECIN','ADMIN')">
                 <form th:if="${request.status == 'EN_COURS' and request.hasReport}" method="post"
                       th:action="@{/radiology/requests/{id}/validate(id=${request.id})}" style="display:inline;">
-                    <button class="btn btn-primary btn-sm">Valider</button>
+                    <button class="btn btn-primary btn-sm" th:text="#{radiology.detail.validate}">Valider</button>
                 </form>
             </th:block>
             <a th:if="${request.status == 'VALIDE' or request.status == 'LIVRE'}"
                th:href="@{/radiology/requests/{id}/bulletin(id=${request.id})}" target="_blank"
-               class="btn btn-ghost btn-sm">Imprimer le compte-rendu</a>
+               class="btn btn-ghost btn-sm" th:text="#{radiology.detail.print_report}">Imprimer le compte-rendu</a>
             <form th:if="${request.status == 'VALIDE'}" method="post"
                   th:action="@{/radiology/requests/{id}/deliver(id=${request.id})}" style="display:inline;">
-                <button class="btn btn-ghost btn-sm">Marquer livré</button>
+                <button class="btn btn-ghost btn-sm" th:text="#{radiology.detail.mark_delivered}">Marquer livré</button>
             </form>
             <form th:if="${request.status != 'VALIDE' and request.status != 'LIVRE' and request.status != 'ANNULE'}"
                   method="post" th:action="@{/radiology/requests/{id}/cancel(id=${request.id})}" style="display:inline;"
-                  onsubmit="return confirm('Annuler cette demande ?');">
-                <button class="btn btn-ghost btn-sm">Annuler</button>
+                  th:onsubmit="'return confirm(\'' + #{radiology.detail.cancel_confirm} + '\');'">
+                <button class="btn btn-ghost btn-sm" th:text="#{common.cancel}">Annuler</button>
             </form>
         </div>
     </div>
     <div class="form-grid-2 panel-body">
-        <div><span class="detail-label">Patient</span> <span th:text="${request.patientName}">—</span></div>
-        <div><span class="detail-label">Prescripteur</span> <span th:text="${request.doctorName ?: '—'}">—</span></div>
-        <div><span class="detail-label">Demandé le</span>
+        <div><span class="detail-label" th:text="#{radiology.col.patient}">Patient</span> <span th:text="${request.patientName}">—</span></div>
+        <div><span class="detail-label" th:text="#{radiology.col.prescriber}">Prescripteur</span> <span th:text="${request.doctorName ?: '—'}">—</span></div>
+        <div><span class="detail-label" th:text="#{radiology.col.requested_at}">Demandé le</span>
              <span th:text="${#temporals.format(request.requestedAt,'dd/MM/yyyy HH:mm')}">—</span></div>
-        <div><span class="detail-label">Renseignements</span> <span th:text="${request.clinicalInfo ?: '—'}">—</span></div>
+        <div><span class="detail-label" th:text="#{radiology.detail.clinical_info}">Renseignements</span> <span th:text="${request.clinicalInfo ?: '—'}">—</span></div>
     </div>
 </div>
 
 <!-- Examens -->
 <div class="panel mt-16">
-    <div class="panel-header"><span>Examens demandés</span></div>
+    <div class="panel-header"><span th:text="#{radiology.detail.exams_heading}">Examens demandés</span></div>
     <div class="table-wrap">
         <table class="table">
             <thead>
-            <tr><th>Examen</th><th>Type</th><th>Région</th></tr>
+            <tr><th th:text="#{radiology.form.col_exam}">Examen</th>
+                <th th:text="#{radiology.form.col_type}">Type</th>
+                <th th:text="#{radiology.form.col_region}">Région</th></tr>
             </thead>
             <tbody>
             <tr th:each="it : ${request.items}">
                 <td><strong th:text="${it.examName}">Radiographie du thorax</strong> <small th:text="${it.examCode}">RX_THORAX</small></td>
-                <td><span class="badge" th:text="${it.examType ?: '—'}">RADIOGRAPHIE</span></td>
+                <td><span class="badge" th:text="${it.examType != null} ? #{${'examtype.' + it.examType}} : #{common.none}">RADIOGRAPHIE</span></td>
                 <td th:text="${it.examRegion ?: '—'}">Thorax</td>
             </tr>
             </tbody>
@@ -68,20 +70,20 @@
 
 <!-- Compte-rendu -->
 <div class="panel mt-16">
-    <div class="panel-header"><span>Compte-rendu</span></div>
+    <div class="panel-header"><span th:text="#{radiology.detail.report_heading}">Compte-rendu</span></div>
     <div class="panel-body">
-        <div th:if="${!request.hasReport}" class="empty-state">Aucun compte-rendu saisi.</div>
+        <div th:if="${!request.hasReport}" class="empty-state" th:text="#{radiology.detail.no_report}">Aucun compte-rendu saisi.</div>
         <div th:if="${request.hasReport}">
-            <div style="margin-bottom:10px;"><div class="detail-label">Résultats / Description</div>
+            <div style="margin-bottom:10px;"><div class="detail-label" th:text="#{radiology.detail.findings}">Résultats / Description</div>
                 <p style="white-space:pre-line;" th:text="${request.findings ?: '—'}">—</p></div>
-            <div><div class="detail-label">Conclusion</div>
+            <div><div class="detail-label" th:text="#{radiology.detail.conclusion}">Conclusion</div>
                 <p style="white-space:pre-line;" th:text="${request.conclusion ?: '—'}">—</p></div>
             <p class="text-muted" style="margin-top:10px; font-size:13px;">
-                Rédigé par <strong th:text="${request.radiologistName ?: '—'}">Dr.</strong>
+                <span th:text="#{radiology.detail.written_by}">Rédigé par</span> <strong th:text="${request.radiologistName ?: '—'}">Dr.</strong>
                 <span th:if="${request.validatedByName != null}">
-                    · Validé par <strong th:text="${request.validatedByName}">Dr.</strong>
+                    · <span th:text="#{radiology.detail.validated_by}">Validé par</span> <strong th:text="${request.validatedByName}">Dr.</strong>
                     <span th:if="${request.validatedAt != null}"
-                          th:text="' le ' + ${#temporals.format(request.validatedAt,'dd/MM/yyyy HH:mm')}"> le —</span>
+                          th:text="#{radiology.detail.on_date(${#temporals.format(request.validatedAt,'dd/MM/yyyy HH:mm')})}"> le —</span>
                 </span>
             </p>
         </div>
@@ -90,13 +92,13 @@
 
 <!-- Images -->
 <div class="panel mt-16">
-    <div class="panel-header"><span th:text="'Images (' + ${request.imageCount} + ')'">Images</span></div>
+    <div class="panel-header"><span th:text="#{radiology.detail.images(${request.imageCount})}">Images</span></div>
     <div class="panel-body">
-        <div th:if="${request.images.isEmpty()}" class="empty-state">Aucune image attachée.</div>
+        <div th:if="${request.images.isEmpty()}" class="empty-state" th:text="#{radiology.detail.no_images}">Aucune image attachée.</div>
         <div th:unless="${request.images.isEmpty()}" class="radio-gallery">
             <figure th:each="img : ${request.images}" class="radio-thumb">
                 <a th:href="${img.url}" target="_blank"><img th:src="${img.url}"
-                   th:alt="${(img.caption != null and !img.caption.isEmpty()) ? img.caption : 'Image radiologique'}"/></a>
+                   th:alt="${(img.caption != null and !img.caption.isEmpty()) ? img.caption : #messages.msg('radiology.detail.image_alt')}"/></a>
                 <figcaption th:text="${img.caption ?: ''}"></figcaption>
             </figure>
         </div>
@@ -105,7 +107,7 @@
 
 <!-- Fil d'Ariane + onglets de module couvrent le retour ; on garde le lien latéral vers le dossier patient. -->
 <div th:if="${request.patientId != null}" class="mt-16">
-    <a th:href="@{/patients/{id}(id=${request.patientId})}" class="btn btn-ghost">Dossier patient</a>
+    <a th:href="@{/patients/{id}(id=${request.patientId})}" class="btn btn-ghost" th:text="#{radiology.detail.patient_record}">Dossier patient</a>
 </div>
 
 </th:block></body>

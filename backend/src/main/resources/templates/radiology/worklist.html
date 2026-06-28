@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Imagerie — Travail du jour', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{radiology.worklist.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
@@ -7,33 +7,33 @@
 
 <div class="panel" data-worklist-topic="/topic/worklist/radiology">
     <div class="panel-header">
-        <span>Travail du jour — demandes en attente</span>
-        <a th:href="@{/radiology/requests/new}" class="btn btn-primary btn-sm">+ Nouvelle demande</a>
+        <span th:text="#{radiology.worklist.heading}">Travail du jour — demandes en attente</span>
+        <a th:href="@{/radiology/requests/new}" class="btn btn-primary btn-sm" th:text="#{radiology.action.new}">+ Nouvelle demande</a>
     </div>
 
     <div class="table-wrap">
         <table class="table">
             <thead>
             <tr>
-                <th>N°</th>
-                <th>Priorité</th>
-                <th>Patient</th>
-                <th>Prescripteur</th>
-                <th>Examens</th>
-                <th>Demandé le</th>
-                <th>Statut</th>
-                <th>Actions</th>
+                <th th:text="#{radiology.col.number}">N°</th>
+                <th th:text="#{radiology.col.priority}">Priorité</th>
+                <th th:text="#{radiology.col.patient}">Patient</th>
+                <th th:text="#{radiology.col.prescriber}">Prescripteur</th>
+                <th th:text="#{radiology.col.exams}">Examens</th>
+                <th th:text="#{radiology.col.requested_at}">Demandé le</th>
+                <th th:text="#{common.status}">Statut</th>
+                <th th:text="#{common.actions}">Actions</th>
             </tr>
             </thead>
             <tbody>
             <tr th:if="${requests.isEmpty()}">
-                <td colspan="8" class="empty-state">Aucune demande en attente. 🎉</td>
+                <td colspan="8" class="empty-state" th:text="#{radiology.worklist.empty}">Aucune demande en attente. 🎉</td>
             </tr>
             <tr th:each="r : ${requests}">
                 <td><strong th:text="${r.requestNumber}">RAD-…</strong></td>
                 <td>
-                    <span th:if="${r.priority == 'URGENT'}" class="badge badge-red">URGENT</span>
-                    <span th:unless="${r.priority == 'URGENT'}" class="badge">Normal</span>
+                    <span th:if="${r.priority == 'URGENT'}" class="badge badge-red" th:text="#{priority.URGENT}">URGENT</span>
+                    <span th:unless="${r.priority == 'URGENT'}" class="badge" th:text="#{priority.NORMAL}">Normal</span>
                 </td>
                 <td>
                     <span th:text="${r.patientName}">Patient</span>
@@ -45,10 +45,10 @@
                           th:text="${it.examCode} + (${iter.last} ? '' : ', ')">RX_THORAX</span>
                 </td>
                 <td th:text="${#temporals.format(r.requestedAt,'dd/MM/yyyy HH:mm')}">01/01 09:00</td>
-                <td><span class="badge" th:classappend="'badge-' + ${r.status}" th:text="${r.status}">EN_ATTENTE</span></td>
+                <td><span class="badge" th:classappend="'badge-' + ${r.status}" th:text="#{${'status.' + r.status}}">EN_ATTENTE</span></td>
                 <td style="white-space:nowrap;">
-                    <a th:href="@{/radiology/requests/{id}/report(id=${r.id})}" class="btn btn-primary btn-sm">Compte-rendu</a>
-                    <a th:href="@{/radiology/requests/{id}(id=${r.id})}" class="btn btn-ghost btn-sm">Voir</a>
+                    <a th:href="@{/radiology/requests/{id}/report(id=${r.id})}" class="btn btn-primary btn-sm" th:text="#{radiology.action.report}">Compte-rendu</a>
+                    <a th:href="@{/radiology/requests/{id}(id=${r.id})}" class="btn btn-ghost btn-sm" th:text="#{common.view}">Voir</a>
                 </td>
             </tr>
             </tbody>

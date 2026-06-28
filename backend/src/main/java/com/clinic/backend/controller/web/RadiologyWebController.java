@@ -32,6 +32,7 @@ public class RadiologyWebController {
     private final ClinicConfigService clinicConfigService;
     private final UserRepository userRepository;
     private final com.clinic.backend.export.PdfExportService pdfExportService;
+    private final com.clinic.backend.i18n.WebI18n i18n;
 
     // ── Travail du jour (radiologue) ─────────────────────────────────────────────
     @GetMapping
@@ -77,7 +78,7 @@ public class RadiologyWebController {
     public String create(@ModelAttribute RadiologyRequestDto dto, RedirectAttributes ra, Model model) {
         try {
             RadiologyRequest created = radiologyService.create(dto);
-            ra.addFlashAttribute("success", "Demande d'imagerie enregistrée.");
+            ra.addFlashAttribute("success", i18n.t("radiology.flash.created"));
             return "redirect:/radiology/requests/" + created.getId();
         } catch (RuntimeException e) {
             model.addAttribute("request", dto);
@@ -99,7 +100,7 @@ public class RadiologyWebController {
                              RedirectAttributes ra, Model model) {
         try {
             radiologyService.saveReport(id, form.getFindings(), form.getConclusion());
-            ra.addFlashAttribute("success", "Compte-rendu enregistré.");
+            ra.addFlashAttribute("success", i18n.t("radiology.flash.report_saved"));
             return "redirect:/radiology/requests/" + id;
         } catch (RuntimeException e) {
             model.addAttribute("request", radiologyService.getDtoById(id));
@@ -116,7 +117,7 @@ public class RadiologyWebController {
                               RedirectAttributes ra) {
         try {
             radiologyService.addImage(id, file, caption);
-            ra.addFlashAttribute("success", "Image ajoutée.");
+            ra.addFlashAttribute("success", i18n.t("radiology.flash.image_added"));
         } catch (RuntimeException e) {
             ra.addFlashAttribute("error", e.getMessage());
         }
@@ -127,7 +128,7 @@ public class RadiologyWebController {
     public String deleteImage(@PathVariable Long id, @PathVariable Long imageId, RedirectAttributes ra) {
         try {
             radiologyService.deleteImage(id, imageId);
-            ra.addFlashAttribute("success", "Image supprimée.");
+            ra.addFlashAttribute("success", i18n.t("radiology.flash.image_deleted"));
         } catch (RuntimeException e) {
             ra.addFlashAttribute("error", e.getMessage());
         }
@@ -139,7 +140,7 @@ public class RadiologyWebController {
     public String validate(@PathVariable Long id, RedirectAttributes ra) {
         try {
             radiologyService.validate(id);
-            ra.addFlashAttribute("success", "Compte-rendu validé.");
+            ra.addFlashAttribute("success", i18n.t("radiology.flash.validated"));
         } catch (RuntimeException e) {
             ra.addFlashAttribute("error", e.getMessage());
         }
@@ -150,7 +151,7 @@ public class RadiologyWebController {
     public String deliver(@PathVariable Long id, RedirectAttributes ra) {
         try {
             radiologyService.deliver(id);
-            ra.addFlashAttribute("success", "Compte-rendu marqué comme livré.");
+            ra.addFlashAttribute("success", i18n.t("radiology.flash.delivered"));
         } catch (RuntimeException e) {
             ra.addFlashAttribute("error", e.getMessage());
         }
@@ -161,7 +162,7 @@ public class RadiologyWebController {
     public String cancel(@PathVariable Long id, RedirectAttributes ra) {
         try {
             radiologyService.cancel(id);
-            ra.addFlashAttribute("success", "Demande annulée.");
+            ra.addFlashAttribute("success", i18n.t("radiology.flash.cancelled"));
         } catch (RuntimeException e) {
             ra.addFlashAttribute("error", e.getMessage());
         }
