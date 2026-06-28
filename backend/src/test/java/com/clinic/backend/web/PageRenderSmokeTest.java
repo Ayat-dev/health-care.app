@@ -331,4 +331,29 @@ class PageRenderSmokeTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Findings / Description")));
     }
+
+    /** i18n slice 7 (docs/I18N-PLAN.md) : le module Pharmacie (tableau de bord, catalogue,
+     *  stock, réception, file des ordonnances, dispensations) porte des clés #{} — colonnes
+     *  partagées pharmacy.col.* + statuts de lot + toggle actif/inactif — et bascule en
+     *  anglais via ?lang=en. */
+    @Test
+    @WithUserDetails(value = "pharmacien", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void pharmacy_i18n_fr_puis_en() throws Exception {
+        // tableau de bord : carte « Ordonnances à dispenser » en FR
+        mvc.perform(get("/pharmacy"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Ordonnances à dispenser")));
+        // catalogue : en-tête « Drug catalog » traduit + statut de délivrance
+        mvc.perform(get("/pharmacy/drugs").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Drug catalog")));
+        // état du stock : colonne partagée « Supplier » traduite
+        mvc.perform(get("/pharmacy/stock").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Supplier")));
+        // file des ordonnances : titre « Prescriptions to dispense » traduit (heading slice 7)
+        mvc.perform(get("/pharmacy/prescriptions").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Prescriptions to dispense")));
+    }
 }

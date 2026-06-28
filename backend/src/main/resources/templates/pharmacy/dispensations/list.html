@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Dispensations', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{pharmacy.dispensations.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${success}" class="alert alert-info" th:text="${success}">OK</div>
@@ -7,9 +7,9 @@
 
 <div class="panel">
     <div class="panel-header">
-        <span>Historique des dispensations</span>
+        <span th:text="#{pharmacy.dispensations.history}">Historique des dispensations</span>
         <th:block sec:authorize="hasRole('PHARMACIEN')">
-            <a th:href="@{/pharmacy/dispensations/new}" class="btn btn-primary btn-sm">+ Nouvelle dispensation</a>
+            <a th:href="@{/pharmacy/dispensations/new}" class="btn btn-primary btn-sm" th:text="#{pharmacy.dispensations.new}">+ Nouvelle dispensation</a>
         </th:block>
     </div>
 
@@ -17,30 +17,30 @@
         <table class="table">
             <thead>
             <tr>
-                <th>Date</th>
-                <th>Patient</th>
-                <th>Ordonnance</th>
-                <th>Pharmacien</th>
-                <th style="text-align:right;">Montant</th>
-                <th>Actions</th>
+                <th th:text="#{common.date}">Date</th>
+                <th th:text="#{pharmacy.col.patient}">Patient</th>
+                <th th:text="#{pharmacy.col.prescription}">Ordonnance</th>
+                <th th:text="#{pharmacy.col.pharmacist}">Pharmacien</th>
+                <th style="text-align:right;" th:text="#{pharmacy.col.amount}">Montant</th>
+                <th th:text="#{common.actions}">Actions</th>
             </tr>
             </thead>
             <tbody>
             <tr th:if="${dispensations.isEmpty()}">
-                <td colspan="6" class="empty-state">Aucune dispensation.</td>
+                <td colspan="6" class="empty-state" th:text="#{pharmacy.dispensations.empty}">Aucune dispensation.</td>
             </tr>
             <tr th:each="d : ${dispensations}">
                 <td><strong th:text="${#temporals.format(d.dispensedAt,'dd/MM/yyyy HH:mm')}">01/01 09:00</strong></td>
                 <td th:text="${d.patientName ?: '—'}">Patient</td>
                 <td>
                     <span th:if="${d.prescriptionNumber}" class="badge badge-blue" th:text="${d.prescriptionNumber}">ORD</span>
-                    <span th:unless="${d.prescriptionNumber}" class="text-muted">Vente libre</span>
+                    <span th:unless="${d.prescriptionNumber}" class="text-muted" th:text="#{pharmacy.dispensations.walk_in}">Vente libre</span>
                 </td>
                 <td th:text="${d.pharmacistName ?: '—'}">Pharmacien</td>
                 <td style="text-align:right;"
                     th:text="${#numbers.formatDecimal(d.totalAmount,0,'WHITESPACE',0,'POINT')} + ' F'">0 F</td>
                 <td>
-                    <a th:href="@{/pharmacy/dispensations/{id}(id=${d.id})}" class="btn btn-ghost btn-sm">Voir</a>
+                    <a th:href="@{/pharmacy/dispensations/{id}(id=${d.id})}" class="btn btn-ghost btn-sm" th:text="#{common.view}">Voir</a>
                 </td>
             </tr>
             </tbody>

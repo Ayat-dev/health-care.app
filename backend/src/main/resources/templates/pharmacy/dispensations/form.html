@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Nouvelle dispensation', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{pharmacy.dispense.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
 
 <div th:if="${dispensation.prescriptionNumber}" class="alert alert-info">
-    Dispensation sur ordonnance <strong th:text="${dispensation.prescriptionNumber}">ORD</strong>.
-    L'ordonnance sera marquée comme dispensée.
+    <span th:text="#{pharmacy.dispense.rx_prefix}">Dispensation sur ordonnance</span>
+    <strong th:text="${dispensation.prescriptionNumber}">ORD</strong>.
+    <span th:text="#{pharmacy.dispense.rx_suffix}">L'ordonnance sera marquée comme dispensée.</span>
 </div>
 
 <div class="form-card">
@@ -16,34 +17,34 @@
 
         <div class="form-grid-2">
             <div class="form-group">
-                <label class="form-label">Patient *</label>
+                <label class="form-label" th:text="#{pharmacy.dispense.patient}">Patient *</label>
                 <select th:field="*{patientId}" class="form-control" required>
-                    <option value="">— Choisir un patient —</option>
+                    <option value="" th:text="#{pharmacy.dispense.choose_patient}">— Choisir un patient —</option>
                     <option th:each="p : ${patients}" th:value="${p.id}"
                             th:text="${p.fullName + ' · ' + p.recordNumber}">Patient</option>
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label">Note</label>
-                <input type="text" th:field="*{notes}" class="form-control" placeholder="Optionnel"/>
+                <label class="form-label" th:text="#{pharmacy.dispense.note}">Note</label>
+                <input type="text" th:field="*{notes}" class="form-control" th:placeholder="#{pharmacy.dispense.optional}" placeholder="Optionnel"/>
             </div>
         </div>
 
-        <h3 style="margin:20px 0 8px;">Médicaments à dispenser</h3>
-        <p class="text-muted" style="margin-bottom:12px; font-size:0.9em;">
+        <h3 style="margin:20px 0 8px;" th:text="#{pharmacy.dispense.drugs_heading}">Médicaments à dispenser</h3>
+        <p class="text-muted" style="margin-bottom:12px; font-size:0.9em;" th:text="#{pharmacy.dispense.fifo_hint}">
             Le stock est consommé en FIFO (le lot périmant le plus tôt sort en premier). Les lots périmés sont exclus.
         </p>
 
         <div class="table-wrap">
             <table class="table">
                 <thead>
-                <tr><th style="width:70%;">Médicament</th><th>Quantité</th></tr>
+                <tr><th style="width:70%;" th:text="#{pharmacy.col.drug}">Médicament</th><th th:text="#{pharmacy.col.quantity}">Quantité</th></tr>
                 </thead>
                 <tbody>
                 <tr th:each="line,st : *{items}">
                     <td>
                         <select th:field="*{items[__${st.index}__].drugId}" class="form-control">
-                            <option value="">— Aucun —</option>
+                            <option value="" th:text="#{pharmacy.dispense.no_drug}">— Aucun —</option>
                             <option th:each="d : ${drugs}" th:value="${d.id}"
                                     th:text="${d.name + (d.dosageStrength != null ? ' ' + d.dosageStrength : '')}">Médicament</option>
                         </select>
@@ -58,8 +59,8 @@
         </div>
 
         <div class="form-actions">
-            <a th:href="@{/pharmacy/dispensations}" class="btn btn-ghost">Annuler</a>
-            <button type="submit" class="btn btn-primary">Dispenser</button>
+            <a th:href="@{/pharmacy/dispensations}" class="btn btn-ghost" th:text="#{common.cancel}">Annuler</a>
+            <button type="submit" class="btn btn-primary" th:text="#{pharmacy.action.dispense}">Dispenser</button>
         </div>
     </form>
 </div>

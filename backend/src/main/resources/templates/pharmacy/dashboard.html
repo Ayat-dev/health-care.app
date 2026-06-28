@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Pharmacie', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{pharmacy.dashboard.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${success}" class="alert alert-info" th:text="${success}">OK</div>
@@ -7,23 +7,23 @@
 
 <div class="stats-grid">
     <div class="stat-card">
-        <div class="stat-card-label">Ordonnances à dispenser</div>
+        <div class="stat-card-label" th:text="#{pharmacy.dashboard.pending_prescriptions}">Ordonnances à dispenser</div>
         <div class="stat-card-value" style="color:var(--blue,#2563eb);" th:text="${dash.pendingPrescriptions}">0</div>
     </div>
     <div class="stat-card">
-        <div class="stat-card-label">Lots en stock faible</div>
+        <div class="stat-card-label" th:text="#{pharmacy.dashboard.low_stock}">Lots en stock faible</div>
         <div class="stat-card-value" style="color:var(--red);" th:text="${dash.lowStockCount}">0</div>
     </div>
     <div class="stat-card">
-        <div class="stat-card-label">Lots périmant (&lt; 30 j)</div>
+        <div class="stat-card-label" th:text="#{pharmacy.dashboard.expiring}">Lots périmant (&lt; 30 j)</div>
         <div class="stat-card-value" style="color:var(--yellow,#d97706);" th:text="${dash.expiringCount}">0</div>
     </div>
     <div class="stat-card">
-        <div class="stat-card-label">Lots périmés</div>
+        <div class="stat-card-label" th:text="#{pharmacy.dashboard.expired}">Lots périmés</div>
         <div class="stat-card-value" th:text="${dash.expiredCount}">0</div>
     </div>
     <div class="stat-card">
-        <div class="stat-card-label">Valeur du stock</div>
+        <div class="stat-card-label" th:text="#{pharmacy.dashboard.stock_value}">Valeur du stock</div>
         <div class="stat-card-value"
              th:text="${#numbers.formatDecimal(dash.stockValue,0,'WHITESPACE',0,'POINT')} + ' F'">0 F</div>
     </div>
@@ -31,22 +31,22 @@
 
 <!-- Actions (la navigation entre sections est dans la barre d'onglets du module) -->
 <div style="display:flex; gap:12px; margin-top:20px; flex-wrap:wrap;">
-    <a th:href="@{/pharmacy/dispensations/new}" class="btn btn-primary">💊 Nouvelle dispensation</a>
-    <a th:href="@{/pharmacy/stock/receive}" class="btn btn-ghost">📥 Réceptionner un lot</a>
+    <a th:href="@{/pharmacy/dispensations/new}" class="btn btn-primary" th:text="#{pharmacy.dashboard.new_dispensation}">💊 Nouvelle dispensation</a>
+    <a th:href="@{/pharmacy/stock/receive}" class="btn btn-ghost" th:text="#{pharmacy.dashboard.receive_lot}">📥 Réceptionner un lot</a>
 </div>
 
 <div class="panel" style="margin-top:24px;">
     <div class="panel-header">
-        <span>Top médicaments dispensés (ce mois)</span>
+        <span th:text="#{pharmacy.dashboard.top_dispensed}">Top médicaments dispensés (ce mois)</span>
     </div>
     <div class="table-wrap">
         <table class="table">
             <thead>
-            <tr><th>#</th><th>Médicament</th><th style="text-align:right;">Quantité dispensée</th></tr>
+            <tr><th>#</th><th th:text="#{pharmacy.col.drug}">Médicament</th><th style="text-align:right;" th:text="#{pharmacy.dashboard.qty_dispensed}">Quantité dispensée</th></tr>
             </thead>
             <tbody>
             <tr th:if="${dash.topDispensed.isEmpty()}">
-                <td colspan="3" class="empty-state">Aucune dispensation ce mois.</td>
+                <td colspan="3" class="empty-state" th:text="#{pharmacy.dashboard.no_dispensations}">Aucune dispensation ce mois.</td>
             </tr>
             <tr th:each="t,it : ${dash.topDispensed}">
                 <td th:text="${it.count}">1</td>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('État du stock', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{pharmacy.stock.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${success}" class="alert alert-info" th:text="${success}">OK</div>
@@ -7,9 +7,9 @@
 
 <div class="panel">
     <div class="panel-header">
-        <span>État du stock</span>
+        <span th:text="#{pharmacy.stock.heading}">État du stock</span>
         <th:block sec:authorize="hasRole('PHARMACIEN')">
-            <a th:href="@{/pharmacy/stock/receive}" class="btn btn-primary btn-sm">+ Réceptionner un lot</a>
+            <a th:href="@{/pharmacy/stock/receive}" class="btn btn-primary btn-sm" th:text="#{pharmacy.stock.receive}">+ Réceptionner un lot</a>
         </th:block>
     </div>
 
@@ -17,19 +17,19 @@
         <table class="table">
             <thead>
             <tr>
-                <th>Médicament</th>
-                <th>Lot</th>
-                <th>Péremption</th>
-                <th style="text-align:right;">Quantité</th>
-                <th style="text-align:right;">Seuil</th>
-                <th style="text-align:right;">Prix vente</th>
-                <th>Fournisseur</th>
-                <th>Alertes</th>
+                <th th:text="#{pharmacy.col.drug}">Médicament</th>
+                <th th:text="#{pharmacy.stock.col_batch}">Lot</th>
+                <th th:text="#{pharmacy.stock.col_expiry}">Péremption</th>
+                <th style="text-align:right;" th:text="#{pharmacy.col.quantity}">Quantité</th>
+                <th style="text-align:right;" th:text="#{pharmacy.stock.col_threshold}">Seuil</th>
+                <th style="text-align:right;" th:text="#{pharmacy.stock.col_price}">Prix vente</th>
+                <th th:text="#{pharmacy.stock.col_supplier}">Fournisseur</th>
+                <th th:text="#{pharmacy.stock.col_alerts}">Alertes</th>
             </tr>
             </thead>
             <tbody>
             <tr th:if="${stock.isEmpty()}">
-                <td colspan="8" class="empty-state">Aucun lot en stock. Réceptionnez une commande pour commencer.</td>
+                <td colspan="8" class="empty-state" th:text="#{pharmacy.stock.empty}">Aucun lot en stock. Réceptionnez une commande pour commencer.</td>
             </tr>
             <tr th:each="s : ${stock}">
                 <td>
@@ -46,10 +46,10 @@
                     th:text="${s.sellingPrice != null ? #numbers.formatDecimal(s.sellingPrice,0,'WHITESPACE',0,'POINT') + ' F' : '—'}">0 F</td>
                 <td th:text="${s.supplier ?: '—'}">Fournisseur</td>
                 <td style="white-space:nowrap;">
-                    <span th:if="${s.expired}" class="badge badge-red">Périmé</span>
-                    <span th:if="${s.expiringSoon}" class="badge badge-yellow">Périme bientôt</span>
-                    <span th:if="${s.low and !s.expired}" class="badge badge-red">Stock faible</span>
-                    <span th:if="${!s.low and !s.expired and !s.expiringSoon}" class="badge badge-green">OK</span>
+                    <span th:if="${s.expired}" class="badge badge-red" th:text="#{pharmacy.stock.expired}">Périmé</span>
+                    <span th:if="${s.expiringSoon}" class="badge badge-yellow" th:text="#{pharmacy.stock.expiring_soon}">Périme bientôt</span>
+                    <span th:if="${s.low and !s.expired}" class="badge badge-red" th:text="#{pharmacy.stock.low}">Stock faible</span>
+                    <span th:if="${!s.low and !s.expired and !s.expiringSoon}" class="badge badge-green" th:text="#{pharmacy.stock.ok}">OK</span>
                 </td>
             </tr>
             </tbody>

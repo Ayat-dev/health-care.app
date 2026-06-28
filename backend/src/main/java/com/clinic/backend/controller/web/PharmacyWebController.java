@@ -8,6 +8,7 @@ import com.clinic.backend.consultation.PrescriptionService;
 import com.clinic.backend.pharmacy.Dispensation;
 import com.clinic.backend.pharmacy.PharmacyService;
 import com.clinic.backend.patient.PatientService;
+import com.clinic.backend.i18n.WebI18n;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -26,6 +27,7 @@ public class PharmacyWebController {
     private final PharmacyService pharmacyService;
     private final PatientService patientService;
     private final PrescriptionService prescriptionService;
+    private final WebI18n i18n;
 
     // ── Tableau de bord ────────────────────────────────────────────────────────
     @GetMapping
@@ -119,7 +121,7 @@ public class PharmacyWebController {
     public String receive(@ModelAttribute("item") StockItemDto dto, RedirectAttributes ra, Model model) {
         try {
             pharmacyService.receiveStock(dto);
-            ra.addFlashAttribute("success", "Lot réceptionné et ajouté au stock.");
+            ra.addFlashAttribute("success", i18n.t("pharmacy.flash.received"));
             return "redirect:/pharmacy/stock";
         } catch (RuntimeException e) {
             model.addAttribute("error", e.getMessage());
@@ -171,7 +173,7 @@ public class PharmacyWebController {
                            RedirectAttributes ra, Model model) {
         try {
             Dispensation d = pharmacyService.dispense(dto);
-            ra.addFlashAttribute("success", "Dispensation enregistrée.");
+            ra.addFlashAttribute("success", i18n.t("pharmacy.flash.dispensed"));
             return "redirect:/pharmacy/dispensations/" + d.getId();
         } catch (RuntimeException e) {
             model.addAttribute("error", e.getMessage());

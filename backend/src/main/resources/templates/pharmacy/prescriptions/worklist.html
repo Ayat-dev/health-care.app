@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Pharmacie — File des ordonnances', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{pharmacy.worklist.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
@@ -7,10 +7,10 @@
 
 <div class="panel" data-worklist-topic="/topic/worklist/pharmacy">
     <div class="panel-header">
-        <span>Ordonnances à dispenser — les plus anciennes d'abord</span>
+        <span th:text="#{pharmacy.worklist.heading}">Ordonnances à dispenser — les plus anciennes d'abord</span>
         <div style="display:flex; gap:.5rem;">
-            <a th:href="@{/pharmacy/dispensations}" class="btn btn-ghost btn-sm">Historique des dispensations</a>
-            <a th:href="@{/pharmacy/dispensations/new}" class="btn btn-primary btn-sm">+ Dispensation libre</a>
+            <a th:href="@{/pharmacy/dispensations}" class="btn btn-ghost btn-sm" th:text="#{pharmacy.dispensations.history}">Historique des dispensations</a>
+            <a th:href="@{/pharmacy/dispensations/new}" class="btn btn-primary btn-sm" th:text="#{pharmacy.worklist.free_dispensation}">+ Dispensation libre</a>
         </div>
     </div>
 
@@ -18,17 +18,17 @@
         <table class="table">
             <thead>
             <tr>
-                <th>Date</th>
-                <th>N°</th>
-                <th>Patient</th>
-                <th>Médecin</th>
-                <th style="text-align:center;">Lignes</th>
-                <th>Actions</th>
+                <th th:text="#{common.date}">Date</th>
+                <th th:text="#{pharmacy.col.number}">N°</th>
+                <th th:text="#{pharmacy.col.patient}">Patient</th>
+                <th th:text="#{pharmacy.col.doctor}">Médecin</th>
+                <th style="text-align:center;" th:text="#{pharmacy.worklist.col_lines}">Lignes</th>
+                <th th:text="#{common.actions}">Actions</th>
             </tr>
             </thead>
             <tbody>
             <tr th:if="${prescriptions.isEmpty()}">
-                <td colspan="6" class="empty-state">Aucune ordonnance en attente de dispensation. 🎉</td>
+                <td colspan="6" class="empty-state" th:text="#{pharmacy.worklist.empty}">Aucune ordonnance en attente de dispensation. 🎉</td>
             </tr>
             <tr th:each="p : ${prescriptions}">
                 <td th:text="${#temporals.format(p.issueDate,'dd/MM/yyyy')}">01/01/2026</td>
@@ -41,9 +41,9 @@
                 <td style="text-align:center;" th:text="${p.items.size()}">0</td>
                 <td style="white-space:nowrap;">
                     <a th:href="@{/pharmacy/dispensations/new(prescriptionId=${p.id})}"
-                       class="btn btn-primary btn-sm">Dispenser</a>
+                       class="btn btn-primary btn-sm" th:text="#{pharmacy.action.dispense}">Dispenser</a>
                     <a th:href="@{/prescriptions/{id}/print(id=${p.id})}"
-                       class="btn btn-ghost btn-sm" target="_blank">Voir</a>
+                       class="btn btn-ghost btn-sm" target="_blank" th:text="#{common.view}">Voir</a>
                 </td>
             </tr>
             </tbody>
