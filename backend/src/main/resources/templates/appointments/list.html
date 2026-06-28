@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Rendez-vous', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{appointments.list.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${success}" class="alert alert-info" th:text="${success}">OK</div>
@@ -7,44 +7,44 @@
 
 <div class="panel">
     <div class="panel-header">
-        <span>Agenda du jour</span>
+        <span th:text="#{appointments.list.heading}">Agenda du jour</span>
         <div style="display:flex; gap:.5rem; align-items:center;">
-            <a th:href="@{/appointments/week(date=${date},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm">Vue semaine</a>
-            <a th:href="@{/appointments/new}" class="btn btn-primary btn-sm">+ Nouveau RDV</a>
+            <a th:href="@{/appointments/week(date=${date},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm" th:text="#{appointments.list.view_week}">Vue semaine</a>
+            <a th:href="@{/appointments/new}" class="btn btn-primary btn-sm" th:text="#{appointments.list.new}">+ Nouveau RDV</a>
         </div>
     </div>
 
     <!-- Barre de navigation date + filtre médecin -->
     <form method="get" th:action="@{/appointments}" class="search-bar">
-        <a th:href="@{/appointments(date=${prevDay},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm">← Veille</a>
+        <a th:href="@{/appointments(date=${prevDay},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm" th:text="#{appointments.list.prev_day}">← Veille</a>
         <input type="date" name="date" th:value="${date}" class="form-control" style="max-width:180px;"/>
-        <a th:href="@{/appointments(date=${nextDay},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm">Lendemain →</a>
-        <a th:href="@{/appointments(date=${today},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm">Aujourd'hui</a>
+        <a th:href="@{/appointments(date=${nextDay},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm" th:text="#{appointments.list.next_day}">Lendemain →</a>
+        <a th:href="@{/appointments(date=${today},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm" th:text="#{appointments.list.today}">Aujourd'hui</a>
 
         <select name="doctorId" class="form-control" style="max-width:240px;" onchange="this.form.submit()">
-            <option value="">— Tous les médecins —</option>
+            <option value="" th:text="#{appointments.list.all_doctors}">— Tous les médecins —</option>
             <option th:each="d : ${doctors}" th:value="${d.id}" th:text="${d.fullName}"
                     th:selected="${selectedDoctorId != null and selectedDoctorId == d.id}">Dr.</option>
         </select>
-        <button type="submit" class="btn btn-primary btn-sm">Filtrer</button>
+        <button type="submit" class="btn btn-primary btn-sm" th:text="#{appointments.list.filter}">Filtrer</button>
     </form>
 
     <div class="table-wrap">
         <table class="table">
             <thead>
             <tr>
-                <th>Heure</th>
-                <th>Patient</th>
-                <th>Médecin</th>
-                <th>Type</th>
-                <th>Motif</th>
-                <th>Statut</th>
-                <th>Actions</th>
+                <th th:text="#{appointments.list.col_time}">Heure</th>
+                <th th:text="#{appointments.list.col_patient}">Patient</th>
+                <th th:text="#{appointments.list.col_doctor}">Médecin</th>
+                <th th:text="#{appointments.list.col_type}">Type</th>
+                <th th:text="#{appointments.list.col_reason}">Motif</th>
+                <th th:text="#{common.status}">Statut</th>
+                <th th:text="#{common.actions}">Actions</th>
             </tr>
             </thead>
             <tbody>
             <tr th:if="${appointments.isEmpty()}">
-                <td colspan="7" class="empty-state">Aucun rendez-vous pour cette journée.</td>
+                <td colspan="7" class="empty-state" th:text="#{appointments.list.empty}">Aucun rendez-vous pour cette journée.</td>
             </tr>
             <tr th:each="a : ${appointments}">
                 <td>
@@ -53,38 +53,38 @@
                 </td>
                 <td th:text="${a.patient != null ? a.patient.fullName : '—'}">Patient</td>
                 <td th:text="${a.doctor != null ? a.doctor.fullName : '—'}">Médecin</td>
-                <td th:text="${a.type ?: '—'}">CONSULTATION</td>
+                <td th:text="${a.type != null} ? #{${'apptype.' + a.type}} : #{common.none}">CONSULTATION</td>
                 <td th:text="${a.reason ?: '—'}">Motif</td>
-                <td><span class="badge" th:classappend="'badge-' + ${a.status}" th:text="${a.status}">PLANIFIE</span></td>
+                <td><span class="badge" th:classappend="'badge-' + ${a.status}" th:text="#{${'status.' + a.status}}">PLANIFIE</span></td>
                 <td style="white-space:nowrap;">
-                    <a th:href="@{/appointments/{id}/edit(id=${a.id})}" class="btn btn-ghost btn-sm">Modifier</a>
+                    <a th:href="@{/appointments/{id}/edit(id=${a.id})}" class="btn btn-ghost btn-sm" th:text="#{common.edit}">Modifier</a>
                     <!-- Télémédecine (P3.7) -->
                     <a th:if="${a.type == 'TELECONSULTATION'}" th:href="@{/teleconsultation/{id}(id=${a.id})}"
-                       target="_blank" class="btn btn-success btn-sm">📹 Rejoindre</a>
+                       target="_blank" class="btn btn-success btn-sm" th:text="#{appointments.list.join}">📹 Rejoindre</a>
                     <form th:if="${a.type != 'TELECONSULTATION' and a.status != 'ANNULE' and a.status != 'TERMINE'}"
                           method="post" th:action="@{/appointments/{id}/teleconsultation(id=${a.id})}" style="display:inline;">
-                        <button class="btn btn-ghost btn-sm">📹 Téléconsultation</button>
+                        <button class="btn btn-ghost btn-sm" th:text="#{appointments.list.teleconsultation}">📹 Téléconsultation</button>
                     </form>
                     <form th:if="${a.status == 'PLANIFIE'}" method="post"
                           th:action="@{/appointments/{id}/confirm(id=${a.id})}" style="display:inline;">
-                        <button class="btn btn-ghost btn-sm">Confirmer</button>
+                        <button class="btn btn-ghost btn-sm" th:text="#{common.confirm}">Confirmer</button>
                     </form>
                     <form th:if="${a.status == 'PLANIFIE' or a.status == 'CONFIRME'}" method="post"
                           th:action="@{/appointments/{id}/start(id=${a.id})}" style="display:inline;">
-                        <button class="btn btn-ghost btn-sm">Démarrer</button>
+                        <button class="btn btn-ghost btn-sm" th:text="#{appointments.list.start}">Démarrer</button>
                     </form>
                     <form th:if="${a.status == 'EN_COURS'}" method="post"
                           th:action="@{/appointments/{id}/complete(id=${a.id})}" style="display:inline;">
-                        <button class="btn btn-ghost btn-sm">Terminer</button>
+                        <button class="btn btn-ghost btn-sm" th:text="#{appointments.list.complete}">Terminer</button>
                     </form>
                     <form th:if="${a.status == 'PLANIFIE' or a.status == 'CONFIRME'}" method="post"
                           th:action="@{/appointments/{id}/absent(id=${a.id})}" style="display:inline;">
-                        <button class="btn btn-ghost btn-sm">Absent</button>
+                        <button class="btn btn-ghost btn-sm" th:text="#{appointments.list.absent}">Absent</button>
                     </form>
                     <form th:if="${a.status != 'ANNULE' and a.status != 'TERMINE'}" method="post"
                           th:action="@{/appointments/{id}/cancel(id=${a.id})}" style="display:inline;"
-                          onsubmit="return confirm('Annuler ce rendez-vous ?');">
-                        <button class="btn btn-ghost btn-sm">Annuler</button>
+                          th:onsubmit="'return confirm(\'' + #{appointments.list.cancel_confirm} + '\');'">
+                        <button class="btn btn-ghost btn-sm" th:text="#{common.cancel}">Annuler</button>
                     </form>
                 </td>
             </tr>

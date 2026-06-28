@@ -14,7 +14,8 @@
 ## 0. État (2026-06-28)
 - **Fait** : `base.html` (chrome/sidebar/topbar/breadcrumb/module-tabs), `login.html`, `dashboard*`,
   dropdown de langue (`base` + `login` + `portal`), **socle transverse** (slice 0) et **Patients**
-  (slice 1 : `list/form/detail` + dossier + overview Java). **8 / 88 templates** portent des clés `#{...}`.
+  (slice 1 : `list/form/detail` + dossier + overview Java) et **Rendez-vous** (slice 2 : `list/week/form`).
+  **11 / 88 templates** portent des clés `#{...}`.
 - **Bundles** : `backend/src/main/resources/messages{,_en,_ar}.properties` (UTF-8, `fallback-to-system-locale=false`).
 - **À traduire** : les ~83 autres templates + flash contrôleurs (~150 chaînes : Appointment 18, Hospit 16,
   Consultation 12, Billing 10, …) + libellés d'enum (statuts, méthodes de paiement, priorités, types).
@@ -72,7 +73,7 @@ qu'en cas de réel problème d'alignement (le socle gère déjà le gros).
       `priority.*` + `paymethod.*` + helper `WebI18n.t(...)`. Migrer `@paymentMethods.label` → `MessageSource`. Aucun template
       module encore, mais ces clés débloquent tous les suivants. Test : `status.*` se résout en 3 langues.
 - [x] **Slice 1 — Patients** (`patients/list,detail,form` + dossier) + flash `PatientWebController`.
-- [ ] **Slice 2 — Rendez-vous** (`appointments/list,week,form`) + flash (18 chaînes).
+- [x] **Slice 2 — Rendez-vous** (`appointments/list,week,form`) + flash (18 chaînes).
 - [ ] **Slice 3 — Consultations** (`consultations/list,detail,form` + `prescriptions/*`) + flash (12).
 - [ ] **Slice 4 — Facturation** (`billing/dashboard,queue,invoices/*`) + flash (10) + `paymethod.*` appliqué.
 - [ ] **Slice 5 — Laboratoire** (`lab/worklist,list,detail,form,result-entry,bulletin`) + flash.
@@ -106,3 +107,4 @@ qu'en cas de réel problème d'alignement (le socle gère déjà le gros).
 | 2026-06-28 | (plan) | Plan créé. Socle P3.2 fait (5/88 templates). Conventions verrouillées ; ordre par trafic ; impression exclue. |
 | 2026-06-28 | 0 — Socle | `common.*` complété (add/confirm/status/date/name/none/required) + `status.*` (20 statuts) + `priority.*` (NORMAL/URGENT, namespace ajouté) + `paymethod.*` (9 modes) dans les 3 bundles, alignés. Helper `i18n/WebI18n.t(...)` créé. `PaymentMethods.label` migré sur `MessageSource` (suit la locale ; fallback code-brut/« — » conservé). Test `I18nBundleTest` (3 langues) + smoke vert (22 tests). |
 | 2026-06-28 | 1 — Patients | `patients/{list,form,detail}` clés `#{}` (+ titres layout, statuts dynamiques `#{${'status.'+x}}`, `common.view/clear` ajoutés). Flash photo via `i18n.t`. `PatientOverviewService` (alertes + timeline P3.6) i18n via `WebI18n` (args paramétrés, locale du thread requête). Test render FR+`?lang=en` ajouté au smoke ; `PatientOverviewServiceTest` recâblé (MessageSource FR réel). Suite complète verte (175 tests). |
+| 2026-06-28 | 2 — Rendez-vous | `appointments/{list,week,form}` clés `#{}` (+ titres layout via ternaire `${}?#{}:#{}`, colonne Type via clé dynamique `#{${'apptype.'+a.type}}`, badge statut + légende semaine via `#{status.*}`, sélecteurs Type/Statut du formulaire mappés sur `apptype.*`/`status.*`). Nouveau namespace partagé **`apptype.*`** (CONSULTATION/SUIVI/URGENCE/TELECONSULTATION) dans les 3 bundles. 8 flash de `AppointmentWebController` via `i18n.t` (WebI18n injecté). `cancel_confirm` passé en `th:onsubmit` concaténé. Réutilisation `common.{edit,confirm,cancel,save,status,actions,none}`. Test smoke `appointments_i18n_fr_puis_en` (jour FR/EN + légende semaine EN). Suite complète verte (**176 tests**). **NB** : assertions MockMvc sur du texte avec apostrophe → l'apostrophe est HTML-échappée (`&#39;`) ; viser une chaîne sans apostrophe (« Week view » au lieu de « Today's schedule »). |

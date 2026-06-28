@@ -1,44 +1,44 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Agenda — semaine', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{appointments.week.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div class="panel">
     <div class="panel-header">
-        <span>Semaine du <span th:text="${#temporals.format(weekStart,'dd/MM/yyyy')}">01/01</span></span>
+        <span><span th:text="#{appointments.week.week_of}">Semaine du</span> <span th:text="${#temporals.format(weekStart,'dd/MM/yyyy')}">01/01</span></span>
         <div style="display:flex; gap:.5rem; align-items:center;">
-            <a th:href="@{/appointments(date=${weekStart},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm">Vue jour</a>
-            <a th:href="@{/appointments/new}" class="btn btn-primary btn-sm">+ Nouveau RDV</a>
+            <a th:href="@{/appointments(date=${weekStart},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm" th:text="#{appointments.week.view_day}">Vue jour</a>
+            <a th:href="@{/appointments/new}" class="btn btn-primary btn-sm" th:text="#{appointments.list.new}">+ Nouveau RDV</a>
         </div>
     </div>
 
     <!-- Navigation semaine + filtre médecin -->
     <form method="get" th:action="@{/appointments/week}" class="search-bar">
-        <a th:href="@{/appointments/week(date=${prevWeek},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm">← Semaine préc.</a>
-        <a th:href="@{/appointments/week(date=${nextWeek},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm">Semaine suiv. →</a>
-        <a th:href="@{/appointments/week(date=${today},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm">Cette semaine</a>
+        <a th:href="@{/appointments/week(date=${prevWeek},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm" th:text="#{appointments.week.prev_week}">← Semaine préc.</a>
+        <a th:href="@{/appointments/week(date=${nextWeek},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm" th:text="#{appointments.week.next_week}">Semaine suiv. →</a>
+        <a th:href="@{/appointments/week(date=${today},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm" th:text="#{appointments.week.this_week}">Cette semaine</a>
         <select name="doctorId" class="form-control" style="max-width:240px;" onchange="this.form.submit()">
-            <option value="">— Tous les médecins —</option>
+            <option value="" th:text="#{appointments.list.all_doctors}">— Tous les médecins —</option>
             <option th:each="d : ${doctors}" th:value="${d.id}" th:text="${d.fullName}"
                     th:selected="${selectedDoctorId != null and selectedDoctorId == d.id}">Dr.</option>
         </select>
-        <button type="submit" class="btn btn-primary btn-sm">Filtrer</button>
+        <button type="submit" class="btn btn-primary btn-sm" th:text="#{appointments.list.filter}">Filtrer</button>
     </form>
 
     <!-- Légende -->
     <div style="display:flex; gap:.75rem; margin:.5rem 0 1rem; flex-wrap:wrap;">
-        <span class="badge badge-PLANIFIE">Planifié</span>
-        <span class="badge badge-CONFIRME">Confirmé</span>
-        <span class="badge badge-EN_COURS">En cours</span>
-        <span class="badge badge-TERMINE">Terminé</span>
-        <span class="badge badge-ANNULE">Annulé</span>
-        <span class="badge badge-ABSENT">Absent</span>
+        <span class="badge badge-PLANIFIE" th:text="#{status.PLANIFIE}">Planifié</span>
+        <span class="badge badge-CONFIRME" th:text="#{status.CONFIRME}">Confirmé</span>
+        <span class="badge badge-EN_COURS" th:text="#{status.EN_COURS}">En cours</span>
+        <span class="badge badge-TERMINE" th:text="#{status.TERMINE}">Terminé</span>
+        <span class="badge badge-ANNULE" th:text="#{status.ANNULE}">Annulé</span>
+        <span class="badge badge-ABSENT" th:text="#{status.ABSENT}">Absent</span>
     </div>
 
     <div class="table-wrap">
         <table class="table week-grid">
             <thead>
             <tr>
-                <th style="width:64px;">Heure</th>
+                <th style="width:64px;" th:text="#{appointments.list.col_time}">Heure</th>
                 <th th:each="day : ${days}"
                     th:classappend="${day == today} ? 'week-today'">
                     <div th:text="${#temporals.format(day,'EEE')}">Lun</div>

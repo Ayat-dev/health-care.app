@@ -3,6 +3,7 @@ package com.clinic.backend.controller.web;
 import com.clinic.backend.appointment.Appointment;
 import com.clinic.backend.appointment.AppointmentService;
 import com.clinic.backend.dto.AppointmentDto;
+import com.clinic.backend.i18n.WebI18n;
 import com.clinic.backend.model.User;
 import com.clinic.backend.patient.PatientService;
 import com.clinic.backend.repository.UserRepository;
@@ -32,6 +33,7 @@ public class AppointmentWebController {
     private final AppointmentService appointmentService;
     private final PatientService patientService;
     private final UserRepository userRepository;
+    private final WebI18n i18n;
 
     // ── Vue jour (liste) ──────────────────────────────────────────────────
     @GetMapping
@@ -107,7 +109,7 @@ public class AppointmentWebController {
     public String create(@ModelAttribute AppointmentDto dto, RedirectAttributes ra, Model model) {
         try {
             Appointment created = appointmentService.create(dto);
-            ra.addFlashAttribute("success", "Rendez-vous créé.");
+            ra.addFlashAttribute("success", i18n.t("appointments.flash.created"));
             return "redirect:/appointments?date=" + created.getStartTime().toLocalDate();
         } catch (IllegalArgumentException e) {
             model.addAttribute("appointment", dto);
@@ -130,7 +132,7 @@ public class AppointmentWebController {
                          RedirectAttributes ra, Model model) {
         try {
             Appointment updated = appointmentService.update(id, dto);
-            ra.addFlashAttribute("success", "Rendez-vous mis à jour.");
+            ra.addFlashAttribute("success", i18n.t("appointments.flash.updated"));
             return "redirect:/appointments?date=" + updated.getStartTime().toLocalDate();
         } catch (IllegalArgumentException e) {
             dto.setId(id);
@@ -145,28 +147,28 @@ public class AppointmentWebController {
     @PostMapping("/{id}/confirm")
     public String confirm(@PathVariable Long id, RedirectAttributes ra) {
         appointmentService.confirm(id);
-        ra.addFlashAttribute("success", "Rendez-vous confirmé.");
+        ra.addFlashAttribute("success", i18n.t("appointments.flash.confirmed"));
         return redirectToDay(id);
     }
 
     @PostMapping("/{id}/start")
     public String start(@PathVariable Long id, RedirectAttributes ra) {
         appointmentService.start(id);
-        ra.addFlashAttribute("success", "Rendez-vous démarré.");
+        ra.addFlashAttribute("success", i18n.t("appointments.flash.started"));
         return redirectToDay(id);
     }
 
     @PostMapping("/{id}/complete")
     public String complete(@PathVariable Long id, RedirectAttributes ra) {
         appointmentService.complete(id);
-        ra.addFlashAttribute("success", "Rendez-vous terminé.");
+        ra.addFlashAttribute("success", i18n.t("appointments.flash.completed"));
         return redirectToDay(id);
     }
 
     @PostMapping("/{id}/absent")
     public String absent(@PathVariable Long id, RedirectAttributes ra) {
         appointmentService.markAbsent(id);
-        ra.addFlashAttribute("success", "Patient marqué absent.");
+        ra.addFlashAttribute("success", i18n.t("appointments.flash.absent"));
         return redirectToDay(id);
     }
 
@@ -174,7 +176,7 @@ public class AppointmentWebController {
     public String cancel(@PathVariable Long id, @RequestParam(required = false) String reason,
                          RedirectAttributes ra) {
         appointmentService.cancel(id, reason);
-        ra.addFlashAttribute("success", "Rendez-vous annulé.");
+        ra.addFlashAttribute("success", i18n.t("appointments.flash.cancelled"));
         return redirectToDay(id);
     }
 
@@ -183,7 +185,7 @@ public class AppointmentWebController {
     public String enableTeleconsultation(@PathVariable Long id, RedirectAttributes ra) {
         try {
             appointmentService.enableTeleconsultation(id);
-            ra.addFlashAttribute("success", "Téléconsultation activée : lien de visio généré.");
+            ra.addFlashAttribute("success", i18n.t("appointments.flash.teleconsultation_enabled"));
         } catch (IllegalArgumentException e) {
             ra.addFlashAttribute("error", e.getMessage());
         }

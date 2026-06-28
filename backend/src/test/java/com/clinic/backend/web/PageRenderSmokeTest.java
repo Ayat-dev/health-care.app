@@ -66,6 +66,24 @@ class PageRenderSmokeTest {
         mvc.perform(get("/appointments")).andExpect(status().isOk());
     }
 
+    /** i18n slice 2 (docs/I18N-PLAN.md) : agenda jour/semaine porte des clés #{} (dont les
+     *  statuts dynamiques #{${'status.' + …}} de la colonne + légende) et bascule en anglais
+     *  via ?lang=en. */
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void appointments_i18n_fr_puis_en() throws Exception {
+        mvc.perform(get("/appointments"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Agenda du jour")));
+        mvc.perform(get("/appointments").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Week view")));
+        // vue semaine : légende des statuts traduite (clés #{status.*})
+        mvc.perform(get("/appointments/week").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Week of")));
+    }
+
     /** i18n slice 1 (docs/I18N-PLAN.md) : la liste patients porte des clés #{} et bascule
      *  en anglais via ?lang=en (LocaleChangeInterceptor). Exerce aussi les statuts dynamiques
      *  du dossier (#{${'status.' + …}}) via /patients/1. */
