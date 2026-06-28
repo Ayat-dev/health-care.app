@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Maternité', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{maternity.list.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
@@ -7,36 +7,38 @@
 
 <div class="panel">
     <div class="panel-header">
-        <span>Dossiers de grossesse</span>
-        <a th:href="@{/maternity/new}" class="btn btn-primary btn-sm">+ Ouvrir un dossier</a>
+        <span th:text="#{maternity.list.heading}">Dossiers de grossesse</span>
+        <a th:href="@{/maternity/new}" class="btn btn-primary btn-sm" th:text="#{maternity.open}">+ Ouvrir un dossier</a>
     </div>
 
     <form method="get" th:action="@{/maternity}" class="search-bar">
         <select name="status" class="form-control" style="max-width:200px;" onchange="this.form.submit()">
-            <option value="">— Tous statuts —</option>
-            <option value="EN_COURS"  th:selected="${status == 'EN_COURS'}">En cours</option>
-            <option value="ACCOUCHEE" th:selected="${status == 'ACCOUCHEE'}">Accouchée</option>
-            <option value="CLOTURE"   th:selected="${status == 'CLOTURE'}">Clôturé</option>
+            <option value="" th:text="#{maternity.list.all_status}">— Tous statuts —</option>
+            <option value="EN_COURS"  th:selected="${status == 'EN_COURS'}"  th:text="#{status.EN_COURS}">En cours</option>
+            <option value="ACCOUCHEE" th:selected="${status == 'ACCOUCHEE'}" th:text="#{status.ACCOUCHEE}">Accouchée</option>
+            <option value="CLOTURE"   th:selected="${status == 'CLOTURE'}"   th:text="#{status.CLOTURE}">Clôturé</option>
         </select>
     </form>
 
     <div class="table-wrap">
         <table class="table">
             <thead>
-            <tr><th>Patiente</th><th>Dossier</th><th>Suivi par</th><th>DPA</th><th>Âge gest.</th><th>Statut</th><th></th></tr>
+            <tr><th th:text="#{maternity.col.patient}">Patiente</th><th th:text="#{maternity.list.col_record}">Dossier</th>
+                <th th:text="#{maternity.col.followed_by}">Suivi par</th><th th:text="#{maternity.col.edd}">DPA</th>
+                <th th:text="#{maternity.list.col_ga}">Âge gest.</th><th th:text="#{common.status}">Statut</th><th></th></tr>
             </thead>
             <tbody>
             <tr th:if="${records.isEmpty()}">
-                <td colspan="7" class="empty-state">Aucun dossier maternité.</td>
+                <td colspan="7" class="empty-state" th:text="#{maternity.list.empty}">Aucun dossier maternité.</td>
             </tr>
             <tr th:each="r : ${records}">
                 <td><strong th:text="${r.patientName}">Patiente</strong></td>
                 <td><span class="badge badge-blue" th:text="${r.patientRecordNumber}">PAT-…</span></td>
                 <td th:text="${r.doctorName ?: '—'}">—</td>
                 <td th:text="${r.expectedDueDate != null ? #temporals.format(r.expectedDueDate,'dd/MM/yyyy') : '—'}">—</td>
-                <td th:text="${r.currentGestationalAgeWeeks != null ? r.currentGestationalAgeWeeks + ' SA' : '—'}">—</td>
-                <td><span class="badge" th:classappend="'badge-' + ${r.status}" th:text="${r.status}">EN_COURS</span></td>
-                <td><a th:href="@{/maternity/{id}(id=${r.id})}" class="btn btn-ghost btn-sm">Voir</a></td>
+                <td th:text="${r.currentGestationalAgeWeeks != null} ? ${r.currentGestationalAgeWeeks} + ' ' + #{maternity.ga_short} : '—'">—</td>
+                <td><span class="badge" th:classappend="'badge-' + ${r.status}" th:text="#{${'status.' + r.status}}">EN_COURS</span></td>
+                <td><a th:href="@{/maternity/{id}(id=${r.id})}" class="btn btn-ghost btn-sm" th:text="#{common.view}">Voir</a></td>
             </tr>
             </tbody>
         </table>

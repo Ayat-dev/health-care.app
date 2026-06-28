@@ -2,6 +2,7 @@ package com.clinic.backend.controller.web;
 
 import com.clinic.backend.dto.MaternityRecordDto;
 import com.clinic.backend.dto.PrenatalVisitDto;
+import com.clinic.backend.i18n.WebI18n;
 import com.clinic.backend.maternity.MaternityRecord;
 import com.clinic.backend.maternity.MaternityService;
 import com.clinic.backend.model.User;
@@ -26,6 +27,7 @@ public class MaternityWebController {
     private final MaternityService maternityService;
     private final PatientService patientService;
     private final UserRepository userRepository;
+    private final WebI18n i18n;
 
     // ── Liste des grossesses ─────────────────────────────────────────────────────
     @GetMapping
@@ -47,7 +49,7 @@ public class MaternityWebController {
     public String open(@ModelAttribute MaternityRecordDto dto, RedirectAttributes ra, Model model) {
         try {
             MaternityRecord created = maternityService.openRecord(dto);
-            ra.addFlashAttribute("success", "Dossier maternité ouvert.");
+            ra.addFlashAttribute("success", i18n.t("maternity.flash.opened"));
             return "redirect:/maternity/" + created.getId();
         } catch (RuntimeException e) {
             model.addAttribute("record", dto);
@@ -77,7 +79,7 @@ public class MaternityWebController {
                          RedirectAttributes ra, Model model) {
         try {
             maternityService.update(id, dto);
-            ra.addFlashAttribute("success", "Dossier mis à jour.");
+            ra.addFlashAttribute("success", i18n.t("maternity.flash.updated"));
             return "redirect:/maternity/" + id;
         } catch (RuntimeException e) {
             dto.setId(id);
@@ -102,7 +104,7 @@ public class MaternityWebController {
                            RedirectAttributes ra, Model model) {
         try {
             maternityService.addVisit(id, dto);
-            ra.addFlashAttribute("success", "Consultation prénatale enregistrée.");
+            ra.addFlashAttribute("success", i18n.t("maternity.flash.visit_added"));
             return "redirect:/maternity/" + id;
         } catch (RuntimeException e) {
             model.addAttribute("record", maternityService.getDtoById(id));
@@ -126,7 +128,7 @@ public class MaternityWebController {
                               @ModelAttribute PrenatalVisitDto dto, RedirectAttributes ra, Model model) {
         try {
             maternityService.updateVisit(visitId, dto);
-            ra.addFlashAttribute("success", "Consultation prénatale mise à jour.");
+            ra.addFlashAttribute("success", i18n.t("maternity.flash.visit_updated"));
             return "redirect:/maternity/" + id;
         } catch (RuntimeException e) {
             dto.setId(visitId);
@@ -150,7 +152,7 @@ public class MaternityWebController {
                                  RedirectAttributes ra, Model model) {
         try {
             maternityService.recordDelivery(id, dto);
-            ra.addFlashAttribute("success", "Accouchement enregistré.");
+            ra.addFlashAttribute("success", i18n.t("maternity.flash.delivery_recorded"));
             return "redirect:/maternity/" + id;
         } catch (RuntimeException e) {
             model.addAttribute("record", maternityService.getDtoById(id));
@@ -163,7 +165,7 @@ public class MaternityWebController {
     public String close(@PathVariable Long id, RedirectAttributes ra) {
         try {
             maternityService.close(id);
-            ra.addFlashAttribute("success", "Dossier clôturé.");
+            ra.addFlashAttribute("success", i18n.t("maternity.flash.closed"));
         } catch (RuntimeException e) {
             ra.addFlashAttribute("error", e.getMessage());
         }

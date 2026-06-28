@@ -295,6 +295,32 @@ class PageRenderSmokeTest {
                 .andExpect(content().string(containsString("Attending doctor")));
     }
 
+    /** i18n slice 9 (docs/I18N-PLAN.md) : le module Maternité (liste, formulaire dossier,
+     *  dossier à onglets, CPN, accouchement) porte des clés #{} — statuts dynamiques
+     *  #{${'status.' + …}}, énumérations partagées #{${'deliverytype.' + …}}/#{${'gender.' + …}} —
+     *  et bascule en anglais via ?lang=en. Le seed dossier 1 (p1, EN_COURS, 2 CPN) exerce
+     *  l'en-tête + l'onglet visites + l'âge gestationnel. */
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void maternity_i18n_fr_puis_en() throws Exception {
+        // liste : en-tête « Dossiers de grossesse » en FR
+        mvc.perform(get("/maternity"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Dossiers de grossesse")));
+        // liste : titre « Pregnancy records » traduit
+        mvc.perform(get("/maternity").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Pregnancy records")));
+        // formulaire d'ouverture : libellé LMP « Last menstrual period » traduit
+        mvc.perform(get("/maternity/new").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Last menstrual period")));
+        // dossier : onglet « ANC visits » + « Gestational age » traduits (seed dossier 1 = EN_COURS)
+        mvc.perform(get("/maternity/1").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Gestational age")));
+    }
+
     /** Détail demande labo : exerce le tableau résultats + le lien latéral dossier patient. */
     @Test
     @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")

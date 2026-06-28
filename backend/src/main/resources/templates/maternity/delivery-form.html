@@ -1,75 +1,75 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Enregistrer l’accouchement', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{maternity.delivery.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
 
 <div class="panel" style="margin-bottom:12px;">
     <div class="form-grid-2 panel-body">
-        <div><span class="detail-label">Patiente</span> <span th:text="${record.patientName}">—</span></div>
-        <div><span class="detail-label">DPA</span>
+        <div><span class="detail-label" th:text="#{maternity.col.patient}">Patiente</span> <span th:text="${record.patientName}">—</span></div>
+        <div><span class="detail-label" th:text="#{maternity.col.edd}">DPA</span>
              <span th:text="${record.expectedDueDate != null ? #temporals.format(record.expectedDueDate,'dd/MM/yyyy') : '—'}">—</span></div>
     </div>
 </div>
 
 <form method="post" th:action="@{/maternity/{id}/delivery(id=${record.id})}" th:object="${record}">
     <div class="form-card">
-        <div class="panel-header"><span>Accouchement</span></div>
+        <div class="panel-header"><span th:text="#{maternity.delivery.heading}">Accouchement</span></div>
 
         <div class="form-grid-2">
             <div class="form-group">
-                <label class="form-label">Date d'accouchement *</label>
+                <label class="form-label" th:text="#{maternity.delivery.date} + ' *'">Date d'accouchement *</label>
                 <input type="date" th:field="*{deliveryDate}" class="form-control" required/>
             </div>
             <div class="form-group">
-                <label class="form-label">Type d'accouchement</label>
+                <label class="form-label" th:text="#{maternity.delivery.type}">Type d'accouchement</label>
                 <select th:field="*{deliveryType}" class="form-control">
-                    <option value="">—</option>
-                    <option value="NATUREL">Naturel (voie basse)</option>
-                    <option value="CESARIENNE">Césarienne</option>
-                    <option value="FORCEPS">Forceps / instrumental</option>
+                    <option value="" th:text="#{common.none}">—</option>
+                    <option value="NATUREL" th:text="#{deliverytype.NATUREL}">Naturel (voie basse)</option>
+                    <option value="CESARIENNE" th:text="#{deliverytype.CESARIENNE}">Césarienne</option>
+                    <option value="FORCEPS" th:text="#{deliverytype.FORCEPS}">Forceps / instrumental</option>
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label">Issue</label>
+                <label class="form-label" th:text="#{maternity.delivery.outcome}">Issue</label>
                 <select th:field="*{deliveryOutcome}" class="form-control">
-                    <option value="">—</option>
-                    <option value="VIVANT">Né vivant</option>
-                    <option value="MORT_NE">Mort-né</option>
-                    <option value="AVORTEMENT">Avortement</option>
+                    <option value="" th:text="#{common.none}">—</option>
+                    <option value="VIVANT" th:text="#{deliveryoutcome.VIVANT}">Né vivant</option>
+                    <option value="MORT_NE" th:text="#{deliveryoutcome.MORT_NE}">Mort-né</option>
+                    <option value="AVORTEMENT" th:text="#{deliveryoutcome.AVORTEMENT}">Avortement</option>
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label">Sexe du nouveau-né</label>
+                <label class="form-label" th:text="#{maternity.delivery.newborn_gender}">Sexe du nouveau-né</label>
                 <select th:field="*{newbornGender}" class="form-control">
-                    <option value="">—</option>
-                    <option value="M">Masculin</option>
-                    <option value="F">Féminin</option>
+                    <option value="" th:text="#{common.none}">—</option>
+                    <option value="M" th:text="#{gender.M}">Masculin</option>
+                    <option value="F" th:text="#{gender.F}">Féminin</option>
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label">Poids de naissance (g)</label>
-                <input type="number" min="0" th:field="*{newbornWeightG}" class="form-control" placeholder="ex: 3200"/>
+                <label class="form-label" th:text="#{maternity.delivery.newborn_weight}">Poids de naissance (g)</label>
+                <input type="number" min="0" th:field="*{newbornWeightG}" class="form-control" th:placeholder="#{maternity.delivery.newborn_weight_ph}"/>
             </div>
             <div class="form-group">
-                <label class="form-label">Apgar à 1 min (/10)</label>
+                <label class="form-label" th:text="#{maternity.delivery.apgar1}">Apgar à 1 min (/10)</label>
                 <input type="number" min="0" max="10" th:field="*{newbornApgar1}" class="form-control"/>
             </div>
             <div class="form-group">
-                <label class="form-label">Apgar à 5 min (/10)</label>
+                <label class="form-label" th:text="#{maternity.delivery.apgar5}">Apgar à 5 min (/10)</label>
                 <input type="number" min="0" max="10" th:field="*{newbornApgar5}" class="form-control"/>
             </div>
         </div>
 
         <div class="form-group">
-            <label class="form-label">Complications</label>
+            <label class="form-label" th:text="#{maternity.delivery.complications}">Complications</label>
             <textarea th:field="*{complications}" class="form-control" rows="2"
-                      placeholder="Hémorragie, déchirure, réanimation néonatale…"></textarea>
+                      th:placeholder="#{maternity.delivery.complications_ph}"></textarea>
         </div>
 
         <div style="display:flex; gap:.5rem; margin-top:12px;">
-            <button type="submit" class="btn btn-primary">Enregistrer l'accouchement</button>
-            <a th:href="@{/maternity/{id}(id=${record.id})}" class="btn btn-ghost">Annuler</a>
+            <button type="submit" class="btn btn-primary" th:text="#{maternity.record.record_delivery}">Enregistrer l'accouchement</button>
+            <a th:href="@{/maternity/{id}(id=${record.id})}" class="btn btn-ghost" th:text="#{common.cancel}">Annuler</a>
         </div>
     </div>
 </form>

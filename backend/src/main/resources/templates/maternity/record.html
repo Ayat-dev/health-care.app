@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Dossier maternité', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{maternity.record.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
@@ -11,21 +11,21 @@
         <span>
             <strong th:text="${record.patientName}">Patiente</strong>
             <span class="badge badge-blue" th:text="${record.patientRecordNumber}">PAT-…</span>
-            <span class="badge" th:classappend="'badge-' + ${record.status}" th:text="${record.status}">EN_COURS</span>
+            <span class="badge" th:classappend="'badge-' + ${record.status}" th:text="#{${'status.' + record.status}}">EN_COURS</span>
             <span th:if="${record.currentGestationalAgeWeeks != null}" class="badge"
-                  th:text="${record.currentGestationalAgeWeeks} + ' SA'">— SA</span>
+                  th:text="${record.currentGestationalAgeWeeks} + ' ' + #{maternity.ga_short}">— SA</span>
         </span>
         <div style="display:flex; gap:.5rem;">
             <a th:if="${record.status != 'CLOTURE'}" th:href="@{/maternity/{id}/edit(id=${record.id})}"
-               class="btn btn-ghost btn-sm">Modifier</a>
+               class="btn btn-ghost btn-sm" th:text="#{common.edit}">Modifier</a>
             <a th:if="${record.status != 'CLOTURE'}" th:href="@{/maternity/{id}/visits/new(id=${record.id})}"
-               class="btn btn-primary btn-sm">+ Nouvelle CPN</a>
+               class="btn btn-primary btn-sm" th:text="#{maternity.record.new_visit}">+ Nouvelle CPN</a>
             <a th:if="${record.status == 'EN_COURS'}" th:href="@{/maternity/{id}/delivery(id=${record.id})}"
-               class="btn btn-primary btn-sm">Enregistrer l'accouchement</a>
+               class="btn btn-primary btn-sm" th:text="#{maternity.record.record_delivery}">Enregistrer l'accouchement</a>
             <form th:if="${record.status == 'ACCOUCHEE'}" method="post"
                   th:action="@{/maternity/{id}/close(id=${record.id})}" style="display:inline;"
-                  onsubmit="return confirm('Clôturer définitivement ce dossier ?');">
-                <button class="btn btn-ghost btn-sm">Clôturer</button>
+                  th:onsubmit="'return confirm(\'' + #{maternity.record.close_confirm} + '\');'">
+                <button class="btn btn-ghost btn-sm" th:text="#{maternity.record.close}">Clôturer</button>
             </form>
         </div>
     </div>
@@ -39,29 +39,29 @@
 </div>
 
 <!-- Onglets (deep-linkables via #hash + ARIA — même patron que le dossier patient) -->
-<div class="tabs mt-16" role="tablist" aria-label="Sections du dossier maternité">
-    <button class="tab active" role="tab" aria-selected="true" data-tab="pregnancy">Grossesse</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="visits">Consultations CPN</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="delivery">Accouchement</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="newborn">Nouveau-né</button>
+<div class="tabs mt-16" role="tablist" th:aria-label="#{maternity.record.tabs_label}">
+    <button class="tab active" role="tab" aria-selected="true" data-tab="pregnancy" th:text="#{maternity.record.tab_pregnancy}">Grossesse</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="visits" th:text="#{maternity.record.tab_visits}">Consultations CPN</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="delivery" th:text="#{maternity.record.tab_delivery}">Accouchement</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="newborn" th:text="#{maternity.record.tab_newborn}">Nouveau-né</button>
 </div>
 
 <!-- Grossesse -->
 <div id="tab-pregnancy" class="tab-content active panel">
     <div class="form-grid-2 panel-body">
-        <div><span class="detail-label">Suivi par</span> <span th:text="${record.doctorName ?: '—'}">—</span></div>
-        <div><span class="detail-label">Gravidité / Parité</span>
+        <div><span class="detail-label" th:text="#{maternity.col.followed_by}">Suivi par</span> <span th:text="${record.doctorName ?: '—'}">—</span></div>
+        <div><span class="detail-label" th:text="#{maternity.record.gravidity_parity}">Gravidité / Parité</span>
              <span th:text="${(record.gravidity ?: '—') + ' G / ' + (record.parity ?: '—') + ' P'}">— G / — P</span></div>
-        <div><span class="detail-label">Dernières règles (DDR)</span>
+        <div><span class="detail-label" th:text="#{maternity.record.lmp}">Dernières règles (DDR)</span>
              <span th:text="${record.lastPeriodDate != null ? #temporals.format(record.lastPeriodDate,'dd/MM/yyyy') : '—'}">—</span></div>
-        <div><span class="detail-label">Date probable d'accouchement (DPA)</span>
+        <div><span class="detail-label" th:text="#{maternity.record.edd}">Date probable d'accouchement (DPA)</span>
              <span th:text="${record.expectedDueDate != null ? #temporals.format(record.expectedDueDate,'dd/MM/yyyy') : '—'}">—</span></div>
-        <div><span class="detail-label">Âge gestationnel</span>
-             <span th:text="${record.currentGestationalAgeWeeks != null ? record.currentGestationalAgeWeeks + ' semaines' : '—'}">—</span></div>
-        <div><span class="detail-label">CPN réalisées</span> <span th:text="${record.completedVisits}">0</span></div>
+        <div><span class="detail-label" th:text="#{maternity.record.ga}">Âge gestationnel</span>
+             <span th:text="${record.currentGestationalAgeWeeks != null} ? ${record.currentGestationalAgeWeeks} + ' ' + #{maternity.record.weeks} : '—'">—</span></div>
+        <div><span class="detail-label" th:text="#{maternity.record.visits_done}">CPN réalisées</span> <span th:text="${record.completedVisits}">0</span></div>
     </div>
     <div style="padding:0 16px 16px;">
-        <div class="detail-label">Notes</div>
+        <div class="detail-label" th:text="#{maternity.notes}">Notes</div>
         <p th:text="${record.notes ?: '—'}">—</p>
     </div>
 </div>
@@ -69,34 +69,37 @@
 <!-- Consultations CPN -->
 <div id="tab-visits" class="tab-content panel" style="display:none">
     <div class="panel-header" style="padding:0 0 12px;">
-        <span>Consultations prénatales</span>
+        <span th:text="#{maternity.visits.heading}">Consultations prénatales</span>
         <a th:if="${record.status != 'CLOTURE'}" th:href="@{/maternity/{id}/visits/new(id=${record.id})}"
-           class="btn btn-primary btn-sm">+ Nouvelle CPN</a>
+           class="btn btn-primary btn-sm" th:text="#{maternity.record.new_visit}">+ Nouvelle CPN</a>
     </div>
-    <div th:if="${record.visits.isEmpty()}" class="empty-state">Aucune consultation prénatale enregistrée.</div>
+    <div th:if="${record.visits.isEmpty()}" class="empty-state" th:text="#{maternity.visits.empty}">Aucune consultation prénatale enregistrée.</div>
     <div th:unless="${record.visits.isEmpty()}" class="table-wrap">
         <table class="table">
             <thead>
-            <tr><th>CPN</th><th>Date</th><th>SA</th><th>Poids</th><th>Tension</th><th>RCF</th>
-                <th>HU</th><th>Œdème</th><th>Protéinurie</th><th>VAT</th><th></th></tr>
+            <tr><th th:text="#{maternity.visit.cpn_short}">CPN</th><th th:text="#{common.date}">Date</th>
+                <th th:text="#{maternity.ga_short}">SA</th><th th:text="#{maternity.visit.col_weight}">Poids</th>
+                <th th:text="#{maternity.visit.col_bp}">Tension</th><th th:text="#{maternity.visit.col_fhr}">RCF</th>
+                <th th:text="#{maternity.visit.col_uh}">HU</th><th th:text="#{maternity.visit.col_edema}">Œdème</th>
+                <th th:text="#{maternity.visit.col_proteinuria}">Protéinurie</th><th th:text="#{maternity.visit.col_vat}">VAT</th><th></th></tr>
             </thead>
             <tbody>
             <tr th:each="v : ${record.visits}"
                 th:classappend="${(v.bpSystolic != null and v.bpSystolic > 140) or (v.proteinuria != null and v.proteinuria)} ? 'row-abnormal'">
-                <td><strong th:text="'CPN' + ${v.visitNumber}">CPN1</strong></td>
+                <td><strong th:text="#{maternity.visit.cpn_short} + ${v.visitNumber}">CPN1</strong></td>
                 <td th:text="${#temporals.format(v.visitDate,'dd/MM/yyyy')}">01/01</td>
                 <td th:text="${v.gestationalAgeWeeks ?: '—'}">—</td>
                 <td th:text="${v.weightKg != null ? v.weightKg + ' kg' : '—'}">—</td>
                 <td th:text="${v.bpSystolic != null ? v.bpSystolic + '/' + v.bpDiastolic : '—'}">—</td>
                 <td th:text="${v.fetalHeartRate != null ? v.fetalHeartRate + ' bpm' : '—'}">—</td>
                 <td th:text="${v.uterineHeightCm != null ? v.uterineHeightCm + ' cm' : '—'}">—</td>
-                <td th:text="${v.edema != null ? (v.edema ? 'Oui' : 'Non') : '—'}">—</td>
-                <td th:text="${v.proteinuria != null ? (v.proteinuria ? 'Oui' : 'Non') : '—'}">—</td>
-                <td th:text="${v.ttvVaccine != null ? (v.ttvVaccine ? 'Oui' : 'Non') : '—'}">—</td>
+                <td th:text="${v.edema != null} ? (${v.edema} ? #{common.yes} : #{common.no}) : '—'">—</td>
+                <td th:text="${v.proteinuria != null} ? (${v.proteinuria} ? #{common.yes} : #{common.no}) : '—'">—</td>
+                <td th:text="${v.ttvVaccine != null} ? (${v.ttvVaccine} ? #{common.yes} : #{common.no}) : '—'">—</td>
                 <td>
                     <a th:if="${record.status != 'CLOTURE'}"
                        th:href="@{/maternity/{id}/visits/{vid}/edit(id=${record.id},vid=${v.id})}"
-                       class="btn btn-ghost btn-sm">Modifier</a>
+                       class="btn btn-ghost btn-sm" th:text="#{common.edit}">Modifier</a>
                 </td>
             </tr>
             </tbody>
@@ -107,37 +110,40 @@
 <!-- Accouchement -->
 <div id="tab-delivery" class="tab-content panel" style="display:none">
     <div th:if="${record.deliveryDate == null}" class="empty-state">
-        Aucun accouchement enregistré.
+        <span th:text="#{maternity.delivery.empty_record}">Aucun accouchement enregistré.</span>
         <a th:if="${record.status == 'EN_COURS'}" th:href="@{/maternity/{id}/delivery(id=${record.id})}"
-           class="btn btn-primary btn-sm" style="margin-left:8px;">Enregistrer l'accouchement</a>
+           class="btn btn-primary btn-sm" style="margin-left:8px;" th:text="#{maternity.record.record_delivery}">Enregistrer l'accouchement</a>
     </div>
     <div th:unless="${record.deliveryDate == null}" class="form-grid-2 panel-body">
-        <div><span class="detail-label">Date d'accouchement</span>
+        <div><span class="detail-label" th:text="#{maternity.delivery.date}">Date d'accouchement</span>
              <span th:text="${#temporals.format(record.deliveryDate,'dd/MM/yyyy')}">—</span></div>
-        <div><span class="detail-label">Type</span> <span th:text="${record.deliveryType ?: '—'}">—</span></div>
-        <div><span class="detail-label">Issue</span> <span th:text="${record.deliveryOutcome ?: '—'}">—</span></div>
-        <div style="grid-column:1 / -1;"><span class="detail-label">Complications</span>
-             <span th:text="${record.complications ?: 'Aucune'}">—</span></div>
+        <div><span class="detail-label" th:text="#{common.type}">Type</span>
+             <span th:text="${record.deliveryType != null} ? #{${'deliverytype.' + record.deliveryType}} : '—'">—</span></div>
+        <div><span class="detail-label" th:text="#{maternity.delivery.outcome}">Issue</span>
+             <span th:text="${record.deliveryOutcome != null} ? #{${'deliveryoutcome.' + record.deliveryOutcome}} : '—'">—</span></div>
+        <div style="grid-column:1 / -1;"><span class="detail-label" th:text="#{maternity.delivery.complications}">Complications</span>
+             <span th:text="${record.complications ?: #messages.msg('maternity.delivery.none_complications')}">—</span></div>
     </div>
 </div>
 
 <!-- Nouveau-né -->
 <div id="tab-newborn" class="tab-content panel" style="display:none">
-    <div th:if="${record.deliveryDate == null}" class="empty-state">Données disponibles après l'accouchement.</div>
+    <div th:if="${record.deliveryDate == null}" class="empty-state" th:text="#{maternity.newborn.empty}">Données disponibles après l'accouchement.</div>
     <div th:unless="${record.deliveryDate == null}" class="form-grid-2 panel-body">
-        <div><span class="detail-label">Sexe</span> <span th:text="${record.newbornGender ?: '—'}">—</span></div>
-        <div><span class="detail-label">Poids de naissance</span>
+        <div><span class="detail-label" th:text="#{maternity.newborn.gender}">Sexe</span>
+             <span th:text="${record.newbornGender != null} ? #{${'gender.' + record.newbornGender}} : '—'">—</span></div>
+        <div><span class="detail-label" th:text="#{maternity.newborn.weight}">Poids de naissance</span>
              <span th:text="${record.newbornWeightG != null ? record.newbornWeightG + ' g' : '—'}">—</span></div>
-        <div><span class="detail-label">Apgar à 1 min</span>
+        <div><span class="detail-label" th:text="#{maternity.newborn.apgar1}">Apgar à 1 min</span>
              <span th:text="${record.newbornApgar1 != null ? record.newbornApgar1 + '/10' : '—'}">—</span></div>
-        <div><span class="detail-label">Apgar à 5 min</span>
+        <div><span class="detail-label" th:text="#{maternity.newborn.apgar5}">Apgar à 5 min</span>
              <span th:text="${record.newbornApgar5 != null ? record.newbornApgar5 + '/10' : '—'}">—</span></div>
     </div>
 </div>
 
 <!-- Le fil d'Ariane couvre le retour au module ; on garde le lien latéral vers le dossier patient (cf. lot Consultations). -->
 <div th:if="${record.patientId != null}" class="mt-16">
-    <a th:href="@{/patients/{id}(id=${record.patientId})}" class="btn btn-ghost">Dossier patient</a>
+    <a th:href="@{/patients/{id}(id=${record.patientId})}" class="btn btn-ghost" th:text="#{maternity.record.patient_file}">Dossier patient</a>
 </div>
 
 <!-- Onglets : logique mutualisée dans js/ui.js (deep-link #hash + ARIA). -->
