@@ -152,6 +152,33 @@ class PageRenderSmokeTest {
         mvc.perform(get("/billing/queue")).andExpect(status().isOk());
     }
 
+    /** i18n slice 4 (docs/I18N-PLAN.md) : le module Facturation porte des clés #{} (tableau de
+     *  bord, liste, détail, encaissement) — statuts dynamiques #{${'status.' + …}} + modes de
+     *  paiement #{paymethod.*} — et bascule en anglais via ?lang=en. */
+    @Test
+    @WithUserDetails(value = "caissier", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void billing_i18n_fr_puis_en() throws Exception {
+        mvc.perform(get("/billing"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Caisse du jour")));
+        mvc.perform(get("/billing").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Collected today")))
+                .andExpect(content().string(containsString("Invoices by status")));
+        // liste : bouton « + Nouvelle facture » traduit
+        mvc.perform(get("/billing/invoices").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("+ New invoice")));
+        // détail : reste à charge patient + statut dynamique traduit
+        mvc.perform(get("/billing/invoices/1").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Patient out-of-pocket")));
+        // encaissement : libellé de mode de paiement (#{paymethod.*}) traduit
+        mvc.perform(get("/billing/invoices/1/pay").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Payment method")));
+    }
+
     /** Détail facture : liste les paiements → exerce les libellés conviviaux
      *  ({@code @paymentMethods.label}), donc valide la résolution du bean en EL. */
     @Test

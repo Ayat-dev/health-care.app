@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Caisse — File d’attente', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{billing.queue.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
@@ -7,16 +7,17 @@
 
 <div class="panel" data-worklist-topic="/topic/billing/queue">
     <div class="panel-header">
-        <span>File d'attente caisse <small th:text="'(' + ${invoices.size()} + ')'">(0)</small></span>
+        <span><span th:text="#{billing.queue.heading}">File d'attente caisse</span> <small th:text="'(' + ${invoices.size()} + ')'">(0)</small></span>
         <div style="display:flex; gap:.5rem;">
-            <a th:href="@{/billing/invoices}" class="btn btn-ghost btn-sm">Toutes les factures</a>
-            <a th:href="@{/billing/dashboard}" class="btn btn-ghost btn-sm">Tableau de bord</a>
-            <a th:href="@{/billing/invoices/new}" class="btn btn-ghost btn-sm">+ Facture manuelle</a>
+            <a th:href="@{/billing/invoices}" class="btn btn-ghost btn-sm" th:text="#{billing.queue.all_invoices}">Toutes les factures</a>
+            <a th:href="@{/billing/dashboard}" class="btn btn-ghost btn-sm" th:text="#{billing.queue.dashboard}">Tableau de bord</a>
+            <a th:href="@{/billing/invoices/new}" class="btn btn-ghost btn-sm" th:text="#{billing.queue.new_manual}">+ Facture manuelle</a>
         </div>
     </div>
 
     <div class="search-bar" style="align-items:center;">
         <input type="text" id="patientFilter" class="form-control" autofocus
+               th:placeholder="#{billing.queue.search_placeholder}"
                placeholder="Rechercher un patient (nom ou n° dossier)…" style="max-width:380px;"/>
     </div>
 
@@ -24,19 +25,19 @@
         <table class="table">
             <thead>
             <tr>
-                <th>N°</th>
-                <th>Patient</th>
-                <th>Date</th>
-                <th style="text-align:right;">À régler</th>
-                <th style="text-align:right;">Payé</th>
-                <th style="text-align:right;">Reste à payer</th>
-                <th>Statut</th>
-                <th>Actions</th>
+                <th th:text="#{billing.col.number}">N°</th>
+                <th th:text="#{billing.col.patient}">Patient</th>
+                <th th:text="#{common.date}">Date</th>
+                <th style="text-align:right;" th:text="#{billing.col.to_settle}">À régler</th>
+                <th style="text-align:right;" th:text="#{billing.col.paid}">Payé</th>
+                <th style="text-align:right;" th:text="#{billing.col.balance_due}">Reste à payer</th>
+                <th th:text="#{common.status}">Statut</th>
+                <th th:text="#{common.actions}">Actions</th>
             </tr>
             </thead>
             <tbody id="queueBody">
             <tr th:if="${invoices.isEmpty()}">
-                <td colspan="8" class="empty-state">Aucune facture en attente d'encaissement. 🎉</td>
+                <td colspan="8" class="empty-state" th:text="#{billing.queue.empty}">Aucune facture en attente d'encaissement. 🎉</td>
             </tr>
             <tr th:each="inv : ${invoices}"
                 th:attr="data-patient=${#strings.toLowerCase((inv.patientName ?: '') + ' ' + (inv.patientRecordNumber ?: ''))}">
@@ -52,14 +53,14 @@
                     <strong class="text-danger"
                             th:text="${#numbers.formatDecimal(inv.balanceDue,1,'WHITESPACE',0,'POINT')}">0</strong>
                 </td>
-                <td><span class="badge" th:classappend="'badge-' + ${inv.status}" th:text="${inv.status}">EN_ATTENTE</span></td>
+                <td><span class="badge" th:classappend="'badge-' + ${inv.status}" th:text="#{${'status.' + inv.status}}">EN_ATTENTE</span></td>
                 <td style="white-space:nowrap;">
-                    <a th:href="@{/billing/invoices/{id}(id=${inv.id})}" class="btn btn-ghost btn-sm">Voir</a>
-                    <a th:href="@{/billing/invoices/{id}/pay(id=${inv.id})}" class="btn btn-primary btn-sm">Encaisser</a>
+                    <a th:href="@{/billing/invoices/{id}(id=${inv.id})}" class="btn btn-ghost btn-sm" th:text="#{common.view}">Voir</a>
+                    <a th:href="@{/billing/invoices/{id}/pay(id=${inv.id})}" class="btn btn-primary btn-sm" th:text="#{billing.queue.collect}">Encaisser</a>
                 </td>
             </tr>
             <tr id="noMatchRow" style="display:none;">
-                <td colspan="8" class="empty-state">Aucun patient ne correspond à la recherche.</td>
+                <td colspan="8" class="empty-state" th:text="#{billing.queue.no_match}">Aucun patient ne correspond à la recherche.</td>
             </tr>
             </tbody>
         </table>

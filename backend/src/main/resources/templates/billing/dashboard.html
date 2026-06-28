@@ -1,46 +1,46 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Facturation — Tableau de bord', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{billing.dashboard.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
 
 <!-- Caisse du jour : l'encaissement du jour en évidence (métrique n°1 du caissier). -->
-<div class="section-title">Caisse du jour</div>
+<div class="section-title" th:text="#{billing.dashboard.cash_today}">Caisse du jour</div>
 <div class="stat-card cockpit-hero">
-    <div class="stat-card-label">Encaissé aujourd'hui</div>
+    <div class="stat-card-label" th:text="#{billing.dashboard.collected_today}">Encaissé aujourd'hui</div>
     <div class="cockpit-hero-value"
          th:text="${#numbers.formatDecimal(dashboard.todayCollected,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</div>
     <div class="cockpit-hero-meta">
-        <span th:text="'Reste à recouvrer : ' + ${#numbers.formatDecimal(dashboard.totalOutstanding,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">Reste à recouvrer : 0</span>
+        <span th:text="#{billing.dashboard.outstanding_remaining(${#numbers.formatDecimal(dashboard.totalOutstanding,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency})}">Reste à recouvrer : 0</span>
     </div>
 </div>
 
 <!-- Cumul -->
-<div class="section-title" style="margin-top:8px;">Cumul</div>
+<div class="section-title" style="margin-top:8px;" th:text="#{billing.dashboard.cumulative}">Cumul</div>
 <div class="stats-grid">
     <div class="stat-card">
-        <div class="stat-card-label">Total facturé (part patient)</div>
+        <div class="stat-card-label" th:text="#{billing.dashboard.total_invoiced}">Total facturé (part patient)</div>
         <div class="stat-card-value" th:text="${#numbers.formatDecimal(dashboard.totalInvoiced,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</div>
     </div>
     <div class="stat-card">
-        <div class="stat-card-label">Total encaissé</div>
+        <div class="stat-card-label" th:text="#{billing.dashboard.total_collected}">Total encaissé</div>
         <div class="stat-card-value" th:text="${#numbers.formatDecimal(dashboard.totalCollected,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</div>
     </div>
 </div>
 
 <!-- Factures par statut -->
-<div class="section-title" style="margin-top:8px;">Factures par statut</div>
+<div class="section-title" style="margin-top:8px;" th:text="#{billing.dashboard.by_status}">Factures par statut</div>
 <div class="stats-grid">
     <div class="stat-card" th:classappend="${dashboard.pendingCount > 0} ? 'stat-card--amber'">
-        <div class="stat-card-label">En attente</div>
+        <div class="stat-card-label" th:text="#{billing.dashboard.pending}">En attente</div>
         <div class="stat-card-value" th:text="${dashboard.pendingCount}">0</div>
     </div>
     <div class="stat-card">
-        <div class="stat-card-label">Paiements partiels</div>
+        <div class="stat-card-label" th:text="#{billing.dashboard.partial}">Paiements partiels</div>
         <div class="stat-card-value" th:text="${dashboard.partialCount}">0</div>
     </div>
     <div class="stat-card">
-        <div class="stat-card-label">Factures soldées</div>
+        <div class="stat-card-label" th:text="#{billing.dashboard.paid}">Factures soldées</div>
         <div class="stat-card-value" th:text="${dashboard.paidCount}">0</div>
     </div>
 </div>
@@ -48,7 +48,7 @@
 <!-- Rapport de caisse du jour -->
 <div class="panel">
     <div class="panel-header">
-        <span th:text="'Caisse du ' + ${#temporals.format(report.day,'dd/MM/yyyy')}">Caisse du jour</span>
+        <span th:text="#{billing.dashboard.cash_of(${#temporals.format(report.day,'dd/MM/yyyy')})}">Caisse du jour</span>
         <strong th:text="${#numbers.formatDecimal(report.total,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</strong>
     </div>
 
@@ -59,11 +59,11 @@
         </div>
     </div>
 
-    <div th:if="${report.payments.isEmpty()}" class="empty-state">Aucun encaissement aujourd'hui.</div>
+    <div th:if="${report.payments.isEmpty()}" class="empty-state" th:text="#{billing.dashboard.no_payments}">Aucun encaissement aujourd'hui.</div>
     <div th:unless="${report.payments.isEmpty()}" class="table-wrap">
         <table class="table">
             <thead>
-            <tr><th>Heure</th><th>Facture</th><th>Patient</th><th>Mode</th><th>Caissier</th><th style="text-align:right;">Montant</th></tr>
+            <tr><th th:text="#{billing.col.time}">Heure</th><th th:text="#{billing.col.invoice}">Facture</th><th th:text="#{billing.col.patient}">Patient</th><th th:text="#{billing.col.method}">Mode</th><th th:text="#{billing.col.cashier}">Caissier</th><th style="text-align:right;" th:text="#{billing.col.amount}">Montant</th></tr>
             </thead>
             <tbody>
             <tr th:each="p : ${report.payments}">

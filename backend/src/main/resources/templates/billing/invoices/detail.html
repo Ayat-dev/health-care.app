@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Facture', ~{::content})}"
+<html th:replace="~{layouts/base :: layout(#{billing.detail.title}, ~{::content})}"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body><th:block th:fragment="content">
 
@@ -12,54 +12,54 @@
         <span>
             <strong th:text="${invoice.invoiceNumber}">FAC-…</strong>
             <span class="badge badge-blue" th:text="${invoice.patientRecordNumber}">PAT-…</span>
-            <span class="badge" th:classappend="'badge-' + ${invoice.status}" th:text="${invoice.status}">EN_ATTENTE</span>
+            <span class="badge" th:classappend="'badge-' + ${invoice.status}" th:text="#{${'status.' + invoice.status}}">EN_ATTENTE</span>
         </span>
         <div style="display:flex; gap:.5rem;">
             <a th:if="${invoice.status == 'EN_ATTENTE' or invoice.status == 'PARTIEL'}"
-               th:href="@{/billing/invoices/{id}/pay(id=${invoice.id})}" class="btn btn-primary btn-sm">Encaisser</a>
+               th:href="@{/billing/invoices/{id}/pay(id=${invoice.id})}" class="btn btn-primary btn-sm" th:text="#{billing.queue.collect}">Encaisser</a>
             <a th:if="${invoice.status == 'EN_ATTENTE'}"
-               th:href="@{/billing/invoices/{id}/edit(id=${invoice.id})}" class="btn btn-ghost btn-sm">Modifier</a>
+               th:href="@{/billing/invoices/{id}/edit(id=${invoice.id})}" class="btn btn-ghost btn-sm" th:text="#{common.edit}">Modifier</a>
             <a th:href="@{/billing/invoices/{id}/receipt(id=${invoice.id})}" target="_blank"
-               class="btn btn-ghost btn-sm">Imprimer le reçu</a>
+               class="btn btn-ghost btn-sm" th:text="#{billing.detail.print_receipt}">Imprimer le reçu</a>
             <th:block sec:authorize="hasRole('ADMIN')">
                 <form th:if="${invoice.status != 'PAYE' and invoice.status != 'ANNULE'}" method="post"
                       th:action="@{/billing/invoices/{id}/cancel(id=${invoice.id})}" style="display:inline;"
-                      onsubmit="this.reason.value = prompt('Motif d’annulation :','') || ''; return confirm('Annuler cette facture ?');">
+                      th:onsubmit="'this.reason.value = prompt(\'' + #{billing.detail.cancel_reason_prompt} + '\',\'\') || \'\'; return confirm(\'' + #{billing.detail.cancel_confirm} + '\');'">
                     <input type="hidden" name="reason"/>
-                    <button class="btn btn-ghost btn-sm">Annuler</button>
+                    <button class="btn btn-ghost btn-sm" th:text="#{common.cancel}">Annuler</button>
                 </form>
             </th:block>
         </div>
     </div>
     <div class="form-grid-2 panel-body">
-        <div><span class="detail-label">Patient</span> <span th:text="${invoice.patientName}">—</span></div>
-        <div><span class="detail-label">Émise le</span>
+        <div><span class="detail-label" th:text="#{billing.detail.patient}">Patient</span> <span th:text="${invoice.patientName}">—</span></div>
+        <div><span class="detail-label" th:text="#{billing.detail.issued_on}">Émise le</span>
              <span th:text="${#temporals.format(invoice.createdAt,'dd/MM/yyyy HH:mm')}">—</span></div>
-        <div><span class="detail-label">Assurance</span>
+        <div><span class="detail-label" th:text="#{billing.detail.insurance}">Assurance</span>
              <span th:if="${invoice.insuranceName != null}"
                    th:text="${invoice.insuranceName} + ' (' + ${#numbers.formatDecimal(invoice.insuranceCoveragePercent,1,0)} + '%)'">—</span>
-             <span th:unless="${invoice.insuranceName != null}">Aucune (payant comptant)</span></div>
-        <div><span class="detail-label">Échéance</span>
+             <span th:unless="${invoice.insuranceName != null}" th:text="#{billing.detail.insurance_none}">Aucune (payant comptant)</span></div>
+        <div><span class="detail-label" th:text="#{billing.detail.due_date}">Échéance</span>
              <span th:text="${invoice.dueDate != null ? #temporals.format(invoice.dueDate,'dd/MM/yyyy') : '—'}">—</span></div>
-        <div th:if="${invoice.createdByName != null}"><span class="detail-label">Créée par</span>
+        <div th:if="${invoice.createdByName != null}"><span class="detail-label" th:text="#{billing.detail.created_by}">Créée par</span>
              <span th:text="${invoice.createdByName}">—</span></div>
         <div th:if="${invoice.notes != null and !invoice.notes.isBlank()}" style="grid-column:1 / -1;">
-             <span class="detail-label">Notes</span>
+             <span class="detail-label" th:text="#{billing.detail.notes}">Notes</span>
              <span style="white-space:pre-line;" th:text="${invoice.notes}">—</span></div>
     </div>
 </div>
 
 <!-- Lignes -->
 <div class="panel mt-16">
-    <div class="panel-header"><span>Désignation</span></div>
+    <div class="panel-header"><span th:text="#{billing.detail.designation}">Désignation</span></div>
     <div class="table-wrap">
         <table class="table">
             <thead>
             <tr>
-                <th>Désignation</th>
-                <th style="text-align:right; width:80px;">Qté</th>
-                <th style="text-align:right; width:140px;">P.U.</th>
-                <th style="text-align:right; width:160px;">Total</th>
+                <th th:text="#{billing.col.designation}">Désignation</th>
+                <th style="text-align:right; width:80px;" th:text="#{billing.col.qty}">Qté</th>
+                <th style="text-align:right; width:140px;" th:text="#{billing.col.unit_price}">P.U.</th>
+                <th style="text-align:right; width:160px;" th:text="#{billing.col.total}">Total</th>
             </tr>
             </thead>
             <tbody>
@@ -72,23 +72,23 @@
             </tbody>
             <tfoot>
             <tr>
-                <td colspan="3" style="text-align:right;"><strong>Total</strong></td>
+                <td colspan="3" style="text-align:right;"><strong th:text="#{billing.col.total}">Total</strong></td>
                 <td style="text-align:right;"><strong th:text="${#numbers.formatDecimal(invoice.subtotal,1,'WHITESPACE',0,'POINT')}">0</strong></td>
             </tr>
             <tr th:if="${invoice.insuranceAmount.signum() > 0}">
-                <td colspan="3" style="text-align:right;">Part assurance</td>
+                <td colspan="3" style="text-align:right;" th:text="#{billing.detail.insurance_part}">Part assurance</td>
                 <td style="text-align:right;" th:text="'− ' + ${#numbers.formatDecimal(invoice.insuranceAmount,1,'WHITESPACE',0,'POINT')}">0</td>
             </tr>
             <tr>
-                <td colspan="3" style="text-align:right;"><strong>Reste à charge patient</strong></td>
+                <td colspan="3" style="text-align:right;"><strong th:text="#{billing.detail.patient_balance}">Reste à charge patient</strong></td>
                 <td style="text-align:right;"><strong th:text="${#numbers.formatDecimal(invoice.patientAmount,1,'WHITESPACE',0,'POINT')}">0</strong></td>
             </tr>
             <tr>
-                <td colspan="3" style="text-align:right;">Encaissé</td>
+                <td colspan="3" style="text-align:right;" th:text="#{billing.detail.collected}">Encaissé</td>
                 <td style="text-align:right;" th:text="${#numbers.formatDecimal(invoice.paidAmount,1,'WHITESPACE',0,'POINT')}">0</td>
             </tr>
             <tr>
-                <td colspan="3" style="text-align:right;"><strong>Reste à payer</strong></td>
+                <td colspan="3" style="text-align:right;"><strong th:text="#{billing.col.balance_due}">Reste à payer</strong></td>
                 <td style="text-align:right;">
                     <strong th:classappend="${invoice.balanceDue.signum() > 0} ? 'text-danger'"
                             th:text="${#numbers.formatDecimal(invoice.balanceDue,1,'WHITESPACE',0,'POINT')}">0</strong>
@@ -101,12 +101,12 @@
 
 <!-- Paiements -->
 <div class="panel mt-16">
-    <div class="panel-header"><span>Encaissements</span></div>
-    <div th:if="${invoice.payments.isEmpty()}" class="empty-state">Aucun paiement enregistré.</div>
+    <div class="panel-header"><span th:text="#{billing.detail.payments}">Encaissements</span></div>
+    <div th:if="${invoice.payments.isEmpty()}" class="empty-state" th:text="#{billing.detail.no_payments}">Aucun paiement enregistré.</div>
     <div th:unless="${invoice.payments.isEmpty()}" class="table-wrap">
         <table class="table">
             <thead>
-            <tr><th>Date</th><th>Mode</th><th>Référence</th><th>Caissier</th><th style="text-align:right;">Montant</th></tr>
+            <tr><th th:text="#{common.date}">Date</th><th th:text="#{billing.col.method}">Mode</th><th th:text="#{billing.col.reference}">Référence</th><th th:text="#{billing.col.cashier}">Caissier</th><th style="text-align:right;" th:text="#{billing.col.amount}">Montant</th></tr>
             </thead>
             <tbody>
             <tr th:each="p : ${invoice.payments}">
@@ -122,9 +122,9 @@
 </div>
 
 <div class="mt-16">
-    <a th:href="@{/billing/invoices}" class="btn btn-ghost">← Liste des factures</a>
+    <a th:href="@{/billing/invoices}" class="btn btn-ghost" th:text="#{billing.detail.back_list}">← Liste des factures</a>
     <a th:if="${invoice.patientId != null}" th:href="@{/patients/{id}(id=${invoice.patientId})}"
-       class="btn btn-ghost">Dossier patient</a>
+       class="btn btn-ghost" th:text="#{billing.detail.patient_record}">Dossier patient</a>
 </div>
 
 </th:block></body>

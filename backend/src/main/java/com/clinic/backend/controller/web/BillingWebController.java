@@ -7,6 +7,7 @@ import com.clinic.backend.clinicconfig.ClinicConfigService;
 import com.clinic.backend.dto.InvoiceDto;
 import com.clinic.backend.dto.PaymentDto;
 import com.clinic.backend.export.PdfExportService;
+import com.clinic.backend.i18n.WebI18n;
 import com.clinic.backend.insurance.InsuranceProviderService;
 import com.clinic.backend.patient.Patient;
 import com.clinic.backend.patient.PatientService;
@@ -38,6 +39,7 @@ public class BillingWebController {
     private final InsuranceProviderService insuranceProviderService;
     private final ClinicConfigService clinicConfigService;
     private final PdfExportService pdfExportService;
+    private final WebI18n i18n;
 
     // ── Tableau de bord financier ────────────────────────────────────────────────
     @GetMapping({"", "/dashboard"})
@@ -93,7 +95,7 @@ public class BillingWebController {
     public String create(@ModelAttribute InvoiceDto dto, RedirectAttributes ra, Model model) {
         try {
             Invoice created = billingService.create(dto);
-            ra.addFlashAttribute("success", "Facture " + created.getInvoiceNumber() + " créée.");
+            ra.addFlashAttribute("success", i18n.t("billing.flash.created", created.getInvoiceNumber()));
             return "redirect:/billing/invoices/" + created.getId();
         } catch (RuntimeException e) {
             model.addAttribute("invoice", dto);
@@ -116,7 +118,7 @@ public class BillingWebController {
                          RedirectAttributes ra, Model model) {
         try {
             billingService.update(id, dto);
-            ra.addFlashAttribute("success", "Facture mise à jour.");
+            ra.addFlashAttribute("success", i18n.t("billing.flash.updated"));
             return "redirect:/billing/invoices/" + id;
         } catch (RuntimeException e) {
             model.addAttribute("invoice", billingService.getDtoById(id));
@@ -140,7 +142,7 @@ public class BillingWebController {
                       RedirectAttributes ra, Model model) {
         try {
             billingService.recordPayment(id, dto);
-            ra.addFlashAttribute("success", "Paiement enregistré.");
+            ra.addFlashAttribute("success", i18n.t("billing.flash.payment_recorded"));
             return "redirect:/billing/invoices/" + id;
         } catch (RuntimeException e) {
             model.addAttribute("invoice", billingService.getDtoById(id));
@@ -157,7 +159,7 @@ public class BillingWebController {
                          RedirectAttributes ra) {
         try {
             billingService.cancel(id, reason);
-            ra.addFlashAttribute("success", "Facture annulée.");
+            ra.addFlashAttribute("success", i18n.t("billing.flash.cancelled"));
         } catch (RuntimeException e) {
             ra.addFlashAttribute("error", e.getMessage());
         }
