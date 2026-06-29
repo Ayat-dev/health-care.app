@@ -63,7 +63,7 @@
     <div th:unless="${report.payments.isEmpty()}" class="table-wrap">
         <table class="table">
             <thead>
-            <tr><th th:text="#{billing.col.time}">Heure</th><th th:text="#{billing.col.invoice}">Facture</th><th th:text="#{billing.col.patient}">Patient</th><th th:text="#{billing.col.method}">Mode</th><th th:text="#{billing.col.cashier}">Caissier</th><th style="text-align:right;" th:text="#{billing.col.amount}">Montant</th></tr>
+            <tr><th scope="col" th:text="#{billing.col.time}">Heure</th><th scope="col" th:text="#{billing.col.invoice}">Facture</th><th scope="col" th:text="#{billing.col.patient}">Patient</th><th scope="col" th:text="#{billing.col.method}">Mode</th><th scope="col" th:text="#{billing.col.cashier}">Caissier</th><th scope="col" style="text-align:right;" th:text="#{billing.col.amount}">Montant</th></tr>
             </thead>
             <tbody>
             <tr th:each="p : ${report.payments}">

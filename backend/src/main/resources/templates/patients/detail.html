@@ -178,7 +178,7 @@
     <div th:unless="${consultations == null or consultations.isEmpty()}" class="table-wrap">
         <table class="table">
             <thead>
-            <tr><th th:text="#{patients.detail.col_date}">Date</th><th th:text="#{patients.detail.col_doctor}">Médecin</th><th th:text="#{patients.detail.col_reason}">Motif</th><th th:text="#{patients.detail.col_diagnosis}">Diagnostic</th><th th:text="#{common.status}">Statut</th><th></th></tr>
+            <tr><th scope="col" th:text="#{patients.detail.col_date}">Date</th><th scope="col" th:text="#{patients.detail.col_doctor}">Médecin</th><th scope="col" th:text="#{patients.detail.col_reason}">Motif</th><th scope="col" th:text="#{patients.detail.col_diagnosis}">Diagnostic</th><th scope="col" th:text="#{common.status}">Statut</th><th scope="col"><span class="sr-only" th:text="#{common.actions}">Actions</span></th></tr>
             </thead>
             <tbody>
             <tr th:each="c : ${consultations}">
@@ -206,7 +206,7 @@
     <div th:unless="${labRequests == null or labRequests.isEmpty()}" class="table-wrap">
         <table class="table">
             <thead>
-            <tr><th th:text="#{patients.detail.col_number}">N°</th><th th:text="#{patients.detail.col_date}">Date</th><th th:text="#{patients.detail.col_tests}">Analyses</th><th th:text="#{common.status}">Statut</th><th></th></tr>
+            <tr><th scope="col" th:text="#{patients.detail.col_number}">N°</th><th scope="col" th:text="#{patients.detail.col_date}">Date</th><th scope="col" th:text="#{patients.detail.col_tests}">Analyses</th><th scope="col" th:text="#{common.status}">Statut</th><th scope="col"><span class="sr-only" th:text="#{common.actions}">Actions</span></th></tr>
             </thead>
             <tbody>
             <tr th:each="r : ${labRequests}">
@@ -238,7 +238,7 @@
     <div th:unless="${radiologyRequests == null or radiologyRequests.isEmpty()}" class="table-wrap">
         <table class="table">
             <thead>
-            <tr><th th:text="#{patients.detail.col_number}">N°</th><th th:text="#{patients.detail.col_date}">Date</th><th th:text="#{patients.detail.col_exams}">Examens</th><th th:text="#{common.status}">Statut</th><th></th></tr>
+            <tr><th scope="col" th:text="#{patients.detail.col_number}">N°</th><th scope="col" th:text="#{patients.detail.col_date}">Date</th><th scope="col" th:text="#{patients.detail.col_exams}">Examens</th><th scope="col" th:text="#{common.status}">Statut</th><th scope="col"><span class="sr-only" th:text="#{common.actions}">Actions</span></th></tr>
             </thead>
             <tbody>
             <tr th:each="r : ${radiologyRequests}">
@@ -270,7 +270,7 @@
     <div th:unless="${hospitalizations == null or hospitalizations.isEmpty()}" class="table-wrap">
         <table class="table">
             <thead>
-            <tr><th th:text="#{patients.detail.col_room}">Chambre</th><th th:text="#{patients.detail.col_admitted}">Admis le</th><th th:text="#{patients.detail.col_discharge}">Sortie</th><th th:text="#{patients.detail.col_duration}">Durée</th><th th:text="#{common.status}">Statut</th><th></th></tr>
+            <tr><th scope="col" th:text="#{patients.detail.col_room}">Chambre</th><th scope="col" th:text="#{patients.detail.col_admitted}">Admis le</th><th scope="col" th:text="#{patients.detail.col_discharge}">Sortie</th><th scope="col" th:text="#{patients.detail.col_duration}">Durée</th><th scope="col" th:text="#{common.status}">Statut</th><th scope="col"><span class="sr-only" th:text="#{common.actions}">Actions</span></th></tr>
             </thead>
             <tbody>
             <tr th:each="h : ${hospitalizations}">
@@ -327,7 +327,7 @@
     <div th:unless="${invoices == null or invoices.isEmpty()}" class="table-wrap">
         <table class="table">
             <thead>
-            <tr><th th:text="#{patients.detail.col_number}">N°</th><th th:text="#{patients.detail.col_date}">Date</th><th style="text-align:right;" th:text="#{patients.detail.col_patient_part}">Part patient</th><th style="text-align:right;" th:text="#{patients.detail.col_balance}">Reste</th><th th:text="#{common.status}">Statut</th><th></th></tr>
+            <tr><th scope="col" th:text="#{patients.detail.col_number}">N°</th><th scope="col" th:text="#{patients.detail.col_date}">Date</th><th scope="col" style="text-align:right;" th:text="#{patients.detail.col_patient_part}">Part patient</th><th scope="col" style="text-align:right;" th:text="#{patients.detail.col_balance}">Reste</th><th scope="col" th:text="#{common.status}">Statut</th><th scope="col"><span class="sr-only" th:text="#{common.actions}">Actions</span></th></tr>
             </thead>
             <tbody>
             <tr th:each="inv : ${invoices}">

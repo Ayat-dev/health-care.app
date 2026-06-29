@@ -56,10 +56,10 @@
         <table class="table">
             <thead>
             <tr>
-                <th th:text="#{billing.col.designation}">Désignation</th>
-                <th style="text-align:right; width:80px;" th:text="#{billing.col.qty}">Qté</th>
-                <th style="text-align:right; width:140px;" th:text="#{billing.col.unit_price}">P.U.</th>
-                <th style="text-align:right; width:160px;" th:text="#{billing.col.total}">Total</th>
+                <th scope="col" th:text="#{billing.col.designation}">Désignation</th>
+                <th scope="col" style="text-align:right; width:80px;" th:text="#{billing.col.qty}">Qté</th>
+                <th scope="col" style="text-align:right; width:140px;" th:text="#{billing.col.unit_price}">P.U.</th>
+                <th scope="col" style="text-align:right; width:160px;" th:text="#{billing.col.total}">Total</th>
             </tr>
             </thead>
             <tbody>
@@ -106,7 +106,7 @@
     <div th:unless="${invoice.payments.isEmpty()}" class="table-wrap">
         <table class="table">
             <thead>
-            <tr><th th:text="#{common.date}">Date</th><th th:text="#{billing.col.method}">Mode</th><th th:text="#{billing.col.reference}">Référence</th><th th:text="#{billing.col.cashier}">Caissier</th><th style="text-align:right;" th:text="#{billing.col.amount}">Montant</th></tr>
+            <tr><th scope="col" th:text="#{common.date}">Date</th><th scope="col" th:text="#{billing.col.method}">Mode</th><th scope="col" th:text="#{billing.col.reference}">Référence</th><th scope="col" th:text="#{billing.col.cashier}">Caissier</th><th scope="col" style="text-align:right;" th:text="#{billing.col.amount}">Montant</th></tr>
             </thead>
             <tbody>
             <tr th:each="p : ${invoice.payments}">

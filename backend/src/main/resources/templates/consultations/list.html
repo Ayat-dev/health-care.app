@@ -12,15 +12,19 @@
     </div>
 
     <form method="get" th:action="@{/consultations}" class="search-bar">
-        <input type="date" name="from" th:value="${from}" class="form-control" style="max-width:170px;"/>
+        <input type="date" name="from" th:value="${from}" class="form-control" style="max-width:170px;"
+               th:aria-label="#{common.date_from}"/>
         <span>→</span>
-        <input type="date" name="to" th:value="${to}" class="form-control" style="max-width:170px;"/>
-        <select name="doctorId" class="form-control" style="max-width:240px;">
+        <input type="date" name="to" th:value="${to}" class="form-control" style="max-width:170px;"
+               th:aria-label="#{common.date_to}"/>
+        <select name="doctorId" class="form-control" style="max-width:240px;"
+                th:aria-label="#{consultations.list.col_doctor}">
             <option value="" th:text="#{consultations.list.all_doctors}">— Tous les médecins —</option>
             <option th:each="d : ${doctors}" th:value="${d.id}" th:text="${d.fullName}"
                     th:selected="${selectedDoctorId != null and selectedDoctorId == d.id}">Dr.</option>
         </select>
-        <select name="status" class="form-control" style="max-width:170px;">
+        <select name="status" class="form-control" style="max-width:170px;"
+                th:aria-label="#{common.status}">
             <option value="" th:text="#{consultations.list.all_statuses}">— Tous statuts —</option>
             <option value="EN_COURS" th:selected="${status == 'EN_COURS'}" th:text="#{status.EN_COURS}">En cours</option>
             <option value="TERMINE" th:selected="${status == 'TERMINE'}" th:text="#{status.TERMINE}">Terminé</option>
@@ -33,13 +37,13 @@
         <table class="table">
             <thead>
             <tr>
-                <th th:text="#{common.date}">Date</th>
-                <th th:text="#{consultations.list.col_patient}">Patient</th>
-                <th th:text="#{consultations.list.col_doctor}">Médecin</th>
-                <th th:text="#{consultations.list.col_reason}">Motif</th>
-                <th th:text="#{consultations.list.col_diagnosis}">Diagnostic</th>
-                <th th:text="#{common.status}">Statut</th>
-                <th th:text="#{common.actions}">Actions</th>
+                <th scope="col" th:text="#{common.date}">Date</th>
+                <th scope="col" th:text="#{consultations.list.col_patient}">Patient</th>
+                <th scope="col" th:text="#{consultations.list.col_doctor}">Médecin</th>
+                <th scope="col" th:text="#{consultations.list.col_reason}">Motif</th>
+                <th scope="col" th:text="#{consultations.list.col_diagnosis}">Diagnostic</th>
+                <th scope="col" th:text="#{common.status}">Statut</th>
+                <th scope="col" th:text="#{common.actions}">Actions</th>
             </tr>
             </thead>
             <tbody>

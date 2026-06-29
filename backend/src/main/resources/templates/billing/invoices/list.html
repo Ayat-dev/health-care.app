@@ -12,10 +12,13 @@
     </div>
 
     <form method="get" th:action="@{/billing/invoices}" class="search-bar">
-        <input type="date" name="from" th:value="${from}" class="form-control" style="max-width:170px;"/>
+        <input type="date" name="from" th:value="${from}" class="form-control" style="max-width:170px;"
+               th:aria-label="#{common.date_from}"/>
         <span>→</span>
-        <input type="date" name="to" th:value="${to}" class="form-control" style="max-width:170px;"/>
-        <select name="status" class="form-control" style="max-width:180px;">
+        <input type="date" name="to" th:value="${to}" class="form-control" style="max-width:170px;"
+               th:aria-label="#{common.date_to}"/>
+        <select name="status" class="form-control" style="max-width:180px;"
+                th:aria-label="#{common.status}">
             <option value="" th:text="#{billing.list.all_statuses}">— Tous statuts —</option>
             <option value="EN_ATTENTE" th:selected="${status == 'EN_ATTENTE'}" th:text="#{status.EN_ATTENTE}">En attente</option>
             <option value="PARTIEL" th:selected="${status == 'PARTIEL'}" th:text="#{status.PARTIEL}">Partiel</option>
@@ -29,15 +32,15 @@
         <table class="table">
             <thead>
             <tr>
-                <th th:text="#{billing.col.number}">N°</th>
-                <th th:text="#{billing.col.patient}">Patient</th>
-                <th th:text="#{common.date}">Date</th>
-                <th style="text-align:right;" th:text="#{billing.col.total}">Total</th>
-                <th style="text-align:right;" th:text="#{billing.col.patient_part}">Part patient</th>
-                <th style="text-align:right;" th:text="#{billing.col.paid}">Payé</th>
-                <th style="text-align:right;" th:text="#{billing.col.balance}">Reste</th>
-                <th th:text="#{common.status}">Statut</th>
-                <th th:text="#{common.actions}">Actions</th>
+                <th scope="col" th:text="#{billing.col.number}">N°</th>
+                <th scope="col" th:text="#{billing.col.patient}">Patient</th>
+                <th scope="col" th:text="#{common.date}">Date</th>
+                <th scope="col" style="text-align:right;" th:text="#{billing.col.total}">Total</th>
+                <th scope="col" style="text-align:right;" th:text="#{billing.col.patient_part}">Part patient</th>
+                <th scope="col" style="text-align:right;" th:text="#{billing.col.paid}">Payé</th>
+                <th scope="col" style="text-align:right;" th:text="#{billing.col.balance}">Reste</th>
+                <th scope="col" th:text="#{common.status}">Statut</th>
+                <th scope="col" th:text="#{common.actions}">Actions</th>
             </tr>
             </thead>
             <tbody>

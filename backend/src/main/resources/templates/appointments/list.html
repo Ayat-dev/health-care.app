@@ -17,11 +17,13 @@
     <!-- Barre de navigation date + filtre médecin -->
     <form method="get" th:action="@{/appointments}" class="search-bar">
         <a th:href="@{/appointments(date=${prevDay},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm" th:text="#{appointments.list.prev_day}">← Veille</a>
-        <input type="date" name="date" th:value="${date}" class="form-control" style="max-width:180px;"/>
+        <input type="date" name="date" th:value="${date}" class="form-control" style="max-width:180px;"
+               th:aria-label="#{common.date}"/>
         <a th:href="@{/appointments(date=${nextDay},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm" th:text="#{appointments.list.next_day}">Lendemain →</a>
         <a th:href="@{/appointments(date=${today},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm" th:text="#{appointments.list.today}">Aujourd'hui</a>
 
-        <select name="doctorId" class="form-control" style="max-width:240px;" onchange="this.form.submit()">
+        <select name="doctorId" class="form-control" style="max-width:240px;" onchange="this.form.submit()"
+                th:aria-label="#{appointments.list.col_doctor}">
             <option value="" th:text="#{appointments.list.all_doctors}">— Tous les médecins —</option>
             <option th:each="d : ${doctors}" th:value="${d.id}" th:text="${d.fullName}"
                     th:selected="${selectedDoctorId != null and selectedDoctorId == d.id}">Dr.</option>
@@ -33,13 +35,13 @@
         <table class="table">
             <thead>
             <tr>
-                <th th:text="#{appointments.list.col_time}">Heure</th>
-                <th th:text="#{appointments.list.col_patient}">Patient</th>
-                <th th:text="#{appointments.list.col_doctor}">Médecin</th>
-                <th th:text="#{appointments.list.col_type}">Type</th>
-                <th th:text="#{appointments.list.col_reason}">Motif</th>
-                <th th:text="#{common.status}">Statut</th>
-                <th th:text="#{common.actions}">Actions</th>
+                <th scope="col" th:text="#{appointments.list.col_time}">Heure</th>
+                <th scope="col" th:text="#{appointments.list.col_patient}">Patient</th>
+                <th scope="col" th:text="#{appointments.list.col_doctor}">Médecin</th>
+                <th scope="col" th:text="#{appointments.list.col_type}">Type</th>
+                <th scope="col" th:text="#{appointments.list.col_reason}">Motif</th>
+                <th scope="col" th:text="#{common.status}">Statut</th>
+                <th scope="col" th:text="#{common.actions}">Actions</th>
             </tr>
             </thead>
             <tbody>

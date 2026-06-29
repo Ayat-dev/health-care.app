@@ -12,8 +12,8 @@
             <h3 class="form-section-title" th:text="#{appointments.form.section}">Rendez-vous</h3>
             <div class="form-grid-2">
                 <div class="form-group">
-                    <label class="form-label"><span th:text="#{appointments.form.patient}">Patient</span> *</label>
-                    <select name="patientId" class="form-control" required>
+                    <label class="form-label" for="patientId"><span th:text="#{appointments.form.patient}">Patient</span> *</label>
+                    <select id="patientId" name="patientId" class="form-control" required>
                         <option value="" th:text="#{appointments.form.select}">— Sélectionner —</option>
                         <option th:each="p : ${patients}" th:value="${p.id}"
                                 th:text="${p.lastName + ' ' + p.firstName + ' (' + p.recordNumber + ')'}"
@@ -21,26 +21,26 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label"><span th:text="#{appointments.form.doctor}">Médecin</span> *</label>
-                    <select name="doctorId" class="form-control" required>
+                    <label class="form-label" for="doctorId"><span th:text="#{appointments.form.doctor}">Médecin</span> *</label>
+                    <select id="doctorId" name="doctorId" class="form-control" required>
                         <option value="" th:text="#{appointments.form.select}">— Sélectionner —</option>
                         <option th:each="d : ${doctors}" th:value="${d.id}" th:text="${d.fullName}"
                                 th:selected="${appointment.doctorId == d.id}">Dr.</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label"><span th:text="#{appointments.form.start}">Début</span> *</label>
-                    <input type="datetime-local" name="startTime" class="form-control" required
+                    <label class="form-label" for="startTime"><span th:text="#{appointments.form.start}">Début</span> *</label>
+                    <input type="datetime-local" id="startTime" name="startTime" class="form-control" required
                            th:value="${appointment.startTime != null ? #temporals.format(appointment.startTime,'yyyy-MM-dd''T''HH:mm') : ''}"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label"><span th:text="#{appointments.form.end}">Fin</span> <small th:text="#{appointments.form.end_hint}">(par défaut : +30 min)</small></label>
-                    <input type="datetime-local" name="endTime" class="form-control"
+                    <label class="form-label" for="endTime"><span th:text="#{appointments.form.end}">Fin</span> <small th:text="#{appointments.form.end_hint}">(par défaut : +30 min)</small></label>
+                    <input type="datetime-local" id="endTime" name="endTime" class="form-control"
                            th:value="${appointment.endTime != null ? #temporals.format(appointment.endTime,'yyyy-MM-dd''T''HH:mm') : ''}"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" th:text="#{appointments.form.type}">Type</label>
-                    <select name="type" class="form-control">
+                    <label class="form-label" for="type" th:text="#{appointments.form.type}">Type</label>
+                    <select id="type" name="type" class="form-control">
                         <option value="" th:text="#{appointments.form.select}">— Sélectionner —</option>
                         <option value="CONSULTATION" th:selected="${appointment.type == 'CONSULTATION'}" th:text="#{apptype.CONSULTATION}">Consultation</option>
                         <option value="SUIVI" th:selected="${appointment.type == 'SUIVI'}" th:text="#{apptype.SUIVI}">Suivi</option>
@@ -49,8 +49,8 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" th:text="#{common.status}">Statut</label>
-                    <select name="status" class="form-control">
+                    <label class="form-label" for="status" th:text="#{common.status}">Statut</label>
+                    <select id="status" name="status" class="form-control">
                         <option value="PLANIFIE" th:selected="${appointment.status == 'PLANIFIE'}" th:text="#{status.PLANIFIE}">Planifié</option>
                         <option value="CONFIRME" th:selected="${appointment.status == 'CONFIRME'}" th:text="#{status.CONFIRME}">Confirmé</option>
                         <option value="EN_COURS" th:selected="${appointment.status == 'EN_COURS'}" th:text="#{status.EN_COURS}">En cours</option>
@@ -60,12 +60,12 @@
                 </div>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{appointments.form.reason}">Motif</label>
-                <input type="text" name="reason" th:value="${appointment.reason}" class="form-control"/>
+                <label class="form-label" for="reason" th:text="#{appointments.form.reason}">Motif</label>
+                <input type="text" id="reason" name="reason" th:value="${appointment.reason}" class="form-control"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{appointments.form.notes}">Notes</label>
-                <textarea name="notes" class="form-control" rows="2" th:text="${appointment.notes}"></textarea>
+                <label class="form-label" for="notes" th:text="#{appointments.form.notes}">Notes</label>
+                <textarea id="notes" name="notes" class="form-control" rows="2" th:text="${appointment.notes}"></textarea>
             </div>
         </div>
 

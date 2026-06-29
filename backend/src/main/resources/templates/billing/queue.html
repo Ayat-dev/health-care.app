@@ -18,6 +18,7 @@
     <div class="search-bar" style="align-items:center;">
         <input type="text" id="patientFilter" class="form-control" autofocus
                th:placeholder="#{billing.queue.search_placeholder}"
+               th:aria-label="#{billing.queue.search_placeholder}"
                placeholder="Rechercher un patient (nom ou n° dossier)…" style="max-width:380px;"/>
     </div>
 
@@ -25,14 +26,14 @@
         <table class="table">
             <thead>
             <tr>
-                <th th:text="#{billing.col.number}">N°</th>
-                <th th:text="#{billing.col.patient}">Patient</th>
-                <th th:text="#{common.date}">Date</th>
-                <th style="text-align:right;" th:text="#{billing.col.to_settle}">À régler</th>
-                <th style="text-align:right;" th:text="#{billing.col.paid}">Payé</th>
-                <th style="text-align:right;" th:text="#{billing.col.balance_due}">Reste à payer</th>
-                <th th:text="#{common.status}">Statut</th>
-                <th th:text="#{common.actions}">Actions</th>
+                <th scope="col" th:text="#{billing.col.number}">N°</th>
+                <th scope="col" th:text="#{billing.col.patient}">Patient</th>
+                <th scope="col" th:text="#{common.date}">Date</th>
+                <th scope="col" style="text-align:right;" th:text="#{billing.col.to_settle}">À régler</th>
+                <th scope="col" style="text-align:right;" th:text="#{billing.col.paid}">Payé</th>
+                <th scope="col" style="text-align:right;" th:text="#{billing.col.balance_due}">Reste à payer</th>
+                <th scope="col" th:text="#{common.status}">Statut</th>
+                <th scope="col" th:text="#{common.actions}">Actions</th>
             </tr>
             </thead>
             <tbody id="queueBody">

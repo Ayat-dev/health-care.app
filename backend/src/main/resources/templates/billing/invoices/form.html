@@ -15,8 +15,8 @@
 
         <div class="form-grid-2">
             <div class="form-group">
-                <label class="form-label" th:text="#{billing.form.patient}">Patient *</label>
-                <select name="patientId" class="form-control" required>
+                <label class="form-label" for="patientId" th:text="#{billing.form.patient}">Patient *</label>
+                <select id="patientId" name="patientId" class="form-control" required>
                     <option value="" th:text="#{billing.form.select}">— Sélectionner —</option>
                     <option th:each="p : ${patients}" th:value="${p.id}"
                             th:selected="${invoice.patientId == p.id}"
@@ -24,12 +24,12 @@
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{billing.form.due_date}">Échéance</label>
-                <input type="date" name="dueDate" class="form-control"
+                <label class="form-label" for="dueDate" th:text="#{billing.form.due_date}">Échéance</label>
+                <input type="date" id="dueDate" name="dueDate" class="form-control"
                        th:value="${invoice.dueDate != null ? #temporals.format(invoice.dueDate,'yyyy-MM-dd') : ''}"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{billing.form.insurance}">Assurance</label>
+                <label class="form-label" for="insuranceSelect" th:text="#{billing.form.insurance}">Assurance</label>
                 <select name="insuranceId" class="form-control" id="insuranceSelect">
                     <option value="" th:text="#{billing.form.insurance_none}">— Aucune (payant comptant) —</option>
                     <option th:each="ins : ${insurers}" th:value="${ins.id}"
@@ -39,7 +39,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{billing.form.coverage}">Taux de couverture (%)</label>
+                <label class="form-label" for="coverageInput" th:text="#{billing.form.coverage}">Taux de couverture (%)</label>
                 <input type="number" step="0.01" min="0" max="100" name="insuranceCoveragePercent"
                        id="coverageInput" class="form-control"
                        th:value="${invoice.insuranceCoveragePercent}"/>
@@ -64,6 +64,7 @@
                 <tr th:each="it,stat : ${invoice.items}">
                     <td>
                         <select class="form-control act-select" th:name="'items[' + ${stat.index} + '].actId'"
+                                th:aria-label="#{billing.form.col_act}"
                                 th:attr="onchange='fillAct(this)'">
                             <option value="" th:text="#{billing.form.act_free}">— Libre —</option>
                             <option th:each="a : ${acts}" th:value="${a.id}"
@@ -72,9 +73,9 @@
                                     th:text="${a.code} + ' — ' + ${a.name}">Acte</option>
                         </select>
                     </td>
-                    <td><input type="text" class="form-control" th:name="'items[' + ${stat.index} + '].description'" th:value="${it.description}"/></td>
-                    <td><input type="number" min="1" class="form-control" th:name="'items[' + ${stat.index} + '].quantity'" th:value="${it.quantity > 0 ? it.quantity : 1}"/></td>
-                    <td><input type="number" step="0.01" min="0" class="form-control" th:name="'items[' + ${stat.index} + '].unitPrice'" th:value="${it.unitPrice}"/></td>
+                    <td><input type="text" class="form-control" th:aria-label="#{billing.form.col_designation}" th:name="'items[' + ${stat.index} + '].description'" th:value="${it.description}"/></td>
+                    <td><input type="number" min="1" class="form-control" th:aria-label="#{billing.form.col_qty}" th:name="'items[' + ${stat.index} + '].quantity'" th:value="${it.quantity > 0 ? it.quantity : 1}"/></td>
+                    <td><input type="number" step="0.01" min="0" class="form-control" th:aria-label="#{billing.form.col_unit_price}" th:name="'items[' + ${stat.index} + '].unitPrice'" th:value="${it.unitPrice}"/></td>
                 </tr>
                 </tbody>
             </table>
@@ -82,8 +83,8 @@
         <button type="button" class="btn btn-ghost btn-sm" onclick="addInvRow()" th:text="#{billing.form.add_row}">+ Ajouter une ligne</button>
 
         <div class="form-group" style="margin-top:12px;">
-            <label class="form-label" th:text="#{billing.form.notes}">Notes</label>
-            <textarea name="notes" class="form-control" rows="2" th:text="${invoice.notes}"></textarea>
+            <label class="form-label" for="notes" th:text="#{billing.form.notes}">Notes</label>
+            <textarea id="notes" name="notes" class="form-control" rows="2" th:text="${invoice.notes}"></textarea>
         </div>
 
         <div class="form-actions">
@@ -98,6 +99,10 @@
 let invIndex = /*[[${invoice.items.size()}]]*/ 1;
 const acts = /*[[${acts}]]*/ [];
 const ACT_FREE = /*[[#{billing.form.act_free}]]*/ '— Libre —';
+const LBL_ACT  = /*[[#{billing.form.col_act}]]*/ 'Acte';
+const LBL_DESC = /*[[#{billing.form.col_designation}]]*/ 'Désignation';
+const LBL_QTY  = /*[[#{billing.form.col_qty}]]*/ 'Qté';
+const LBL_PU   = /*[[#{billing.form.col_unit_price}]]*/ 'Prix unitaire';
 
 function actOptions() {
     let html = '<option value="">' + ACT_FREE + '</option>';
@@ -123,10 +128,10 @@ function addInvRow() {
     const i = invIndex++;
     const tr = document.createElement('tr');
     tr.innerHTML =
-        '<td><select class="form-control act-select" name="items[' + i + '].actId" onchange="fillAct(this)">' + actOptions() + '</select></td>' +
-        '<td><input type="text" class="form-control" name="items[' + i + '].description"></td>' +
-        '<td><input type="number" min="1" class="form-control" name="items[' + i + '].quantity" value="1"></td>' +
-        '<td><input type="number" step="0.01" min="0" class="form-control" name="items[' + i + '].unitPrice"></td>';
+        '<td><select class="form-control act-select" aria-label="' + LBL_ACT + '" name="items[' + i + '].actId" onchange="fillAct(this)">' + actOptions() + '</select></td>' +
+        '<td><input type="text" class="form-control" aria-label="' + LBL_DESC + '" name="items[' + i + '].description"></td>' +
+        '<td><input type="number" min="1" class="form-control" aria-label="' + LBL_QTY + '" name="items[' + i + '].quantity" value="1"></td>' +
+        '<td><input type="number" step="0.01" min="0" class="form-control" aria-label="' + LBL_PU + '" name="items[' + i + '].unitPrice"></td>';
     body.appendChild(tr);
 }
 

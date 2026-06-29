@@ -12,6 +12,7 @@
     <form method="get" th:action="@{/patients}" class="search-bar">
         <input type="text" name="q" th:value="${q}"
                th:placeholder="#{patients.list.search_placeholder}"
+               th:aria-label="#{patients.list.search_placeholder}"
                class="form-control" style="max-width:400px;"/>
         <button type="submit" class="btn btn-primary btn-sm" th:text="#{common.search}">Rechercher</button>
         <a th:if="${q != ''}" th:href="@{/patients}" class="btn btn-ghost btn-sm" th:text="#{patients.list.clear}">✕ Effacer</a>
@@ -22,12 +23,12 @@
         <table class="table">
             <thead>
             <tr>
-                <th th:text="#{patients.list.col_record}">N° Dossier</th>
-                <th th:text="#{patients.list.col_name}">Nom complet</th>
-                <th th:text="#{patients.list.col_phone}">Téléphone</th>
-                <th th:text="#{patients.list.col_birthdate}">Date naissance</th>
-                <th th:text="#{patients.list.col_doctor}">Médecin référent</th>
-                <th th:text="#{common.actions}">Actions</th>
+                <th scope="col" th:text="#{patients.list.col_record}">N° Dossier</th>
+                <th scope="col" th:text="#{patients.list.col_name}">Nom complet</th>
+                <th scope="col" th:text="#{patients.list.col_phone}">Téléphone</th>
+                <th scope="col" th:text="#{patients.list.col_birthdate}">Date naissance</th>
+                <th scope="col" th:text="#{patients.list.col_doctor}">Médecin référent</th>
+                <th scope="col" th:text="#{common.actions}">Actions</th>
             </tr>
             </thead>
             <tbody>

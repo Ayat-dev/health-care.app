@@ -44,7 +44,7 @@
 |---|---|---|---|---|
 | A | Multi-tenant — finitions | 4 | 4 | ✅ terminé |
 | B | PWA — finitions | 4 | 0 | 🔲 à démarrer |
-| C | Accessibilité (A11y) — finitions | 3 | 0 | 🔲 à démarrer |
+| C | Accessibilité (A11y) — finitions | 3 | 1 | 🔄 en cours |
 | D | Divers (durcissement/polish) | 8 | 0 | 🔲 à démarrer |
 | Z | (Tier 2) Grosses features parquées | — | — | 📦 listées, hors périmètre finitions |
 
@@ -145,12 +145,18 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 > État : socle fait dans le chrome partagé + `app.css` (focus-visible, skip-link, ARIA repères,
 > contrastes corrigés). Ne reste que l'**audit fin par template** (~75 vues) + l'outillage.
 
-- [ ] **C1 — Audit a11y des templates à fort trafic (lot 1).**
-  Passer en revue : `patients/{list,detail,form}`, `appointments/{list,week,form}`,
-  `consultations/{list,form,detail}`, `billing/**`. Corriger : `<label for>` (champs orphelins),
-  `aria-label` sur **boutons icône-seule**, `<th scope="col|row">` sur les tables, ordre de
-  tabulation des formulaires complexes, contraste des **badges colorés**. i18n des nouveaux libellés.
-  *Acceptation* : ces vues passent une revue manuelle clavier + labels ; pas de régression test.
+- [x] **C1 — Audit a11y des templates à fort trafic (lot 1). ✅ FAIT 2026-06-29.**
+  `<label for>`+`id` posés sur **tous** les champs des 5 formulaires (patients/form, appointments/form,
+  consultations/form ~25 champs, billing/invoices/{form,pay}) — convention `for`/`id` alignée sur `login.html`.
+  Lignes dynamiques de facturation (`items[i]`) : `aria-label` par colonne sur les rangées Thymeleaf **et**
+  celles créées en JS (`addInvRow`, constantes i18n `LBL_*`). `<th scope="col">` sur **toutes** les tables
+  (listes + dossier patient ×6 + détails + grilles) ; colonne « Actions » vide → `<th scope="col"><span class="sr-only">`;
+  grille semaine : cellule heure passée en `<th scope="row">`. `aria-label` sur tous les filtres non étiquetés
+  (recherche patients, date/médecin/statut des barres de filtre, recherche caisse). 2 clés i18n neuves
+  `common.date_from`/`common.date_to` ×3 langues. Contraste badges vérifié OK (texte foncé sur fond clair, ≥4.5:1).
+  +2 tests `A11yTest` (label/for sur `/patients/new`, `scope="col"` sur `/patients`). Pattern ARIA tablist du
+  dossier patient laissé tel quel (déjà `role=tab`/`aria-selected`, JS-géré — pas de régression).
+  *Vérifié* : `mvnd test` → **196 verts, 0 skip** (PostgreSQL Testcontainers inclus).
 
 - [ ] **C2 — Audit a11y des templates restants (lot 2).**
   Idem C1 sur le reste : pharmacie, labo, imagerie, hospitalisation, maternité, rapports, admin,
@@ -264,6 +270,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-06-29 | **C1 — audit a11y lot 1 (labels/scope/aria)** | `for`/`id` sur tous les champs des 5 formulaires (patients/appointments/consultations/billing form+pay) ; `aria-label` par colonne sur lignes de facturation dynamiques (Thymeleaf + JS) ; `<th scope="col">` sur toutes les tables (+ `sr-only` pour colonne Actions vide, `<th scope="row">` heure grille semaine) ; `aria-label` sur les filtres non étiquetés. 2 clés i18n `common.date_from/to` ×3. +2 tests `A11yTest`. Contraste badges OK (déjà ≥4.5:1). **196 verts, 0 skip.** |
 | 2026-06-29 | **A4 — SUPER_ADMIN prod + comptes inter-cliniques → chantier A TERMINÉ** | `ProdDataInitializer` : bootstrap SUPER_ADMIN (clinic_id NULL) via `CLINIC_SUPERADMIN_*` et/ou admin clinique via `CLINIC_ADMIN_*` (au moins un, sinon /setup). `UserService.createForClinic(clinicId,dto)` (clinic_id explicite, rôle ADMIN forcé) + endpoints `GET/POST /admin/clinics/{id}/admin` + template `admin-form.html` + lien liste + 3 clés i18n ×3 + flash `#{${success}}`. `.env.example` MAJ. +3 tests (service createForClinic + 2 gating SUPER_ADMIN/ADMIN). **194 verts, 0 skip.** Bootstrap prod non testable en H2 (revue). |
 | 2026-06-29 | **A3 — seed catalogues + config PLATEAU** | `DataInitializer` (runAs clinic2) : 2 départements/2 actes/2 analyses + `ClinicConfig` « Cabinet du Plateau ». Pas d'imagerie (preuve d'isolation gardée). Injections `Department/ActCatalog/ClinicConfigRepository` + helpers. `MultiTenancy.catalogues_*` réécrit (isolation par id) ; **A1 rendu indépendant du seed** (code neuf `A1_REUSE`, l'ancien réutilisait MED_GEN désormais présent côté PLATEAU → collision). **191 verts, 0 skip.** |
 | 2026-06-29 | **A2 — enqueueInAppToRole par clinique** | `NotificationService.enqueueInAppToRole` filtre les destinataires sur `TenantContext.currentClinicId()` (+ requête `UserRepository.findByRoleAndClinicIdAndDeletedAtIsNullOrderByFullNameAsc`) ; null tenant → skip (fail-closed). Fin des lignes orphelines inter-cliniques. +1 test `MultiTenancyTest` (delta notifs PLATEAU == médecins de PLATEAU, pas le total). **191 verts, 0 skip.** NB : PLATEAU a déjà des users seedés (`admin.plateau`/`dr.kone`), reste catalogues+config (A3). |

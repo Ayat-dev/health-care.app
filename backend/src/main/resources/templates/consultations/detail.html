@@ -85,11 +85,11 @@
                · <span th:text="#{consultations.prescription.validity(${prescription.validityDays})}">—</span></p>
             <table class="table" style="margin-top:8px;">
                 <thead><tr>
-                    <th th:text="#{consultations.prescription.col_drug}">Médicament</th>
-                    <th th:text="#{consultations.prescription.col_dosage}">Posologie</th>
-                    <th th:text="#{consultations.prescription.col_frequency}">Fréquence</th>
-                    <th th:text="#{consultations.prescription.col_duration}">Durée</th>
-                    <th th:text="#{consultations.prescription.col_qty}">Qté</th>
+                    <th scope="col" th:text="#{consultations.prescription.col_drug}">Médicament</th>
+                    <th scope="col" th:text="#{consultations.prescription.col_dosage}">Posologie</th>
+                    <th scope="col" th:text="#{consultations.prescription.col_frequency}">Fréquence</th>
+                    <th scope="col" th:text="#{consultations.prescription.col_duration}">Durée</th>
+                    <th scope="col" th:text="#{consultations.prescription.col_qty}">Qté</th>
                 </tr></thead>
                 <tbody>
                 <tr th:each="it : ${prescription.items}">

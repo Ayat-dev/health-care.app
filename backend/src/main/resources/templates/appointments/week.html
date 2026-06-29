@@ -16,7 +16,8 @@
         <a th:href="@{/appointments/week(date=${prevWeek},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm" th:text="#{appointments.week.prev_week}">← Semaine préc.</a>
         <a th:href="@{/appointments/week(date=${nextWeek},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm" th:text="#{appointments.week.next_week}">Semaine suiv. →</a>
         <a th:href="@{/appointments/week(date=${today},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm" th:text="#{appointments.week.this_week}">Cette semaine</a>
-        <select name="doctorId" class="form-control" style="max-width:240px;" onchange="this.form.submit()">
+        <select name="doctorId" class="form-control" style="max-width:240px;" onchange="this.form.submit()"
+                th:aria-label="#{appointments.list.col_doctor}">
             <option value="" th:text="#{appointments.list.all_doctors}">— Tous les médecins —</option>
             <option th:each="d : ${doctors}" th:value="${d.id}" th:text="${d.fullName}"
                     th:selected="${selectedDoctorId != null and selectedDoctorId == d.id}">Dr.</option>
@@ -38,8 +39,8 @@
         <table class="table week-grid">
             <thead>
             <tr>
-                <th style="width:64px;" th:text="#{appointments.list.col_time}">Heure</th>
-                <th th:each="day : ${days}"
+                <th scope="col" style="width:64px;" th:text="#{appointments.list.col_time}">Heure</th>
+                <th scope="col" th:each="day : ${days}"
                     th:classappend="${day == today} ? 'week-today'">
                     <div th:text="${#temporals.format(day,'EEE')}">Lun</div>
                     <small th:text="${#temporals.format(day,'dd/MM')}">01/01</small>
@@ -48,7 +49,7 @@
             </thead>
             <tbody>
             <tr th:each="slot : ${slots}">
-                <td class="week-hour" th:text="${#temporals.format(slot,'HH:mm')}">08:00</td>
+                <th scope="row" class="week-hour" th:text="${#temporals.format(slot,'HH:mm')}">08:00</th>
                 <td th:each="day : ${days}" class="week-cell"
                     th:with="cell=${cellMap.get(day.toString() + '_' + slot.toString())}">
                     <th:block th:if="${cell != null}">

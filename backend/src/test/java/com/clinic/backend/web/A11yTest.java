@@ -53,4 +53,26 @@ class A11yTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("role=\"alert\"")));
     }
+
+    // ── C1 : audit a11y des vues à fort trafic (labels, scope) ──────────────
+
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void formulaire_patient_associe_label_et_champ() throws Exception {
+        // 1.3.1 / 3.3.2 — chaque champ a un <label for> relié à son id.
+        mvc.perform(get("/patients/new"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("for=\"firstName\"")))
+                .andExpect(content().string(containsString("id=\"firstName\"")))
+                .andExpect(content().string(containsString("for=\"lastName\"")));
+    }
+
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void tableau_patients_porte_scope_col() throws Exception {
+        // 1.3.1 — en-têtes de colonne explicitement portés (scope="col").
+        mvc.perform(get("/patients"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("scope=\"col\"")));
+    }
 }
