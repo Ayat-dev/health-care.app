@@ -80,6 +80,30 @@ public class UserService {
         return saved;
     }
 
+    /**
+     * Provisionne le premier ADMIN d'une clinique (flux SUPER_ADMIN, multi-tenant P4.2).
+     * Contrairement à {@link #create(UserDto)} (qui rattache à la clinique du créateur), la
+     * clinique est passée explicitement — le SUPER_ADMIN n'a pas de clinique courante. Rôle forcé ADMIN.
+     */
+    public User createForClinic(Long clinicId, UserDto dto) {
+        if (clinicId == null)
+            throw new IllegalArgumentException("La clinique est obligatoire.");
+        String username = dto.getUsername() == null ? "" : dto.getUsername().trim();
+        if (username.isEmpty())
+            throw new IllegalArgumentException("Le nom d'utilisateur est obligatoire.");
+        if (userRepository.existsByUsername(username))
+            throw new IllegalArgumentException("Ce nom d'utilisateur existe déjà : " + username);
+        validatePassword(dto.getPassword());
+
+        User u = new User(username, passwordEncoder.encode(dto.getPassword()),
+                dto.getFullName(), Role.ADMIN.name());
+        u.setActive(true);
+        u.setClinicId(clinicId);
+        User saved = userRepository.save(u);
+        log.info("Admin de clinique provisionné : {} (clinique {})", saved.getUsername(), clinicId);
+        return saved;
+    }
+
     // ── Modification ──────────────────────────────────────────────────────────
     public User update(Long id, UserDto dto) {
         User u = getById(id);

@@ -23,6 +23,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class SecurityMatrixTest {
 
     @Autowired MockMvc mvc;
+    @Autowired com.clinic.backend.tenant.ClinicRepository clinicRepository;
+
+    private Long centraleId() {
+        return clinicRepository.findByCodeIgnoreCase("CENTRALE").orElseThrow().getId();
+    }
 
     // ── Non authentifié ──────────────────────────────────────────────────────
 
@@ -178,6 +183,23 @@ class SecurityMatrixTest {
     @WithMockUser(username = "admin", roles = "ADMIN")
     void admin_clinique_refuse_sur_registre_des_cliniques() throws Exception {
         mvc.perform(get("/admin/clinics")).andExpect(status().isForbidden());
+    }
+
+    // ── A4 : provisionnement de l'admin d'une clinique (SUPER_ADMIN uniquement) ──
+
+    @Test
+    @WithMockUser(username = "root", roles = "SUPER_ADMIN")
+    void super_admin_voit_le_formulaire_de_provision_admin() throws Exception {
+        mvc.perform(get("/admin/clinics/" + centraleId() + "/admin"))
+           .andExpect(status().isOk())
+           .andExpect(content().string(containsString("name=\"username\"")));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void admin_clinique_refuse_sur_provision_admin() throws Exception {
+        mvc.perform(get("/admin/clinics/" + centraleId() + "/admin"))
+           .andExpect(status().isForbidden());
     }
 
     // ── La page de login reste publique ──────────────────────────────────────

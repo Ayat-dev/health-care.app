@@ -3,6 +3,7 @@
 <body><th:block th:fragment="content">
 
 <div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+<div th:if="${success}" class="alert alert-info" th:text="#{${success}}">OK</div>
 
 <div class="panel">
     <div class="panel-header">
@@ -39,6 +40,7 @@
                 <td th:text="${c.createdAt != null ? #temporals.format(c.createdAt,'dd/MM/yyyy') : '—'}">—</td>
                 <td>
                     <a th:href="@{/admin/clinics/{id}/edit(id=${c.id})}" class="btn btn-ghost btn-sm" th:text="#{common.edit}">Modifier</a>
+                    <a th:href="@{/admin/clinics/{id}/admin(id=${c.id})}" class="btn btn-ghost btn-sm" th:text="#{admin.clinics.create_admin}">+ Admin</a>
                     <form th:action="@{/admin/clinics/{id}/toggle(id=${c.id})}" method="post" style="display:inline">
                         <button type="submit" class="btn btn-ghost btn-sm"
                                 th:text="${c.active} ? #{common.deactivate} : #{common.activate}">Désactiver</button>

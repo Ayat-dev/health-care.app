@@ -42,7 +42,7 @@
 
 | # | Chantier | Slices | Faits | Statut |
 |---|---|---|---|---|
-| A | Multi-tenant — finitions | 4 | 3 | 🔵 en cours (A1, A2, A3 ✓) |
+| A | Multi-tenant — finitions | 4 | 4 | ✅ terminé |
 | B | PWA — finitions | 4 | 0 | 🔲 à démarrer |
 | C | Accessibilité (A11y) — finitions | 3 | 0 | 🔲 à démarrer |
 | D | Divers (durcissement/polish) | 8 | 0 | 🔲 à démarrer |
@@ -88,12 +88,20 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
   créé dans les 2 cliniques au lieu de réutiliser un code seedé qui collisionnait avec MED_GEN).
   *Vérifié* : `mvnd clean test` → **191 verts, 0 skip**.
 
-- [ ] **A4 — Provisionnement SUPER_ADMIN en prod + comptes inter-cliniques.**
-  En prod, `ProdDataInitializer` crée une clinique « PRINCIPALE » + un admin **de clinique** mais
-  **aucun SUPER_ADMIN** (transverse). Ajouter le bootstrap d'un SUPER_ADMIN via env
-  (`CLINIC_SUPERADMIN_USERNAME/PASSWORD`, fail-safe si absent → pas créé) + permettre au
-  SUPER_ADMIN de créer des cliniques et des comptes rattachés depuis `/admin/clinics`/`/admin/users`.
-  *Acceptation* : prod avec env SUPER_ADMIN → compte transverse créé ; peut créer une 2ᵉ clinique + son admin.
+- [x] **A4 — Provisionnement SUPER_ADMIN en prod + comptes inter-cliniques. ✅ FAIT 2026-06-29.**
+  `ProdDataInitializer` restructuré : bootstrap d'un **SUPER_ADMIN transverse** (clinic_id NULL) via
+  `CLINIC_SUPERADMIN_USERNAME/PASSWORD` **et/ou** l'admin de clinique via `CLINIC_ADMIN_*` — au moins
+  l'un des deux requis, sinon `/setup` prend le relais. `.env.example` documente les 2 blocs.
+  **Comptes inter-cliniques** : le SUPER_ADMIN peut créer une clinique (déjà possible) **+ son premier
+  admin** via `GET/POST /admin/clinics/{id}/admin` (`UserService.createForClinic(clinicId, dto)` — pose
+  le `clinic_id` explicitement, rôle forcé ADMIN ; contrairement à `create()` qui lie au tenant courant,
+  null pour le SUPER_ADMIN). Template `admin/clinics/admin-form.html` + lien « + Admin » dans la liste
+  + 3 clés i18n ×3 langues + flash succès (clé dynamique `#{${success}}`).
+  Tests : `MultiTenancy.superadmin_provisionne_l_admin_d_une_clinique_cible` (clinicId/role corrects) +
+  2 `SecurityMatrixTest` (SUPER_ADMIN voit le form / ADMIN → 403). *Vérifié* : `mvnd clean test` → **194 verts, 0 skip**.
+  *NB* : le bootstrap prod (profil `prod` + PG) n'est pas testable en H2 (même contrainte que P1.1) — vérifié par revue + le flux de provisionnement l'est sous le profil `test`.
+
+> **✅ Chantier A (multi-tenant) TERMINÉ** — A1→A4 faits. Plus aucune fuite ; 2ᵉ clinique démo utilisable ; SUPER_ADMIN provisionnable en prod + flux de création clinique→admin.
 
 > **Parqué (A — ne pas faire sauf demande)** : numérotation **par clinique** (uniques composites
 > `(clinic_id, numéro)` — aujourd'hui volontairement globale/monotone, OK) ; quotas/branding par tenant.
@@ -256,6 +264,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-06-29 | **A4 — SUPER_ADMIN prod + comptes inter-cliniques → chantier A TERMINÉ** | `ProdDataInitializer` : bootstrap SUPER_ADMIN (clinic_id NULL) via `CLINIC_SUPERADMIN_*` et/ou admin clinique via `CLINIC_ADMIN_*` (au moins un, sinon /setup). `UserService.createForClinic(clinicId,dto)` (clinic_id explicite, rôle ADMIN forcé) + endpoints `GET/POST /admin/clinics/{id}/admin` + template `admin-form.html` + lien liste + 3 clés i18n ×3 + flash `#{${success}}`. `.env.example` MAJ. +3 tests (service createForClinic + 2 gating SUPER_ADMIN/ADMIN). **194 verts, 0 skip.** Bootstrap prod non testable en H2 (revue). |
 | 2026-06-29 | **A3 — seed catalogues + config PLATEAU** | `DataInitializer` (runAs clinic2) : 2 départements/2 actes/2 analyses + `ClinicConfig` « Cabinet du Plateau ». Pas d'imagerie (preuve d'isolation gardée). Injections `Department/ActCatalog/ClinicConfigRepository` + helpers. `MultiTenancy.catalogues_*` réécrit (isolation par id) ; **A1 rendu indépendant du seed** (code neuf `A1_REUSE`, l'ancien réutilisait MED_GEN désormais présent côté PLATEAU → collision). **191 verts, 0 skip.** |
 | 2026-06-29 | **A2 — enqueueInAppToRole par clinique** | `NotificationService.enqueueInAppToRole` filtre les destinataires sur `TenantContext.currentClinicId()` (+ requête `UserRepository.findByRoleAndClinicIdAndDeletedAtIsNullOrderByFullNameAsc`) ; null tenant → skip (fail-closed). Fin des lignes orphelines inter-cliniques. +1 test `MultiTenancyTest` (delta notifs PLATEAU == médecins de PLATEAU, pas le total). **191 verts, 0 skip.** NB : PLATEAU a déjà des users seedés (`admin.plateau`/`dr.kone`), reste catalogues+config (A3). |
 | 2026-06-29 | **A1 — Testcontainers PostgreSQL** | `PostgresMigrationTenancyTest` (postgres:16, `@DynamicPropertySource`, skip-sans-Docker) → 3 verts sur **vrai PG** (Flyway ≥V30, isolation tenant, UNIQUE composite). Deps `testcontainers:{postgresql,junit-jupiter}`. **Compte fiable `mvnd clean test` = 190 verts, 0 skip** (le « 189 » de la création était gonflé par 2 rapports surefire périmés `ActuatorMonitoringTest`/`PgValidationManualTest`, purgés par `clean`). Clôt P1.5 étape 4. **Gotcha Docker/Windows** documenté en « Notes d'environnement » (2 fichiers `~/.testcontainers.properties` + `~/.docker-java.properties`). |

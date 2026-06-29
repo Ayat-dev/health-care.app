@@ -46,6 +46,7 @@ class MultiTenancyTest {
     @Autowired NotificationRepository notificationRepository;
     @Autowired NotificationService notificationService;
     @Autowired com.clinic.backend.repository.UserRepository userRepository;
+    @Autowired com.clinic.backend.service.UserService userService;
     @Autowired AuditLogRepository auditLogRepository;
     @Autowired RadiologyRequestRepository radiologyRequestRepository;
     @Autowired RoomRepository roomRepository;
@@ -176,6 +177,21 @@ class MultiTenancyTest {
         assertThat(deltaC2)
                 .as("seuls les médecins de la clinique courante sont notifiés (pas tous les médecins)")
                 .isEqualTo(medecinsC2);
+    }
+
+    @Test
+    void superadmin_provisionne_l_admin_d_une_clinique_cible() {
+        // Contexte SUPER_ADMIN : aucune clinique courante. createForClinic rattache explicitement.
+        TenantContext.clear();
+        com.clinic.backend.dto.UserDto dto = new com.clinic.backend.dto.UserDto();
+        dto.setUsername("admin.test.a4");
+        dto.setFullName("Admin A4");
+        dto.setPassword("password1");
+        userService.createForClinic(clinic2(), dto);
+
+        com.clinic.backend.model.User created = userRepository.findByUsername("admin.test.a4").orElseThrow();
+        assertThat(created.getClinicId()).isEqualTo(clinic2());
+        assertThat(created.getRole()).isEqualTo("ADMIN");
     }
 
     @Test

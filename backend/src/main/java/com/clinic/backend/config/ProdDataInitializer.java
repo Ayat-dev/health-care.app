@@ -45,6 +45,14 @@ public class ProdDataInitializer {
     @Value("${clinic.name:Clinique principale}")
     private String clinicName;
 
+    // SUPER_ADMIN transverse (multi-tenant P4.2) — gère le registre des cliniques (/admin/clinics).
+    // Optionnel : si fourni, on l'amorce ; il pourra ensuite créer les cliniques + leurs admins depuis l'UI.
+    @Value("${clinic.superadmin.username:}")
+    private String superAdminUsername;
+
+    @Value("${clinic.superadmin.password:}")
+    private String superAdminPassword;
+
     @Bean
     CommandLineRunner initProdAdmin(UserRepository userRepository,
                                     ClinicRepository clinicRepository,
@@ -53,29 +61,46 @@ public class ProdDataInitializer {
             if (userRepository.count() > 0) {
                 return; // base déjà initialisée
             }
-            if (adminUsername.isBlank() || adminPassword.isBlank()) {
-                log.error("Aucun utilisateur en base et CLINIC_ADMIN_USERNAME / "
-                        + "CLINIC_ADMIN_PASSWORD non définis. Définissez ces variables "
-                        + "d'environnement pour créer le compte administrateur initial, "
-                        + "puis redémarrez l'application.");
+            boolean hasClinicAdmin = !adminUsername.isBlank() && !adminPassword.isBlank();
+            boolean hasSuperAdmin = !superAdminUsername.isBlank() && !superAdminPassword.isBlank();
+
+            if (!hasClinicAdmin && !hasSuperAdmin) {
+                log.error("Aucun utilisateur en base et aucun compte initial défini. Définissez "
+                        + "CLINIC_ADMIN_USERNAME/CLINIC_ADMIN_PASSWORD (admin de clinique) et/ou "
+                        + "CLINIC_SUPERADMIN_USERNAME/CLINIC_SUPERADMIN_PASSWORD (super-admin transverse), "
+                        + "puis redémarrez. (Sinon l'assistant web /setup prend le relais.)");
                 return;
             }
-            // Multi-tenant (P4.2) : une clinique par défaut, à laquelle l'admin est rattaché.
-            // Le provisionnement de cliniques supplémentaires / d'un SUPER_ADMIN se fait ensuite
-            // (registre /admin/clinics) — voir backlog.
-            Clinic clinic = clinicRepository.findByCodeIgnoreCase("PRINCIPALE")
-                    .orElseGet(() -> clinicRepository.save(new Clinic("PRINCIPALE", clinicName)));
 
-            User admin = new User(
-                    adminUsername,
-                    passwordEncoder.encode(adminPassword),
-                    "Administrateur",
-                    "ADMIN");
-            admin.setClinicId(clinic.getId());
-            userRepository.save(admin);
-            log.info("Compte administrateur initial créé : {} (ADMIN). "
-                    + "Pensez à changer le mot de passe après la première connexion.",
-                    adminUsername);
+            // SUPER_ADMIN : transverse → clinic_id NULL (ne pas rattacher à une clinique).
+            if (hasSuperAdmin) {
+                User superAdmin = new User(
+                        superAdminUsername,
+                        passwordEncoder.encode(superAdminPassword),
+                        "Super administrateur",
+                        "SUPER_ADMIN");
+                userRepository.save(superAdmin);
+                log.info("Compte SUPER_ADMIN initial créé : {}. Il peut créer les cliniques et leurs "
+                        + "administrateurs depuis /admin/clinics. Changez le mot de passe à la première connexion.",
+                        superAdminUsername);
+            }
+
+            // ADMIN de clinique : une clinique par défaut, à laquelle l'admin est rattaché.
+            if (hasClinicAdmin) {
+                Clinic clinic = clinicRepository.findByCodeIgnoreCase("PRINCIPALE")
+                        .orElseGet(() -> clinicRepository.save(new Clinic("PRINCIPALE", clinicName)));
+
+                User admin = new User(
+                        adminUsername,
+                        passwordEncoder.encode(adminPassword),
+                        "Administrateur",
+                        "ADMIN");
+                admin.setClinicId(clinic.getId());
+                userRepository.save(admin);
+                log.info("Compte administrateur initial créé : {} (ADMIN, clinique {}). "
+                        + "Pensez à changer le mot de passe après la première connexion.",
+                        adminUsername, clinic.getCode());
+            }
         };
     }
 }

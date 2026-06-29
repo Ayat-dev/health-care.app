@@ -1,6 +1,8 @@
 package com.clinic.backend.controller.web;
 
 import com.clinic.backend.dto.ClinicDto;
+import com.clinic.backend.dto.UserDto;
+import com.clinic.backend.service.UserService;
 import com.clinic.backend.tenant.ClinicService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,6 +22,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AdminClinicWebController {
 
     private final ClinicService clinicService;
+    private final UserService userService;
 
     @GetMapping
     public String list(Model model) {
@@ -59,6 +62,29 @@ public class AdminClinicWebController {
             dto.setId(id);
             model.addAttribute("error", e.getMessage());
             return "admin/clinics/form";
+        }
+    }
+
+    // ── Provisionnement du premier admin d'une clinique (multi-tenant P4.2) ──
+    @GetMapping("/{id}/admin")
+    public String newAdminForm(@PathVariable Long id, Model model) {
+        model.addAttribute("clinic", clinicService.toDto(clinicService.getById(id)));
+        model.addAttribute("user", new UserDto());
+        return "admin/clinics/admin-form";
+    }
+
+    @PostMapping("/{id}/admin")
+    public String createAdmin(@PathVariable Long id, @ModelAttribute("user") UserDto dto,
+                              RedirectAttributes ra, Model model) {
+        try {
+            userService.createForClinic(id, dto);
+            ra.addFlashAttribute("success", "admin.clinics.admin_created");
+            return "redirect:/admin/clinics";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("clinic", clinicService.toDto(clinicService.getById(id)));
+            model.addAttribute("user", dto);
+            model.addAttribute("error", e.getMessage());
+            return "admin/clinics/admin-form";
         }
     }
 

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(#{admin.clinics.create_admin}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="form-card">
+    <p class="form-hint" th:text="#{admin.clinics.admin_for} + ' ' + ${clinic.name}">Administrateur pour …</p>
+    <form th:action="@{/admin/clinics/{id}/admin(id=${clinic.id})}" method="post">
+
+        <div class="form-section">
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" th:text="#{admin.users.username}">Identifiant *</label>
+                    <input type="text" name="username" th:value="${user.username}" class="form-control" required/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" th:text="#{admin.users.fullname}">Nom complet</label>
+                    <input type="text" name="fullName" th:value="${user.fullName}" class="form-control"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" th:text="#{admin.users.password_new}">Mot de passe initial *</label>
+                    <input type="password" name="password" class="form-control" required/>
+                    <small class="form-hint" th:text="#{admin.users.password_hint}">Minimum 8 caractères, au moins 1 chiffre.</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a th:href="@{/admin/clinics}" class="btn btn-ghost" th:text="#{common.cancel}">Annuler</a>
+            <button type="submit" class="btn btn-primary" th:text="#{admin.clinics.create_admin}">Créer un administrateur</button>
+        </div>
+    </form>
+</div>
+
+</th:block></body>
+</html>
