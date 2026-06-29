@@ -42,7 +42,7 @@
 
 | # | Chantier | Slices | Faits | Statut |
 |---|---|---|---|---|
-| A | Multi-tenant — finitions | 4 | 1 | 🔵 en cours (A1 ✓) |
+| A | Multi-tenant — finitions | 4 | 2 | 🔵 en cours (A1, A2 ✓) |
 | B | PWA — finitions | 4 | 0 | 🔲 à démarrer |
 | C | Accessibilité (A11y) — finitions | 3 | 0 | 🔲 à démarrer |
 | D | Divers (durcissement/polish) | 8 | 0 | 🔲 à démarrer |
@@ -68,13 +68,14 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
   2 fichiers de config globaux (hôte du pipe + version d'API docker-java) sinon Testcontainers se skippe en silence.
   *Vérifié* : `mvnd clean test` → **190 verts, 0 skip** (le test a réellement tourné contre PG).
 
-- [ ] **A2 — `enqueueInAppToRole` cloisonné par clinique.**
-  `NotificationService.enqueueInAppToRole(role)` résout les destinataires sur **toutes** les
-  cliniques → crée des lignes orphelines (la notif est taguée au tenant courant, donc invisible
-  aux autres, mais on insère pour des users d'autres cliniques). Filtrer les destinataires sur
-  `clinic_id = TenantContext.currentClinicId()`. Vérifier les appelants (`StockAlertService`,
-  triggers labo/stock). +1 test d'isolation dans `MultiTenancyTest`.
-  *Acceptation* : alerte stock d'une clinique → notifs uniquement pour les users de **cette** clinique.
+- [x] **A2 — `enqueueInAppToRole` cloisonné par clinique. ✅ FAIT 2026-06-29.**
+  `NotificationService.enqueueInAppToRole` filtre désormais les destinataires sur
+  `TenantContext.currentClinicId()` (nouvelle requête `UserRepository.findByRoleAndClinicIdAndDeletedAtIsNullOrderByFullNameAsc`) ;
+  si aucune clinique résolue → skip + log (fail-closed). Plus de lignes orphelines pour les users
+  d'autres cliniques. Seul appelant = `notifyStockAlert` (via `StockAlertService`, déjà sous `runAs`).
+  +1 test `MultiTenancyTest` : sous PLATEAU, le delta de notifs == nb de médecins **de PLATEAU** (dr.kone),
+  pas le total global (dr.martin/radiologue inclus). *Vérifié* : `mvnd clean test` → **191 verts, 0 skip**.
+  *NB découvert* : PLATEAU n'est pas vide d'utilisateurs (seed `admin.plateau` + `dr.kone` MEDECIN) — il manque seulement catalogues+config (slice A3).
 
 - [ ] **A3 — Seed catalogues + config pour PLATEAU (démo utilisable).**
   La 2ᵉ clinique seedée (PLATEAU) n'a ni départements, ni actes, ni analyses, ni `clinic_config`
@@ -251,5 +252,6 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-06-29 | **A2 — enqueueInAppToRole par clinique** | `NotificationService.enqueueInAppToRole` filtre les destinataires sur `TenantContext.currentClinicId()` (+ requête `UserRepository.findByRoleAndClinicIdAndDeletedAtIsNullOrderByFullNameAsc`) ; null tenant → skip (fail-closed). Fin des lignes orphelines inter-cliniques. +1 test `MultiTenancyTest` (delta notifs PLATEAU == médecins de PLATEAU, pas le total). **191 verts, 0 skip.** NB : PLATEAU a déjà des users seedés (`admin.plateau`/`dr.kone`), reste catalogues+config (A3). |
 | 2026-06-29 | **A1 — Testcontainers PostgreSQL** | `PostgresMigrationTenancyTest` (postgres:16, `@DynamicPropertySource`, skip-sans-Docker) → 3 verts sur **vrai PG** (Flyway ≥V30, isolation tenant, UNIQUE composite). Deps `testcontainers:{postgresql,junit-jupiter}`. **Compte fiable `mvnd clean test` = 190 verts, 0 skip** (le « 189 » de la création était gonflé par 2 rapports surefire périmés `ActuatorMonitoringTest`/`PgValidationManualTest`, purgés par `clean`). Clôt P1.5 étape 4. **Gotcha Docker/Windows** documenté en « Notes d'environnement » (2 fichiers `~/.testcontainers.properties` + `~/.docker-java.properties`). |
 | 2026-06-29 | (création) | Tracker créé. Base : multi-tenant = isolation complète (V20→V30, validé PG 16.14). Note P4.2 d'`IMPROVEMENT-BACKLOG.md` constatée périmée → ce fichier = source de vérité des finitions. |

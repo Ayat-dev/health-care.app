@@ -11,6 +11,7 @@ import com.clinic.backend.hospitalization.HospitalizationRepository;
 import com.clinic.backend.hospitalization.RoomRepository;
 import com.clinic.backend.maternity.MaternityRecordRepository;
 import com.clinic.backend.notification.NotificationRepository;
+import com.clinic.backend.notification.NotificationService;
 import com.clinic.backend.patient.Patient;
 import com.clinic.backend.patient.PatientRepository;
 import com.clinic.backend.pharmacy.StockItemRepository;
@@ -43,6 +44,8 @@ class MultiTenancyTest {
     @Autowired StockItemRepository stockItemRepository;
     @Autowired MaternityRecordRepository maternityRecordRepository;
     @Autowired NotificationRepository notificationRepository;
+    @Autowired NotificationService notificationService;
+    @Autowired com.clinic.backend.repository.UserRepository userRepository;
     @Autowired AuditLogRepository auditLogRepository;
     @Autowired RadiologyRequestRepository radiologyRequestRepository;
     @Autowired RoomRepository roomRepository;
@@ -148,6 +151,25 @@ class MultiTenancyTest {
         assertThat(TenantContext.callAs(clinic2(), () -> actCatalogRepository.count())).isZero();
         assertThat(TenantContext.callAs(clinic1(), () -> radiologyExamCatalogRepository.count())).isGreaterThan(0);
         assertThat(TenantContext.callAs(clinic2(), () -> radiologyExamCatalogRepository.count())).isZero();
+    }
+
+    @Test
+    void enqueueInAppToRole_ne_cible_que_les_users_de_la_clinique_courante() {
+        // Médecins de PLATEAU (dr.kone) vs total global (dr.martin/radiologue à CENTRALE + dr.kone).
+        long medecinsC2 = userRepository.findByRoleAndClinicIdAndDeletedAtIsNullOrderByFullNameAsc("MEDECIN", clinic2()).size();
+        long medecinsGlobal = userRepository.findByRoleAndDeletedAtIsNullOrderByFullNameAsc("MEDECIN").size();
+        // Sanity : il existe des médecins dans d'autres cliniques, sinon le test ne prouve rien.
+        assertThat(medecinsC2).isGreaterThan(0);
+        assertThat(medecinsGlobal).isGreaterThan(medecinsC2);
+
+        // Sous PLATEAU → exactement les médecins de PLATEAU sont notifiés (pas le total global = pas de ligne orpheline).
+        long avantC2 = TenantContext.callAs(clinic2(), () -> notificationRepository.count());
+        TenantContext.runAs(clinic2(),
+                () -> notificationService.enqueueInAppToRole("SYSTEM", "MEDECIN", null, "Test A2", "corps"));
+        long deltaC2 = TenantContext.callAs(clinic2(), () -> notificationRepository.count()) - avantC2;
+        assertThat(deltaC2)
+                .as("seuls les médecins de la clinique courante sont notifiés (pas tous les médecins)")
+                .isEqualTo(medecinsC2);
     }
 
     @Test

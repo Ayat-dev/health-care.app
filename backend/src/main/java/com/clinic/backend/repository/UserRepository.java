@@ -15,5 +15,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findByRoleAndDeletedAtIsNullOrderByFullNameAsc(String role);
 
+    /** Comptes d'un rôle pour une clinique donnée (multi-tenant) — users n'est pas @TenantId. */
+    List<User> findByRoleAndClinicIdAndDeletedAtIsNullOrderByFullNameAsc(String role, Long clinicId);
+
     boolean existsByUsername(String username);
 }

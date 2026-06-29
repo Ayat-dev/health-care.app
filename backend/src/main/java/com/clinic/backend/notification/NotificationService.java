@@ -11,6 +11,7 @@ import com.clinic.backend.lab.LabRequest;
 import com.clinic.backend.model.User;
 import com.clinic.backend.patient.Patient;
 import com.clinic.backend.repository.UserRepository;
+import com.clinic.backend.tenant.TenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -85,9 +86,21 @@ public class NotificationService {
         }
     }
 
-    /** Enqueue one IN_APP notification to every active user holding {@code role}. */
+    /**
+     * Enqueue one IN_APP notification to every active user holding {@code role}
+     * <b>within the current clinic</b> (multi-tenant). {@code users} is not {@code @TenantId}
+     * (it's the tenant-resolution source), so we filter recipients on the resolved clinic —
+     * otherwise we'd create orphan rows for users of other clinics (the notification itself is
+     * {@code @TenantId}-stamped to the current tenant, so they'd never see it anyway).
+     * No resolved tenant → skip (fail-closed, consistent with {@link com.clinic.backend.tenant.ClinicTenantResolver}).
+     */
     public void enqueueInAppToRole(String type, String role, Patient patient, String subject, String body) {
-        for (User u : userRepository.findByRoleAndDeletedAtIsNullOrderByFullNameAsc(role)) {
+        Long clinicId = TenantContext.currentClinicId();
+        if (clinicId == null) {
+            log.warn("[Notif] {} IN_APP (rôle {}) ignorée : aucune clinique résolue", type, role);
+            return;
+        }
+        for (User u : userRepository.findByRoleAndClinicIdAndDeletedAtIsNullOrderByFullNameAsc(role, clinicId)) {
             enqueue(type, "IN_APP", u, patient, u.getUsername(), subject, body, null);
         }
     }
