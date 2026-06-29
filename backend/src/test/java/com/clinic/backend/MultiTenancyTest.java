@@ -143,14 +143,20 @@ class MultiTenancyTest {
 
     @Test
     void catalogues_cloisonnes_par_clinique() {
-        // Catalogues seedés par migration SQL (departments V3, acts V4, examens imagerie V9) → CENTRALE ;
-        // PLATEAU n'en a aucun (chaque clinique configure les siens). ICD-10 reste partagé (non testé ici).
+        // CENTRALE : catalogues seedés par migrations SQL (departments V3, acts V4, examens imagerie V9).
+        // PLATEAU : départements + actes + analyses seedés en Java (A3), MAIS pas d'imagerie (module off).
         assertThat(TenantContext.callAs(clinic1(), () -> departmentRepository.count())).isGreaterThan(0);
-        assertThat(TenantContext.callAs(clinic2(), () -> departmentRepository.count())).isZero();
+        assertThat(TenantContext.callAs(clinic2(), () -> departmentRepository.count())).isGreaterThan(0);
         assertThat(TenantContext.callAs(clinic1(), () -> actCatalogRepository.count())).isGreaterThan(0);
-        assertThat(TenantContext.callAs(clinic2(), () -> actCatalogRepository.count())).isZero();
+        assertThat(TenantContext.callAs(clinic2(), () -> actCatalogRepository.count())).isGreaterThan(0);
+        // Imagerie : seedée seulement pour CENTRALE → cloisonnement prouvé par une clinique sans, une avec.
         assertThat(TenantContext.callAs(clinic1(), () -> radiologyExamCatalogRepository.count())).isGreaterThan(0);
         assertThat(TenantContext.callAs(clinic2(), () -> radiologyExamCatalogRepository.count())).isZero();
+
+        // Isolation par id : un département de CENTRALE n'est jamais atteignable depuis PLATEAU (filtre @TenantId).
+        Long deptC1Id = TenantContext.callAs(clinic1(), () -> departmentRepository.findAll().get(0).getId());
+        assertThat(TenantContext.callAs(clinic2(), () -> departmentRepository.findById(deptC1Id))).isEmpty();
+        assertThat(TenantContext.callAs(clinic1(), () -> departmentRepository.findById(deptC1Id))).isPresent();
     }
 
     @Test

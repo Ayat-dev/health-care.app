@@ -11,8 +11,14 @@ import com.clinic.backend.billing.Invoice;
 import com.clinic.backend.billing.InvoiceItem;
 import com.clinic.backend.billing.InvoiceRepository;
 import com.clinic.backend.billing.Payment;
+import com.clinic.backend.catalog.ActCatalog;
+import com.clinic.backend.catalog.ActCatalogRepository;
 import com.clinic.backend.catalog.LabTestCatalog;
 import com.clinic.backend.catalog.LabTestCatalogRepository;
+import com.clinic.backend.clinicconfig.ClinicConfig;
+import com.clinic.backend.clinicconfig.ClinicConfigRepository;
+import com.clinic.backend.department.Department;
+import com.clinic.backend.department.DepartmentRepository;
 import com.clinic.backend.lab.LabRequest;
 import com.clinic.backend.lab.LabRequestItem;
 import com.clinic.backend.lab.LabRequestRepository;
@@ -79,6 +85,9 @@ public class DataInitializer {
                                InvoiceRepository invoiceRepository,
                                NotificationRepository notificationRepository,
                                ClinicRepository clinicRepository,
+                               DepartmentRepository departmentRepository,
+                               ActCatalogRepository actCatalogRepository,
+                               ClinicConfigRepository clinicConfigRepository,
                                PasswordEncoder passwordEncoder) {
         return args -> {
             if (userRepository.count() > 0) return;
@@ -401,8 +410,45 @@ public class DataInitializer {
                 p.setCity("Abidjan"); p.setBloodType("B+");
                 p.setAssignedDoctor(docPlateau);
                 patientRepository.save(p);
+
+                // Catalogues propres à PLATEAU (A3) — rend la 2ᵉ clinique de démo utilisable
+                // (départements/actes/analyses + config). Pas d'imagerie : module désactivé par défaut.
+                Department dgen = new Department();
+                dgen.setCode("MED_GEN"); dgen.setName("Médecine générale"); dgen.setColor("#2563eb");
+                departmentRepository.save(dgen);
+                Department dped = new Department();
+                dped.setCode("PEDIATRIE"); dped.setName("Pédiatrie"); dped.setColor("#16a34a");
+                departmentRepository.save(dped);
+
+                actCatalogRepository.save(seedAct("CONS_GEN", "Consultation générale", dgen, "5000"));
+                actCatalogRepository.save(seedAct("PANSEMENT", "Pansement simple", dgen, "2000"));
+
+                labTestCatalogRepository.save(seedLab("NFS", "Numération formule sanguine", "HEMATOLOGIE", "4000"));
+                labTestCatalogRepository.save(seedLab("GLY", "Glycémie à jeun", "BIOCHIMIE", "2500"));
+
+                // Config de PLATEAU (clinic_id explicite : appli-scoped, pas @TenantId).
+                ClinicConfig cfg = new ClinicConfig();
+                cfg.setClinicId(clinic2Id);
+                cfg.setName("Cabinet du Plateau");
+                cfg.setAddress("Plateau, Abidjan");
+                cfg.setPhone("+225 27 20 00 00");
+                clinicConfigRepository.save(cfg);
             });
         };
+    }
+
+    private ActCatalog seedAct(String code, String name, Department dept, String price) {
+        ActCatalog a = new ActCatalog();
+        a.setCode(code); a.setName(name); a.setDepartment(dept);
+        a.setPrice(new java.math.BigDecimal(price));
+        return a;
+    }
+
+    private LabTestCatalog seedLab(String code, String name, String category, String price) {
+        LabTestCatalog l = new LabTestCatalog();
+        l.setCode(code); l.setName(name); l.setCategory(category);
+        l.setPrice(new java.math.BigDecimal(price));
+        return l;
     }
 
     /** Affecte la clinique (multi-tenant P4.2) et renvoie l'entité, pour un save en une affectation. */

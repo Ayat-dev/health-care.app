@@ -42,7 +42,7 @@
 
 | # | Chantier | Slices | Faits | Statut |
 |---|---|---|---|---|
-| A | Multi-tenant — finitions | 4 | 2 | 🔵 en cours (A1, A2 ✓) |
+| A | Multi-tenant — finitions | 4 | 3 | 🔵 en cours (A1, A2, A3 ✓) |
 | B | PWA — finitions | 4 | 0 | 🔲 à démarrer |
 | C | Accessibilité (A11y) — finitions | 3 | 0 | 🔲 à démarrer |
 | D | Divers (durcissement/polish) | 8 | 0 | 🔲 à démarrer |
@@ -77,12 +77,16 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
   pas le total global (dr.martin/radiologue inclus). *Vérifié* : `mvnd clean test` → **191 verts, 0 skip**.
   *NB découvert* : PLATEAU n'est pas vide d'utilisateurs (seed `admin.plateau` + `dr.kone` MEDECIN) — il manque seulement catalogues+config (slice A3).
 
-- [ ] **A3 — Seed catalogues + config pour PLATEAU (démo utilisable).**
-  La 2ᵉ clinique seedée (PLATEAU) n'a ni départements, ni actes, ni analyses, ni `clinic_config`
-  → inutilisable en démo. Étendre `DataInitializer` (profil `!prod`) : sous
-  `TenantContext.runAs(plateauId, …)`, créer un petit jeu de départements/actes/labs + une
-  `clinic_config` PLATEAU. (Garder léger — c'est de la démo.)
-  *Acceptation* : se connecter en contexte PLATEAU → catalogues + config présents et distincts de CENTRALE.
+- [x] **A3 — Seed catalogues + config pour PLATEAU (démo utilisable). ✅ FAIT 2026-06-29.**
+  `DataInitializer` (profil `!prod`), dans le bloc `runAs(clinic2Id)` : 2 départements (MED_GEN, PEDIATRIE),
+  2 actes (CONS_GEN 5000, PANSEMENT 2000), 2 analyses (NFS, GLY) + une `ClinicConfig` PLATEAU
+  (« Cabinet du Plateau », clinic_id explicite car appli-scoped, pas `@TenantId`). Pas d'imagerie
+  (module off par défaut) → garde une preuve d'isolation (CENTRALE a des examens, PLATEAU non).
+  Injections ajoutées : `DepartmentRepository`, `ActCatalogRepository`, `ClinicConfigRepository` + helpers `seedAct`/`seedLab`.
+  Tests : `MultiTenancy.catalogues_cloisonnes_par_clinique` réécrit (les 2 cliniques ont départements+actes,
+  isolation par id) ; `PostgresMigrationTenancyTest` (A1) rendu indépendant du seed (code neuf `A1_REUSE`
+  créé dans les 2 cliniques au lieu de réutiliser un code seedé qui collisionnait avec MED_GEN).
+  *Vérifié* : `mvnd clean test` → **191 verts, 0 skip**.
 
 - [ ] **A4 — Provisionnement SUPER_ADMIN en prod + comptes inter-cliniques.**
   En prod, `ProdDataInitializer` crée une clinique « PRINCIPALE » + un admin **de clinique** mais
@@ -252,6 +256,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-06-29 | **A3 — seed catalogues + config PLATEAU** | `DataInitializer` (runAs clinic2) : 2 départements/2 actes/2 analyses + `ClinicConfig` « Cabinet du Plateau ». Pas d'imagerie (preuve d'isolation gardée). Injections `Department/ActCatalog/ClinicConfigRepository` + helpers. `MultiTenancy.catalogues_*` réécrit (isolation par id) ; **A1 rendu indépendant du seed** (code neuf `A1_REUSE`, l'ancien réutilisait MED_GEN désormais présent côté PLATEAU → collision). **191 verts, 0 skip.** |
 | 2026-06-29 | **A2 — enqueueInAppToRole par clinique** | `NotificationService.enqueueInAppToRole` filtre les destinataires sur `TenantContext.currentClinicId()` (+ requête `UserRepository.findByRoleAndClinicIdAndDeletedAtIsNullOrderByFullNameAsc`) ; null tenant → skip (fail-closed). Fin des lignes orphelines inter-cliniques. +1 test `MultiTenancyTest` (delta notifs PLATEAU == médecins de PLATEAU, pas le total). **191 verts, 0 skip.** NB : PLATEAU a déjà des users seedés (`admin.plateau`/`dr.kone`), reste catalogues+config (A3). |
 | 2026-06-29 | **A1 — Testcontainers PostgreSQL** | `PostgresMigrationTenancyTest` (postgres:16, `@DynamicPropertySource`, skip-sans-Docker) → 3 verts sur **vrai PG** (Flyway ≥V30, isolation tenant, UNIQUE composite). Deps `testcontainers:{postgresql,junit-jupiter}`. **Compte fiable `mvnd clean test` = 190 verts, 0 skip** (le « 189 » de la création était gonflé par 2 rapports surefire périmés `ActuatorMonitoringTest`/`PgValidationManualTest`, purgés par `clean`). Clôt P1.5 étape 4. **Gotcha Docker/Windows** documenté en « Notes d'environnement » (2 fichiers `~/.testcontainers.properties` + `~/.docker-java.properties`). |
 | 2026-06-29 | (création) | Tracker créé. Base : multi-tenant = isolation complète (V20→V30, validé PG 16.14). Note P4.2 d'`IMPROVEMENT-BACKLOG.md` constatée périmée → ce fichier = source de vérité des finitions. |

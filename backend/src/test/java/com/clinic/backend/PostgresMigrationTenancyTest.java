@@ -103,24 +103,24 @@ class PostgresMigrationTenancyTest {
 
     @Test
     void unique_composite_clinic_code_autorise_la_reutilisation_entre_cliniques() {
-        // CENTRALE porte des départements seedés ; on reprend le code de l'un d'eux.
-        String codeCentrale = TenantContext.callAs(clinic1(),
-                () -> departmentRepository.findAll().get(0).getCode());
-
-        // PLATEAU n'a aucun département → créer le MÊME code y est permis (UNIQUE composite (clinic_id, code)).
+        // Code neuf (absent des seeds des 2 cliniques) créé dans CHAQUE clinique : autorisé par
+        // l'UNIQUE composite (clinic_id, code). Si l'UNIQUE était global, le 2ᵉ insert échouerait.
+        String code = "A1_REUSE";
+        TenantContext.runAs(clinic1(), () -> {
+            Department d = new Department(); d.setCode(code); d.setName("CENTRALE — réutilisation");
+            departmentRepository.saveAndFlush(d);
+        });
         TenantContext.runAs(clinic2(), () -> {
-            Department d = new Department();
-            d.setCode(codeCentrale);
-            d.setName("Réutilisation de code — PLATEAU");
+            Department d = new Department(); d.setCode(code); d.setName("PLATEAU — réutilisation");
             departmentRepository.saveAndFlush(d);
         });
 
-        // Le département existe bien côté PLATEAU et reste invisible/distinct côté CENTRALE (1 seul exemplaire chacun).
-        long plateauAvecCeCode = TenantContext.callAs(clinic2(),
-                () -> departmentRepository.findAll().stream().filter(x -> codeCentrale.equals(x.getCode())).count());
-        long centraleAvecCeCode = TenantContext.callAs(clinic1(),
-                () -> departmentRepository.findAll().stream().filter(x -> codeCentrale.equals(x.getCode())).count());
-        assertThat(plateauAvecCeCode).isEqualTo(1);
-        assertThat(centraleAvecCeCode).isEqualTo(1);
+        // Chaque clinique voit exactement 1 département avec ce code (réutilisation cloisonnée).
+        assertThat(TenantContext.callAs(clinic1(),
+                () -> departmentRepository.findAll().stream().filter(x -> code.equals(x.getCode())).count()))
+                .isEqualTo(1);
+        assertThat(TenantContext.callAs(clinic2(),
+                () -> departmentRepository.findAll().stream().filter(x -> code.equals(x.getCode())).count()))
+                .isEqualTo(1);
     }
 }
