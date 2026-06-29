@@ -1,47 +1,47 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Catalogue des analyses', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{admin.labtests.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
 
 <div class="panel">
     <div class="panel-header">
-        <span>Analyses de laboratoire</span>
-        <a th:href="@{/admin/lab-tests/new}" class="btn btn-primary btn-sm">+ Nouvelle analyse</a>
+        <span th:text="#{admin.labtests.panel}">Analyses de laboratoire</span>
+        <a th:href="@{/admin/lab-tests/new}" class="btn btn-primary btn-sm" th:text="#{admin.labtests.new}">+ Nouvelle analyse</a>
     </div>
 
     <div class="table-wrap">
         <table class="table">
             <thead>
             <tr>
-                <th>Code</th>
-                <th>Nom</th>
-                <th>Catégorie</th>
-                <th class="text-right">Tarif</th>
-                <th class="text-right">Délai (h)</th>
-                <th>Statut</th>
-                <th>Actions</th>
+                <th th:text="#{common.code}">Code</th>
+                <th th:text="#{common.name}">Nom</th>
+                <th th:text="#{common.category}">Catégorie</th>
+                <th class="text-right" th:text="#{common.price}">Tarif</th>
+                <th class="text-right" th:text="#{admin.labtests.col_turnaround}">Délai (h)</th>
+                <th th:text="#{common.status}">Statut</th>
+                <th th:text="#{common.actions}">Actions</th>
             </tr>
             </thead>
             <tbody>
             <tr th:if="${tests.isEmpty()}">
-                <td colspan="7" class="empty-state">Aucune analyse.</td>
+                <td colspan="7" class="empty-state" th:text="#{admin.labtests.empty}">Aucune analyse.</td>
             </tr>
             <tr th:each="t : ${tests}">
                 <td><code th:text="${t.code}">NFS</code></td>
                 <td th:text="${t.name}">Numération Formule Sanguine</td>
-                <td th:text="${t.category != null ? t.category : '—'}">HEMATOLOGIE</td>
+                <td th:text="${t.category != null} ? #{${'labcat.' + t.category}} : #{common.none}">HEMATOLOGIE</td>
                 <td class="text-right" th:text="${#numbers.formatDecimal(t.price, 1, 'WHITESPACE', 0, 'POINT')} + ' F'">4 000 F</td>
                 <td class="text-right" th:text="${t.turnaroundHours != null ? t.turnaroundHours : '—'}">24</td>
                 <td>
-                    <span th:if="${t.active}" class="badge badge-green">Actif</span>
-                    <span th:unless="${t.active}" class="badge badge-red">Désactivé</span>
+                    <span th:if="${t.active}" class="badge badge-green" th:text="#{common.active}">Actif</span>
+                    <span th:unless="${t.active}" class="badge badge-red" th:text="#{common.inactive}">Désactivé</span>
                 </td>
                 <td>
-                    <a th:href="@{/admin/lab-tests/{id}/edit(id=${t.id})}" class="btn btn-ghost btn-sm">Modifier</a>
+                    <a th:href="@{/admin/lab-tests/{id}/edit(id=${t.id})}" class="btn btn-ghost btn-sm" th:text="#{common.edit}">Modifier</a>
                     <form th:action="@{/admin/lab-tests/{id}/toggle(id=${t.id})}" method="post" style="display:inline">
                         <button type="submit" class="btn btn-ghost btn-sm"
-                                th:text="${t.active ? 'Désactiver' : 'Activer'}">Désactiver</button>
+                                th:text="${t.active} ? #{common.deactivate} : #{common.activate}">Désactiver</button>
                     </form>
                 </td>
             </tr>

@@ -1,46 +1,46 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Journal d’audit', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{admin.audit.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div class="panel">
     <div class="panel-header">
-        <span>Journal d’audit</span>
-        <span class="badge badge-blue" th:text="${'≤ ' + maxRows + ' entrées'}">≤ 300 entrées</span>
+        <span th:text="#{admin.audit.title}">Journal d’audit</span>
+        <span class="badge badge-blue" th:text="#{admin.audit.max_rows(${maxRows})}">≤ 300 entrées</span>
     </div>
 
     <!-- Filtres -->
     <form th:action="@{/admin/audit}" method="get" class="form-grid-2" style="padding:1rem; gap:.75rem; align-items:end;">
         <div class="form-group">
-            <label class="form-label">Utilisateur</label>
-            <input type="text" name="username" class="form-control" th:value="${username}" placeholder="nom d’utilisateur"/>
+            <label class="form-label" th:text="#{admin.audit.f_user}">Utilisateur</label>
+            <input type="text" name="username" class="form-control" th:value="${username}" th:placeholder="#{admin.audit.user_ph}" placeholder="nom d’utilisateur"/>
         </div>
         <div class="form-group">
-            <label class="form-label">Type d’entité</label>
+            <label class="form-label" th:text="#{admin.audit.f_entity_type}">Type d’entité</label>
             <select name="entityType" class="form-control">
-                <option value="">— Tous —</option>
+                <option value="" th:text="#{admin.audit.all_m}">— Tous —</option>
                 <option th:each="t : ${entityTypes}" th:value="${t}" th:text="${t}"
                         th:selected="${t == entityType}">Patient</option>
             </select>
         </div>
         <div class="form-group">
-            <label class="form-label">Action</label>
+            <label class="form-label" th:text="#{admin.audit.f_action}">Action</label>
             <select name="action" class="form-control">
-                <option value="">— Toutes —</option>
+                <option value="" th:text="#{admin.audit.all_f}">— Toutes —</option>
                 <option th:each="a : ${actions}" th:value="${a}" th:text="${a}"
                         th:selected="${a == action}">CREATE</option>
             </select>
         </div>
         <div class="form-group">
-            <label class="form-label">Du</label>
+            <label class="form-label" th:text="#{admin.audit.from}">Du</label>
             <input type="date" name="from" class="form-control" th:value="${from}"/>
         </div>
         <div class="form-group">
-            <label class="form-label">Au</label>
+            <label class="form-label" th:text="#{admin.audit.to}">Au</label>
             <input type="date" name="to" class="form-control" th:value="${to}"/>
         </div>
         <div class="form-group" style="display:flex; gap:.5rem;">
-            <button type="submit" class="btn btn-primary btn-sm">Filtrer</button>
-            <a th:href="@{/admin/audit}" class="btn btn-ghost btn-sm">Réinitialiser</a>
+            <button type="submit" class="btn btn-primary btn-sm" th:text="#{common.filter}">Filtrer</button>
+            <a th:href="@{/admin/audit}" class="btn btn-ghost btn-sm" th:text="#{admin.audit.reset}">Réinitialiser</a>
         </div>
     </form>
 
@@ -48,17 +48,17 @@
         <table class="table">
             <thead>
             <tr>
-                <th>Date</th>
-                <th>Utilisateur</th>
-                <th>Action</th>
-                <th>Entité</th>
-                <th>ID</th>
-                <th>IP</th>
+                <th th:text="#{common.date}">Date</th>
+                <th th:text="#{admin.audit.col_user}">Utilisateur</th>
+                <th th:text="#{admin.audit.col_action}">Action</th>
+                <th th:text="#{admin.audit.col_entity}">Entité</th>
+                <th th:text="#{admin.audit.col_id}">ID</th>
+                <th th:text="#{admin.audit.col_ip}">IP</th>
             </tr>
             </thead>
             <tbody>
             <tr th:if="${entries.isEmpty()}">
-                <td colspan="6" class="empty-state">Aucune entrée d’audit pour ces critères.</td>
+                <td colspan="6" class="empty-state" th:text="#{admin.audit.empty}">Aucune entrée d’audit pour ces critères.</td>
             </tr>
             <tr th:each="e : ${entries}">
                 <td th:text="${#temporals.format(e.createdAt, 'yyyy-MM-dd HH:mm:ss')}">2026-06-19 10:30:00</td>

@@ -3,6 +3,7 @@ package com.clinic.backend.controller.web;
 import com.clinic.backend.clinicconfig.ClinicConfig;
 import com.clinic.backend.clinicconfig.ClinicConfigService;
 import com.clinic.backend.dto.ClinicConfigDto;
+import com.clinic.backend.i18n.WebI18n;
 import com.clinic.backend.storage.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,6 +25,7 @@ public class AdminConfigWebController {
 
     private final ClinicConfigService clinicConfigService;
     private final FileStorageService fileStorageService;
+    private final WebI18n i18n;
 
     @GetMapping
     public String view(Model model) {
@@ -45,7 +47,7 @@ public class AdminConfigWebController {
             dto.setMynitaQrUrl(storeOrKeep(mynitaQrFile, current.getMynitaQrUrl()));
 
             clinicConfigService.update(dto);
-            ra.addFlashAttribute("success", "Configuration enregistrée.");
+            ra.addFlashAttribute("success", i18n.t("admin.config.flash.saved"));
             return "redirect:/admin/config";
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());

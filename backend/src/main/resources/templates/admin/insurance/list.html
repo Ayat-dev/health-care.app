@@ -1,47 +1,47 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Assureurs', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{admin.insurance.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
 
 <div class="panel">
     <div class="panel-header">
-        <span>Assureurs &amp; mutuelles</span>
-        <a th:href="@{/admin/insurance/new}" class="btn btn-primary btn-sm">+ Nouvel assureur</a>
+        <span th:text="#{admin.insurance.panel}">Assureurs &amp; mutuelles</span>
+        <a th:href="@{/admin/insurance/new}" class="btn btn-primary btn-sm" th:text="#{admin.insurance.new}">+ Nouvel assureur</a>
     </div>
 
     <div class="table-wrap">
         <table class="table">
             <thead>
             <tr>
-                <th>Code</th>
-                <th>Nom</th>
-                <th>Type</th>
-                <th class="text-right">Prise en charge</th>
-                <th>Contact</th>
-                <th>Statut</th>
-                <th>Actions</th>
+                <th th:text="#{common.code}">Code</th>
+                <th th:text="#{common.name}">Nom</th>
+                <th th:text="#{common.type}">Type</th>
+                <th class="text-right" th:text="#{admin.insurance.col_coverage}">Prise en charge</th>
+                <th th:text="#{common.contact}">Contact</th>
+                <th th:text="#{common.status}">Statut</th>
+                <th th:text="#{common.actions}">Actions</th>
             </tr>
             </thead>
             <tbody>
             <tr th:if="${providers.isEmpty()}">
-                <td colspan="7" class="empty-state">Aucun assureur.</td>
+                <td colspan="7" class="empty-state" th:text="#{admin.insurance.empty}">Aucun assureur.</td>
             </tr>
             <tr th:each="p : ${providers}">
                 <td><code th:text="${p.code != null ? p.code : '—'}">IPM</code></td>
                 <td th:text="${p.name}">IPM</td>
-                <td th:text="${p.type != null ? p.type : '—'}">PUBLIQUE</td>
+                <td th:text="${p.type != null} ? #{${'instype.' + p.type}} : #{common.none}">PUBLIQUE</td>
                 <td class="text-right" th:text="${p.coveragePercent != null ? p.coveragePercent + ' %' : '—'}">80 %</td>
                 <td th:text="${p.contact != null ? p.contact : '—'}">—</td>
                 <td>
-                    <span th:if="${p.active}" class="badge badge-green">Actif</span>
-                    <span th:unless="${p.active}" class="badge badge-red">Désactivé</span>
+                    <span th:if="${p.active}" class="badge badge-green" th:text="#{common.active}">Actif</span>
+                    <span th:unless="${p.active}" class="badge badge-red" th:text="#{common.inactive}">Désactivé</span>
                 </td>
                 <td>
-                    <a th:href="@{/admin/insurance/{id}/edit(id=${p.id})}" class="btn btn-ghost btn-sm">Modifier</a>
+                    <a th:href="@{/admin/insurance/{id}/edit(id=${p.id})}" class="btn btn-ghost btn-sm" th:text="#{common.edit}">Modifier</a>
                     <form th:action="@{/admin/insurance/{id}/toggle(id=${p.id})}" method="post" style="display:inline">
                         <button type="submit" class="btn btn-ghost btn-sm"
-                                th:text="${p.active ? 'Désactiver' : 'Activer'}">Désactiver</button>
+                                th:text="${p.active} ? #{common.deactivate} : #{common.activate}">Désactiver</button>
                     </form>
                 </td>
             </tr>

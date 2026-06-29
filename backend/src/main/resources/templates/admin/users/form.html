@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout(${user.id == null ? 'Nouvel utilisateur' : 'Modifier utilisateur'}, ~{::content})}">
+<html th:replace="~{layouts/base :: layout(${user.id == null} ? #{admin.users.form_title_new} : #{admin.users.form_title_edit}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
@@ -9,55 +9,55 @@
           method="post">
 
         <div class="form-section">
-            <h3 class="form-section-title">Compte</h3>
+            <h3 class="form-section-title" th:text="#{admin.users.section_account}">Compte</h3>
             <div class="form-grid-2">
                 <div class="form-group">
-                    <label class="form-label">Identifiant *</label>
+                    <label class="form-label" th:text="#{admin.users.username}">Identifiant *</label>
                     <input type="text" name="username" th:value="${user.username}"
                            class="form-control" required
                            th:readonly="${user.id != null}"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Nom complet</label>
+                    <label class="form-label" th:text="#{admin.users.fullname}">Nom complet</label>
                     <input type="text" name="fullName" th:value="${user.fullName}"
                            class="form-control"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Rôle *</label>
+                    <label class="form-label" th:text="#{admin.users.role}">Rôle *</label>
                     <select name="role" class="form-control" required>
-                        <option value="">— Sélectionner —</option>
+                        <option value="" th:text="#{common.select}">— Sélectionner —</option>
                         <option th:each="r : ${roles}"
-                                th:value="${r}" th:text="${r}"
+                                th:value="${r}" th:text="#{${'role.' + r.name()}}"
                                 th:selected="${user.role == r.name()}">ROLE</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Statut</label>
+                    <label class="form-label" th:text="#{common.status}">Statut</label>
                     <select name="active" class="form-control">
-                        <option value="true"  th:selected="${user.active}">Actif</option>
-                        <option value="false" th:selected="${!user.active}">Désactivé</option>
+                        <option value="true"  th:selected="${user.active}" th:text="#{common.active}">Actif</option>
+                        <option value="false" th:selected="${!user.active}" th:text="#{common.inactive}">Désactivé</option>
                     </select>
                 </div>
             </div>
         </div>
 
         <div class="form-section">
-            <h3 class="form-section-title">Mot de passe</h3>
+            <h3 class="form-section-title" th:text="#{admin.users.section_password}">Mot de passe</h3>
             <div class="form-group">
-                <label class="form-label" th:text="${user.id == null ? 'Mot de passe initial *' : 'Nouveau mot de passe'}">Mot de passe</label>
+                <label class="form-label" th:text="${user.id == null} ? #{admin.users.password_new} : #{admin.users.password_edit}">Mot de passe</label>
                 <input type="password" name="password" class="form-control"
                        th:required="${user.id == null}"
                        autocomplete="new-password"/>
-                <small class="form-hint">Minimum 8 caractères, au moins 1 chiffre.
-                    <span th:if="${user.id != null}">Laisser vide pour conserver le mot de passe actuel.</span>
+                <small class="form-hint"><span th:text="#{admin.users.password_hint}">Minimum 8 caractères, au moins 1 chiffre.</span>
+                    <span th:if="${user.id != null}" th:text="#{admin.users.password_keep}">Laisser vide pour conserver le mot de passe actuel.</span>
                 </small>
             </div>
         </div>
 
         <div class="form-actions">
-            <a th:href="@{/admin/users}" class="btn btn-ghost">Annuler</a>
+            <a th:href="@{/admin/users}" class="btn btn-ghost" th:text="#{common.cancel}">Annuler</a>
             <button type="submit" class="btn btn-primary">
-                <span th:text="${user.id == null ? 'Créer le compte' : 'Enregistrer'}">Créer</span>
+                <span th:text="${user.id == null} ? #{admin.users.create} : #{common.save}">Créer</span>
             </button>
         </div>
     </form>

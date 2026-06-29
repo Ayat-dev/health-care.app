@@ -437,4 +437,31 @@ class PageRenderSmokeTest {
                 .andExpect(content().string(containsString("Distribution by age range")))
                 .andExpect(content().string(containsString("0-4 yrs")));
     }
+
+    /** Slice 11 — Administration : utilisateurs / config / audit traduits FR→EN
+     *  (dont le rôle en badge via clé dynamique {@code #{role.*}} et la section QR). */
+    @Test
+    @WithUserDetails(value = "admin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void admin_i18n_fr_puis_en() throws Exception {
+        // Utilisateurs : panneau FR + badge de rôle dynamique (admin → « Administrateur »)
+        mvc.perform(get("/admin/users"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Comptes utilisateurs")))
+                .andExpect(content().string(containsString("Administrateur")));
+        // Utilisateurs : bascule EN (panneau + rôle traduit)
+        mvc.perform(get("/admin/users").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("User accounts")))
+                .andExpect(content().string(containsString("Administrator")));
+        // Config : titre + section QR marchand traduits en EN
+        mvc.perform(get("/admin/config").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Clinic configuration")))
+                .andExpect(content().string(containsString("merchant QR")));
+        // Journal d'audit : en-têtes de filtre traduits en EN
+        mvc.perform(get("/admin/audit").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Audit log")))
+                .andExpect(content().string(containsString("Entity type")));
+    }
 }

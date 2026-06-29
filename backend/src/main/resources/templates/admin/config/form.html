@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Configuration de la clinique', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{admin.config.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
@@ -10,40 +10,40 @@
 
         <!-- Identité -->
         <div class="form-section">
-            <div class="form-section-title">Identité</div>
+            <div class="form-section-title" th:text="#{admin.config.section_identity}">Identité</div>
             <div class="form-grid-2">
                 <div class="form-group">
-                    <label class="form-label">Nom de la clinique *</label>
+                    <label class="form-label" th:text="#{admin.config.name}">Nom de la clinique *</label>
                     <input type="text" name="name" th:value="${config.name}" class="form-control" required/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Slogan</label>
+                    <label class="form-label" th:text="#{admin.config.slogan}">Slogan</label>
                     <input type="text" name="slogan" th:value="${config.slogan}" class="form-control"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Téléphone</label>
+                    <label class="form-label" th:text="#{common.phone}">Téléphone</label>
                     <input type="text" name="phone" th:value="${config.phone}" class="form-control"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Email</label>
+                    <label class="form-label" th:text="#{common.email}">Email</label>
                     <input type="email" name="email" th:value="${config.email}" class="form-control"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Site web</label>
+                    <label class="form-label" th:text="#{common.website}">Site web</label>
                     <input type="text" name="website" th:value="${config.website}" class="form-control"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">URL du logo</label>
+                    <label class="form-label" th:text="#{admin.config.logo_url}">URL du logo</label>
                     <input type="text" name="logoUrl" th:value="${config.logoUrl}" class="form-control"/>
                 </div>
             </div>
             <div class="form-group">
-                <label class="form-label">Adresse</label>
+                <label class="form-label" th:text="#{common.address}">Adresse</label>
                 <textarea name="address" class="form-control" rows="2" th:text="${config.address}"></textarea>
             </div>
             <div class="form-grid-3">
                 <div class="form-group">
-                    <label class="form-label">Devise</label>
+                    <label class="form-label" th:text="#{admin.config.currency}">Devise</label>
                     <select name="currency" class="form-control">
                         <option th:each="c : ${ {'XOF','MAD','DZD','EUR','USD'} }"
                                 th:value="${c}" th:text="${c}"
@@ -51,11 +51,11 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Fuseau horaire</label>
+                    <label class="form-label" th:text="#{admin.config.timezone}">Fuseau horaire</label>
                     <input type="text" name="timezone" th:value="${config.timezone}" class="form-control"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Langue par défaut</label>
+                    <label class="form-label" th:text="#{admin.config.default_language}">Langue par défaut</label>
                     <select name="defaultLanguage" class="form-control">
                         <option value="fr" th:selected="${config.defaultLanguage == 'fr'}">Français</option>
                         <option value="en" th:selected="${config.defaultLanguage == 'en'}">English</option>
@@ -66,38 +66,38 @@
 
         <!-- Modules -->
         <div class="form-section">
-            <div class="form-section-title">Modules activés</div>
+            <div class="form-section-title" th:text="#{admin.config.section_modules}">Modules activés</div>
             <div class="form-grid-3">
                 <label class="form-group" style="flex-direction:row;align-items:center;gap:8px">
-                    <input type="checkbox" name="modulePharmacy" value="true" th:checked="${config.modulePharmacy}"/> Pharmacie
+                    <input type="checkbox" name="modulePharmacy" value="true" th:checked="${config.modulePharmacy}"/> <span th:text="#{admin.config.mod_pharmacy}">Pharmacie</span>
                 </label>
                 <label class="form-group" style="flex-direction:row;align-items:center;gap:8px">
-                    <input type="checkbox" name="moduleLab" value="true" th:checked="${config.moduleLab}"/> Laboratoire
+                    <input type="checkbox" name="moduleLab" value="true" th:checked="${config.moduleLab}"/> <span th:text="#{admin.config.mod_lab}">Laboratoire</span>
                 </label>
                 <label class="form-group" style="flex-direction:row;align-items:center;gap:8px">
-                    <input type="checkbox" name="moduleMaternity" value="true" th:checked="${config.moduleMaternity}"/> Maternité
+                    <input type="checkbox" name="moduleMaternity" value="true" th:checked="${config.moduleMaternity}"/> <span th:text="#{admin.config.mod_maternity}">Maternité</span>
                 </label>
                 <label class="form-group" style="flex-direction:row;align-items:center;gap:8px">
-                    <input type="checkbox" name="moduleDental" value="true" th:checked="${config.moduleDental}"/> Dentaire
+                    <input type="checkbox" name="moduleDental" value="true" th:checked="${config.moduleDental}"/> <span th:text="#{admin.config.mod_dental}">Dentaire</span>
                 </label>
                 <label class="form-group" style="flex-direction:row;align-items:center;gap:8px">
-                    <input type="checkbox" name="moduleRadiology" value="true" th:checked="${config.moduleRadiology}"/> Radiologie
+                    <input type="checkbox" name="moduleRadiology" value="true" th:checked="${config.moduleRadiology}"/> <span th:text="#{admin.config.mod_radiology}">Radiologie</span>
                 </label>
                 <label class="form-group" style="flex-direction:row;align-items:center;gap:8px">
-                    <input type="checkbox" name="moduleHospitalization" value="true" th:checked="${config.moduleHospitalization}"/> Hospitalisation
+                    <input type="checkbox" name="moduleHospitalization" value="true" th:checked="${config.moduleHospitalization}"/> <span th:text="#{admin.config.mod_hospitalization}">Hospitalisation</span>
                 </label>
             </div>
         </div>
 
         <!-- Paiements -->
         <div class="form-section">
-            <div class="form-section-title">Paiements</div>
+            <div class="form-section-title" th:text="#{admin.config.section_payments}">Paiements</div>
             <div class="form-grid-3">
                 <label class="form-group" style="flex-direction:row;align-items:center;gap:8px">
-                    <input type="checkbox" name="mobileMoneyEnabled" value="true" th:checked="${config.mobileMoneyEnabled}"/> Mobile Money activé
+                    <input type="checkbox" name="mobileMoneyEnabled" value="true" th:checked="${config.mobileMoneyEnabled}"/> <span th:text="#{admin.config.mobile_money_enabled}">Mobile Money activé</span>
                 </label>
                 <div class="form-group">
-                    <label class="form-label">Fournisseur Mobile Money</label>
+                    <label class="form-label" th:text="#{admin.config.mobile_money_provider}">Fournisseur Mobile Money</label>
                     <select name="mobileMoneyProvider" class="form-control">
                         <option value="" th:selected="${config.mobileMoneyProvider == null}">—</option>
                         <option value="ORANGE_MONEY" th:selected="${config.mobileMoneyProvider == 'ORANGE_MONEY'}">Orange Money</option>
@@ -106,66 +106,66 @@
                     </select>
                 </div>
                 <label class="form-group" style="flex-direction:row;align-items:center;gap:8px">
-                    <input type="checkbox" name="insuranceEnabled" value="true" th:checked="${config.insuranceEnabled}"/> Assurances activées
+                    <input type="checkbox" name="insuranceEnabled" value="true" th:checked="${config.insuranceEnabled}"/> <span th:text="#{admin.config.insurance_enabled}">Assurances activées</span>
                 </label>
             </div>
         </div>
 
         <!-- Paiement mobile (QR marchand : AmanaTa / MyNITA) -->
         <div class="form-section">
-            <div class="form-section-title">Paiement mobile — QR marchand</div>
-            <p class="text-muted" style="font-size:13px; margin:0 0 12px;">
+            <div class="form-section-title" th:text="#{admin.config.qr_section}">Paiement mobile — QR marchand</div>
+            <p class="text-muted" style="font-size:13px; margin:0 0 12px;" th:text="#{admin.config.qr_help}">
                 Téléversez le QR marchand de votre compte AmanaTa / MyNITA. Il sera affiché
                 à l'encaissement pour que le patient le scanne et paie. La confirmation reste
                 manuelle (le caissier vérifie la réception puis enregistre le paiement).
             </p>
             <div class="form-grid-2">
                 <div class="form-group">
-                    <label class="form-label">QR marchand AmanaTa</label>
+                    <label class="form-label" th:text="#{admin.config.qr_amanata}">QR marchand AmanaTa</label>
                     <img th:if="${config.amanataQrUrl}" th:src="@{${config.amanataQrUrl}}" alt="QR AmanaTa"
                          style="width:120px;height:120px;object-fit:contain;border:1px solid #e2e8f0;border-radius:8px;display:block;margin-bottom:8px;"/>
                     <input type="file" name="amanataQrFile" accept="image/png,image/jpeg,image/webp" class="form-control"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Identifiant marchand AmanaTa (optionnel)</label>
+                    <label class="form-label" th:text="#{admin.config.merchant_amanata}">Identifiant marchand AmanaTa (optionnel)</label>
                     <input type="text" name="amanataMerchantId" th:value="${config.amanataMerchantId}" class="form-control"
-                           placeholder="code marchand affiché au patient"/>
+                           th:placeholder="#{admin.config.merchant_ph}" placeholder="code marchand affiché au patient"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">QR marchand MyNITA</label>
+                    <label class="form-label" th:text="#{admin.config.qr_mynita}">QR marchand MyNITA</label>
                     <img th:if="${config.mynitaQrUrl}" th:src="@{${config.mynitaQrUrl}}" alt="QR MyNITA"
                          style="width:120px;height:120px;object-fit:contain;border:1px solid #e2e8f0;border-radius:8px;display:block;margin-bottom:8px;"/>
                     <input type="file" name="mynitaQrFile" accept="image/png,image/jpeg,image/webp" class="form-control"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Identifiant marchand MyNITA (optionnel)</label>
+                    <label class="form-label" th:text="#{admin.config.merchant_mynita}">Identifiant marchand MyNITA (optionnel)</label>
                     <input type="text" name="mynitaMerchantId" th:value="${config.mynitaMerchantId}" class="form-control"
-                           placeholder="code marchand affiché au patient"/>
+                           th:placeholder="#{admin.config.merchant_ph}" placeholder="code marchand affiché au patient"/>
                 </div>
             </div>
         </div>
 
         <!-- Numérotation -->
         <div class="form-section">
-            <div class="form-section-title">Préfixes de numérotation</div>
+            <div class="form-section-title" th:text="#{admin.config.section_numbering}">Préfixes de numérotation</div>
             <div class="form-grid-3">
                 <div class="form-group">
-                    <label class="form-label">Dossiers patients</label>
+                    <label class="form-label" th:text="#{admin.config.prefix_patient}">Dossiers patients</label>
                     <input type="text" name="patientRecordPrefix" th:value="${config.patientRecordPrefix}" class="form-control"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Factures</label>
+                    <label class="form-label" th:text="#{admin.config.prefix_invoice}">Factures</label>
                     <input type="text" name="invoicePrefix" th:value="${config.invoicePrefix}" class="form-control"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Ordonnances</label>
+                    <label class="form-label" th:text="#{admin.config.prefix_prescription}">Ordonnances</label>
                     <input type="text" name="prescriptionPrefix" th:value="${config.prescriptionPrefix}" class="form-control"/>
                 </div>
             </div>
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Enregistrer la configuration</button>
+            <button type="submit" class="btn btn-primary" th:text="#{admin.config.save}">Enregistrer la configuration</button>
         </div>
     </form>
 </div>

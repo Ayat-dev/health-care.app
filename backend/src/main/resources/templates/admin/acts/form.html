@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout(${act.id == null ? 'Nouvel acte' : 'Modifier acte'}, ~{::content})}">
+<html th:replace="~{layouts/base :: layout(${act.id == null} ? #{admin.acts.form_title_new} : #{admin.acts.form_title_edit}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
@@ -10,42 +10,42 @@
 
         <div class="form-grid-2">
             <div class="form-group">
-                <label class="form-label">Code *</label>
+                <label class="form-label" th:text="#{common.code_required}">Code *</label>
                 <input type="text" name="code" th:value="${act.code}"
                        class="form-control" placeholder="CONS_GEN" required/>
             </div>
             <div class="form-group">
-                <label class="form-label">Nom *</label>
+                <label class="form-label" th:text="#{common.name_required}">Nom *</label>
                 <input type="text" name="name" th:value="${act.name}"
                        class="form-control" placeholder="Consultation médecine générale" required/>
             </div>
             <div class="form-group">
-                <label class="form-label">Département</label>
+                <label class="form-label" th:text="#{common.department}">Département</label>
                 <select name="departmentId" class="form-control">
-                    <option value="" th:selected="${act.departmentId == null}">— Aucun (clinique entière)</option>
+                    <option value="" th:selected="${act.departmentId == null}" th:text="#{admin.acts.dept_none}">— Aucun (clinique entière)</option>
                     <option th:each="d : ${departments}"
                             th:value="${d.id}" th:text="${d.name}"
                             th:selected="${act.departmentId == d.id}">Médecine générale</option>
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label">Tarif *</label>
+                <label class="form-label" th:text="#{common.price_required}">Tarif *</label>
                 <input type="number" name="price" th:value="${act.price}"
                        class="form-control" min="0" step="0.01" placeholder="5000" required/>
             </div>
             <div class="form-group">
-                <label class="form-label">Statut</label>
+                <label class="form-label" th:text="#{common.status}">Statut</label>
                 <select name="active" class="form-control">
-                    <option value="true" th:selected="${act.active}">Actif</option>
-                    <option value="false" th:selected="${!act.active}">Désactivé</option>
+                    <option value="true" th:selected="${act.active}" th:text="#{common.active}">Actif</option>
+                    <option value="false" th:selected="${!act.active}" th:text="#{common.inactive}">Désactivé</option>
                 </select>
             </div>
         </div>
 
         <div class="form-actions">
-            <a th:href="@{/admin/acts}" class="btn btn-ghost">Annuler</a>
+            <a th:href="@{/admin/acts}" class="btn btn-ghost" th:text="#{common.cancel}">Annuler</a>
             <button type="submit" class="btn btn-primary">
-                <span th:text="${act.id == null ? 'Créer l''acte' : 'Enregistrer'}">Créer</span>
+                <span th:text="${act.id == null} ? #{admin.acts.create} : #{common.save}">Créer</span>
             </button>
         </div>
     </form>

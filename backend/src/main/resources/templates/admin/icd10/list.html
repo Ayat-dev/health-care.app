@@ -1,43 +1,43 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Catalogue CIM-10', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{admin.icd10.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
 
 <div class="panel">
     <div class="panel-header">
-        <span>Diagnostics codés (CIM-10)</span>
-        <a th:href="@{/admin/icd10/new}" class="btn btn-primary btn-sm">+ Nouveau code</a>
+        <span th:text="#{admin.icd10.panel}">Diagnostics codés (CIM-10)</span>
+        <a th:href="@{/admin/icd10/new}" class="btn btn-primary btn-sm" th:text="#{admin.icd10.new}">+ Nouveau code</a>
     </div>
 
     <div class="table-wrap">
         <table class="table">
             <thead>
             <tr>
-                <th>Code</th>
-                <th>Libellé</th>
-                <th>Catégorie</th>
-                <th>Statut</th>
-                <th>Actions</th>
+                <th th:text="#{common.code}">Code</th>
+                <th th:text="#{admin.icd10.col_title}">Libellé</th>
+                <th th:text="#{common.category}">Catégorie</th>
+                <th th:text="#{common.status}">Statut</th>
+                <th th:text="#{common.actions}">Actions</th>
             </tr>
             </thead>
             <tbody>
             <tr th:if="${codes.isEmpty()}">
-                <td colspan="5" class="empty-state">Aucun code.</td>
+                <td colspan="5" class="empty-state" th:text="#{admin.icd10.empty}">Aucun code.</td>
             </tr>
             <tr th:each="c : ${codes}">
                 <td><code th:text="${c.code}">J06.9</code></td>
                 <td th:text="${c.title}">Infection aiguë des voies respiratoires supérieures</td>
                 <td th:text="${c.category != null ? c.category : '—'}">Maladies de l'appareil respiratoire</td>
                 <td>
-                    <span th:if="${c.active}" class="badge badge-green">Actif</span>
-                    <span th:unless="${c.active}" class="badge badge-red">Désactivé</span>
+                    <span th:if="${c.active}" class="badge badge-green" th:text="#{common.active}">Actif</span>
+                    <span th:unless="${c.active}" class="badge badge-red" th:text="#{common.inactive}">Désactivé</span>
                 </td>
                 <td>
-                    <a th:href="@{/admin/icd10/{id}/edit(id=${c.id})}" class="btn btn-ghost btn-sm">Modifier</a>
+                    <a th:href="@{/admin/icd10/{id}/edit(id=${c.id})}" class="btn btn-ghost btn-sm" th:text="#{common.edit}">Modifier</a>
                     <form th:action="@{/admin/icd10/{id}/toggle(id=${c.id})}" method="post" style="display:inline">
                         <button type="submit" class="btn btn-ghost btn-sm"
-                                th:text="${c.active ? 'Désactiver' : 'Activer'}">Désactiver</button>
+                                th:text="${c.active} ? #{common.deactivate} : #{common.activate}">Désactiver</button>
                     </form>
                 </td>
             </tr>

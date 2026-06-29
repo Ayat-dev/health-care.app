@@ -1,30 +1,30 @@
 <!DOCTYPE html>
-<html th:replace="~{layouts/base :: layout('Actes & Tarifs', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{admin.acts.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
 
 <div class="panel">
     <div class="panel-header">
-        <span>Catalogue des actes</span>
-        <a th:href="@{/admin/acts/new}" class="btn btn-primary btn-sm">+ Nouvel acte</a>
+        <span th:text="#{admin.acts.panel}">Catalogue des actes</span>
+        <a th:href="@{/admin/acts/new}" class="btn btn-primary btn-sm" th:text="#{admin.acts.new}">+ Nouvel acte</a>
     </div>
 
     <div class="table-wrap">
         <table class="table">
             <thead>
             <tr>
-                <th>Code</th>
-                <th>Nom</th>
-                <th>Département</th>
-                <th class="text-right">Tarif</th>
-                <th>Statut</th>
-                <th>Actions</th>
+                <th th:text="#{common.code}">Code</th>
+                <th th:text="#{common.name}">Nom</th>
+                <th th:text="#{common.department}">Département</th>
+                <th class="text-right" th:text="#{common.price}">Tarif</th>
+                <th th:text="#{common.status}">Statut</th>
+                <th th:text="#{common.actions}">Actions</th>
             </tr>
             </thead>
             <tbody>
             <tr th:if="${acts.isEmpty()}">
-                <td colspan="6" class="empty-state">Aucun acte.</td>
+                <td colspan="6" class="empty-state" th:text="#{admin.acts.empty}">Aucun acte.</td>
             </tr>
             <tr th:each="a : ${acts}">
                 <td><code th:text="${a.code}">CONS_GEN</code></td>
@@ -32,14 +32,14 @@
                 <td th:text="${a.departmentName != null ? a.departmentName : '—'}">—</td>
                 <td class="text-right" th:text="${#numbers.formatDecimal(a.price, 1, 'WHITESPACE', 0, 'POINT')} + ' F'">5 000 F</td>
                 <td>
-                    <span th:if="${a.active}" class="badge badge-green">Actif</span>
-                    <span th:unless="${a.active}" class="badge badge-red">Désactivé</span>
+                    <span th:if="${a.active}" class="badge badge-green" th:text="#{common.active}">Actif</span>
+                    <span th:unless="${a.active}" class="badge badge-red" th:text="#{common.inactive}">Désactivé</span>
                 </td>
                 <td>
-                    <a th:href="@{/admin/acts/{id}/edit(id=${a.id})}" class="btn btn-ghost btn-sm">Modifier</a>
+                    <a th:href="@{/admin/acts/{id}/edit(id=${a.id})}" class="btn btn-ghost btn-sm" th:text="#{common.edit}">Modifier</a>
                     <form th:action="@{/admin/acts/{id}/toggle(id=${a.id})}" method="post" style="display:inline">
                         <button type="submit" class="btn btn-ghost btn-sm"
-                                th:text="${a.active ? 'Désactiver' : 'Activer'}">Désactiver</button>
+                                th:text="${a.active} ? #{common.deactivate} : #{common.activate}">Désactiver</button>
                     </form>
                 </td>
             </tr>
