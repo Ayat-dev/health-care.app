@@ -42,7 +42,7 @@
 
 | # | Chantier | Slices | Faits | Statut |
 |---|---|---|---|---|
-| A | Multi-tenant — finitions | 4 | 0 | 🔲 à démarrer |
+| A | Multi-tenant — finitions | 4 | 1 | 🔵 en cours (A1 ✓) |
 | B | PWA — finitions | 4 | 0 | 🔲 à démarrer |
 | C | Accessibilité (A11y) — finitions | 3 | 0 | 🔲 à démarrer |
 | D | Divers (durcissement/polish) | 8 | 0 | 🔲 à démarrer |
@@ -57,19 +57,16 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 > État : **isolation complète**. Ne restent que 4 finitions (aucune n'est une fuite active).
 
-- [ ] **A1 — Test Testcontainers PostgreSQL permanent (CI-safe).**
-  Aujourd'hui la validation PG (V20→V30 sur PG 16.14) a été faite avec un `@SpringBootTest`
-  jetable supprimé après coup (non rejouable). Docker tournant maintenant → ajouter un **vrai
-  test Testcontainers** : dép. `org.testcontainers:postgresql` + `junit-jupiter` (scope test) ;
-  `@SpringBootTest` `@ActiveProfiles("test")` avec `@DynamicPropertySource` pointant sur un
-  conteneur `postgres:16` → vérifie (1) les **30 migrations s'appliquent** sur PG, (2) **isolation
-  tenant** (CENTRALE ≠ PLATEAU) sur PG, (3) UNIQUE composite `(clinic_id, code)` réutilisable.
-  Clôt aussi **P1.5 étape 4** (Testcontainers différé). **Piège connu** : le démon `mvnd` ne
-  propage pas l'env shell aux forks de test → passer la datasource via `@DynamicPropertySource`
-  (pas de variables d'env). Tag le test `@Tag("testcontainers")` + skip si Docker absent
-  (`@EnabledIfDockerAvailable` ou `DockerClientFactory.instance().isDockerAvailable()`) pour
-  garder `mvnd test` vert sans Docker.
-  *Acceptation* : `mvnd test` vert (test skippé si pas de Docker) ; avec Docker, migrations + isolation prouvées sur PG.
+- [x] **A1 — Test Testcontainers PostgreSQL permanent (CI-safe). ✅ FAIT 2026-06-29.**
+  `PostgresMigrationTenancyTest` (`@SpringBootTest @ActiveProfiles("test") @Testcontainers(disabledWithoutDocker=true) @Tag("testcontainers")`),
+  conteneur `postgres:16`, datasource écrasée via `@DynamicPropertySource` (précédence > profil test H2).
+  3 tests verts sur **vrai PostgreSQL** : (1) Flyway ≥ V30 appliqué + 0 pending, (2) isolation tenant
+  CENTRALE≠PLATEAU + accès-par-id cloisonné, (3) UNIQUE composite `(clinic_id, code)` réutilisable
+  (PLATEAU recrée un code de CENTRALE). Deps `org.testcontainers:{postgresql,junit-jupiter}` (BOM Spring Boot).
+  Clôt aussi **P1.5 étape 4**. `disabledWithoutDocker=true` → **skippé** (pas en échec) sans Docker → `mvnd test` reste vert.
+  ⚠️ **Voir « Notes d'environnement » (bas de page)** : sur ce poste Windows + Docker Desktop 29 il a fallu
+  2 fichiers de config globaux (hôte du pipe + version d'API docker-java) sinon Testcontainers se skippe en silence.
+  *Vérifié* : `mvnd clean test` → **190 verts, 0 skip** (le test a réellement tourné contre PG).
 
 - [ ] **A2 — `enqueueInAppToRole` cloisonné par clinique.**
   `NotificationService.enqueueInAppToRole(role)` résout les destinataires sur **toutes** les
@@ -228,8 +225,31 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 ---
 
+## 🖥️ Notes d'environnement (Testcontainers sur ce poste Windows + Docker Desktop)
+
+> Nécessaire **uniquement** pour les tests `@Tag("testcontainers")` (A1, et futurs tests PG/conteneur)
+> **sur cette machine de dev Windows**. En CI Linux (socket Unix standard), **rien de tout ça** n'est
+> requis. Si Testcontainers se **skippe en silence** (« Skipped », « Could not find a valid Docker
+> environment »), c'est l'un de ces deux points.
+
+1. **Hôte Docker** — Docker Desktop expose plusieurs pipes nommés ; le contexte actif (`desktop-linux`)
+   utilise `npipe:////./pipe/dockerDesktopLinuxEngine`, que Testcontainers ne sonde pas par défaut.
+   Fichier `C:\Users\<user>\.testcontainers.properties` :
+   `docker.host=npipe:////./pipe/dockerDesktopLinuxEngine`
+2. **Version d'API docker-java** — Docker Engine 29 impose **MinAPI 1.40** (serveur API 1.54), mais le
+   docker-java embarqué dans Testcontainers 1.21.0 négocie une version plus ancienne (≤ 1.32) → le daemon
+   répond **HTTP 400** sur `/info` → Testcontainers conclut « pas de Docker » et **skippe**. Pinner une
+   version dans [1.40–1.54] dans `C:\Users\<user>\.docker-java.properties` :
+   `api.version=1.43`
+
+   Ces deux fichiers sont **hors dépôt** (config machine). Diagnostic : relancer le test **sans** `-q`
+   (`mvnd -Dtest=PostgresMigrationTenancyTest test`) et chercher `Status 400` / `Could not find a valid Docker`.
+
+---
+
 ## Journal de progression (1 ligne par slice — remplir à chaque session)
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
-| 2026-06-29 | (création) | Tracker créé. Base vérifiée : `mvnd test` **189 verts**, multi-tenant = isolation complète (V20→V30, validé PG 16.14). Note P4.2 d'`IMPROVEMENT-BACKLOG.md` constatée périmée → ce fichier devient la source de vérité des finitions. |
+| 2026-06-29 | **A1 — Testcontainers PostgreSQL** | `PostgresMigrationTenancyTest` (postgres:16, `@DynamicPropertySource`, skip-sans-Docker) → 3 verts sur **vrai PG** (Flyway ≥V30, isolation tenant, UNIQUE composite). Deps `testcontainers:{postgresql,junit-jupiter}`. **Compte fiable `mvnd clean test` = 190 verts, 0 skip** (le « 189 » de la création était gonflé par 2 rapports surefire périmés `ActuatorMonitoringTest`/`PgValidationManualTest`, purgés par `clean`). Clôt P1.5 étape 4. **Gotcha Docker/Windows** documenté en « Notes d'environnement » (2 fichiers `~/.testcontainers.properties` + `~/.docker-java.properties`). |
+| 2026-06-29 | (création) | Tracker créé. Base : multi-tenant = isolation complète (V20→V30, validé PG 16.14). Note P4.2 d'`IMPROVEMENT-BACKLOG.md` constatée périmée → ce fichier = source de vérité des finitions. |
