@@ -24,30 +24,30 @@
             <table class="table">
                 <thead>
                 <tr>
-                    <th th:text="#{lab.result.col_test}">Analyse</th>
-                    <th style="width:160px;" th:text="#{lab.result.col_value}">Valeur</th>
-                    <th style="width:110px;" th:text="#{lab.result.col_unit}">Unité</th>
-                    <th style="width:180px;" th:text="#{lab.result.col_refrange}">Valeurs de référence</th>
-                    <th style="width:80px;" th:text="#{lab.result.col_abnormal}">Anormal</th>
-                    <th th:text="#{lab.result.col_note}">Note</th>
+                    <th scope="col" th:text="#{lab.result.col_test}">Analyse</th>
+                    <th scope="col" style="width:160px;" th:text="#{lab.result.col_value}">Valeur</th>
+                    <th scope="col" style="width:110px;" th:text="#{lab.result.col_unit}">Unité</th>
+                    <th scope="col" style="width:180px;" th:text="#{lab.result.col_refrange}">Valeurs de référence</th>
+                    <th scope="col" style="width:80px;" th:text="#{lab.result.col_abnormal}">Anormal</th>
+                    <th scope="col" th:text="#{lab.result.col_note}">Note</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr th:each="it,stat : ${request.items}">
-                    <td>
+                    <th scope="row">
                         <strong th:text="${it.testName}">NFS</strong><br/>
                         <small th:text="${it.testCode}">NFS</small>
                         <input type="hidden" th:field="*{items[__${stat.index}__].id}"/>
-                    </td>
-                    <td><input type="text" class="form-control" th:field="*{items[__${stat.index}__].resultValue}" placeholder="—"/></td>
+                    </th>
+                    <td><input type="text" class="form-control" th:field="*{items[__${stat.index}__].resultValue}" placeholder="—" th:aria-label="${it.testName} + ' — ' + #{lab.result.col_value}"/></td>
                     <td><input type="text" class="form-control" th:field="*{items[__${stat.index}__].unit}"
-                               th:placeholder="${it.unit ?: ''}"/></td>
+                               th:placeholder="${it.unit ?: ''}" th:aria-label="${it.testName} + ' — ' + #{lab.result.col_unit}"/></td>
                     <td><input type="text" class="form-control" th:field="*{items[__${stat.index}__].referenceRange}"
-                               th:placeholder="${it.catalogReferenceRange ?: ''}"/></td>
+                               th:placeholder="${it.catalogReferenceRange ?: ''}" th:aria-label="${it.testName} + ' — ' + #{lab.result.col_refrange}"/></td>
                     <td style="text-align:center;">
-                        <input type="checkbox" th:field="*{items[__${stat.index}__].abnormal}"/>
+                        <input type="checkbox" th:field="*{items[__${stat.index}__].abnormal}" th:aria-label="${it.testName} + ' — ' + #{lab.result.col_abnormal}"/>
                     </td>
-                    <td><input type="text" class="form-control" th:field="*{items[__${stat.index}__].resultNotes}" placeholder="—"/></td>
+                    <td><input type="text" class="form-control" th:field="*{items[__${stat.index}__].resultNotes}" placeholder="—" th:aria-label="${it.testName} + ' — ' + #{lab.result.col_note}"/></td>
                 </tr>
                 </tbody>
             </table>

@@ -13,15 +13,15 @@
 <form method="get" th:action="@{/reports/epidemiology}" class="form-card no-print"
       style="display:flex; gap:.75rem; align-items:flex-end; margin-bottom:16px;">
     <div class="form-group" style="margin:0;">
-        <label class="form-label" th:text="#{reports.period.month}">Mois</label>
-        <select name="month" class="form-control">
+        <label class="form-label" for="month" th:text="#{reports.period.month}">Mois</label>
+        <select id="month" name="month" class="form-control">
             <option th:each="mm : ${#numbers.sequence(1,12)}" th:value="${mm}"
                     th:text="${mm}" th:selected="${mm == month}">1</option>
         </select>
     </div>
     <div class="form-group" style="margin:0;">
-        <label class="form-label" th:text="#{reports.period.year}">Année</label>
-        <input type="number" name="year" class="form-control" th:value="${year}" style="width:120px;"/>
+        <label class="form-label" for="year" th:text="#{reports.period.year}">Année</label>
+        <input type="number" id="year" name="year" class="form-control" th:value="${year}" style="width:120px;"/>
     </div>
     <button type="submit" class="btn btn-primary btn-sm" th:text="#{reports.period.show}">Afficher</button>
 </form>
@@ -39,7 +39,7 @@
         <div th:if="${report.topPathologies.isEmpty()}" class="empty-state" th:text="#{reports.no_data}">Aucune donnée.</div>
         <div th:unless="${report.topPathologies.isEmpty()}" class="table-wrap">
             <table class="table">
-                <thead><tr><th th:text="#{reports.col.diagnosis}">Diagnostic</th><th style="text-align:right;" th:text="#{reports.col.cases}">Cas</th></tr></thead>
+                <thead><tr><th scope="col" th:text="#{reports.col.diagnosis}">Diagnostic</th><th scope="col" style="text-align:right;" th:text="#{reports.col.cases}">Cas</th></tr></thead>
                 <tbody>
                 <tr th:each="p : ${report.topPathologies}">
                     <td th:text="${p.label}">Paludisme</td>
@@ -54,7 +54,7 @@
         <div class="panel-header"><span th:text="#{reports.epidemiology.by_age}">Répartition par tranche d'âge</span></div>
         <div class="table-wrap">
             <table class="table">
-                <thead><tr><th th:text="#{reports.col.age_group}">Tranche</th><th style="text-align:right;" th:text="#{reports.col.consultations}">Consultations</th></tr></thead>
+                <thead><tr><th scope="col" th:text="#{reports.col.age_group}">Tranche</th><th scope="col" style="text-align:right;" th:text="#{reports.col.consultations}">Consultations</th></tr></thead>
                 <tbody>
                 <tr th:each="a : ${report.byAgeGroup}">
                     <td th:text="${a.label}">15-44 ans</td>
@@ -70,7 +70,7 @@
         <div th:if="${report.bySex.isEmpty()}" class="empty-state" th:text="#{reports.no_data}">Aucune donnée.</div>
         <div th:unless="${report.bySex.isEmpty()}" class="table-wrap">
             <table class="table">
-                <thead><tr><th th:text="#{reports.col.sex}">Sexe</th><th style="text-align:right;" th:text="#{reports.col.consultations}">Consultations</th></tr></thead>
+                <thead><tr><th scope="col" th:text="#{reports.col.sex}">Sexe</th><th scope="col" style="text-align:right;" th:text="#{reports.col.consultations}">Consultations</th></tr></thead>
                 <tbody>
                 <tr th:each="s : ${report.bySex}">
                     <td th:text="${s.label}">Féminin</td>
@@ -86,7 +86,7 @@
         <div th:if="${report.byDepartment.isEmpty()}" class="empty-state" th:text="#{reports.no_data}">Aucune donnée.</div>
         <div th:unless="${report.byDepartment.isEmpty()}" class="table-wrap">
             <table class="table">
-                <thead><tr><th th:text="#{reports.col.department}">Département</th><th style="text-align:right;" th:text="#{reports.col.consultations}">Consultations</th></tr></thead>
+                <thead><tr><th scope="col" th:text="#{reports.col.department}">Département</th><th scope="col" style="text-align:right;" th:text="#{reports.col.consultations}">Consultations</th></tr></thead>
                 <tbody>
                 <tr th:each="d : ${report.byDepartment}">
                     <td th:text="${d.label}">Pédiatrie</td>

@@ -12,7 +12,7 @@
 
         <div class="form-grid-2">
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.form.patient}">Patiente *</label>
+                <label class="form-label" for="patientId" th:text="#{maternity.form.patient}">Patiente *</label>
                 <select th:if="${record.id == null}" th:field="*{patientId}" class="form-control" required>
                     <option value="" th:text="#{maternity.form.choose_patient}">— Choisir une patiente —</option>
                     <option th:each="p : ${patients}" th:value="${p.id}"
@@ -20,38 +20,39 @@
                 </select>
                 <!-- patiente non modifiable en édition -->
                 <div th:if="${record.id != null}">
-                    <input type="text" class="form-control" th:value="${record.patientName}" disabled/>
+                    <input type="text" class="form-control" th:value="${record.patientName}" disabled
+                           th:aria-label="#{maternity.form.patient}"/>
                     <input type="hidden" th:field="*{patientId}"/>
                 </div>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.col.doctor}">Médecin / sage-femme</label>
+                <label class="form-label" for="doctorId" th:text="#{maternity.col.doctor}">Médecin / sage-femme</label>
                 <select th:field="*{doctorId}" class="form-control">
                     <option value="" th:text="#{maternity.no_one}">— Aucun —</option>
                     <option th:each="d : ${doctors}" th:value="${d.id}" th:text="${d.fullName}">Dr.</option>
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.form.gravidity}">Gravidité (nb grossesses)</label>
+                <label class="form-label" for="gravidity" th:text="#{maternity.form.gravidity}">Gravidité (nb grossesses)</label>
                 <input type="number" min="0" th:field="*{gravidity}" class="form-control" th:placeholder="#{maternity.form.gravidity_ph}"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.form.parity}">Parité (nb accouchements)</label>
+                <label class="form-label" for="parity" th:text="#{maternity.form.parity}">Parité (nb accouchements)</label>
                 <input type="number" min="0" th:field="*{parity}" class="form-control" th:placeholder="#{maternity.form.parity_ph}"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.form.lmp}">Date des dernières règles (DDR)</label>
+                <label class="form-label" for="lastPeriodDate" th:text="#{maternity.form.lmp}">Date des dernières règles (DDR)</label>
                 <input type="date" th:field="*{lastPeriodDate}" class="form-control"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.form.edd}">Date probable d'accouchement (DPA)</label>
+                <label class="form-label" for="expectedDueDate" th:text="#{maternity.form.edd}">Date probable d'accouchement (DPA)</label>
                 <input type="date" th:field="*{expectedDueDate}" class="form-control"/>
                 <small class="text-muted" th:text="#{maternity.form.edd_hint}">Calculée à DDR + 280 jours si laissée vide.</small>
             </div>
         </div>
 
         <div class="form-group">
-            <label class="form-label" th:text="#{maternity.notes}">Notes</label>
+            <label class="form-label" for="notes" th:text="#{maternity.notes}">Notes</label>
             <textarea th:field="*{notes}" class="form-control" rows="2"
                       th:placeholder="#{maternity.notes_ph}"></textarea>
         </div>

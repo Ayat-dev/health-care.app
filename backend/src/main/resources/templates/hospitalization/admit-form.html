@@ -10,7 +10,7 @@
 
         <div class="form-grid-2">
             <div class="form-group">
-                <label class="form-label" th:text="#{hospitalization.admit.patient}">Patient *</label>
+                <label class="form-label" for="patientId" th:text="#{hospitalization.admit.patient}">Patient *</label>
                 <select th:field="*{patientId}" class="form-control" required>
                     <option value="" th:text="#{hospitalization.choose_patient}">— Choisir un patient —</option>
                     <option th:each="p : ${patients}" th:value="${p.id}"
@@ -18,14 +18,14 @@
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{hospitalization.admit.doctor}">Médecin responsable *</label>
+                <label class="form-label" for="doctorId" th:text="#{hospitalization.admit.doctor}">Médecin responsable *</label>
                 <select th:field="*{doctorId}" class="form-control" required>
                     <option value="" th:text="#{hospitalization.choose_doctor}">— Choisir un médecin —</option>
                     <option th:each="d : ${doctors}" th:value="${d.id}" th:text="${d.fullName}">Dr.</option>
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{hospitalization.admit.room}">Chambre *</label>
+                <label class="form-label" for="roomId" th:text="#{hospitalization.admit.room}">Chambre *</label>
                 <select th:field="*{roomId}" class="form-control" required>
                     <option value="" th:text="#{hospitalization.choose_room}">— Choisir une chambre —</option>
                     <option th:each="r : ${rooms}" th:value="${r.id}" th:disabled="${r.full}"
@@ -35,14 +35,14 @@
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{hospitalization.admit.reason}">Motif d'admission *</label>
+                <label class="form-label" for="admissionReason" th:text="#{hospitalization.admit.reason}">Motif d'admission *</label>
                 <input type="text" th:field="*{admissionReason}" class="form-control"
                        th:placeholder="#{hospitalization.admit.reason_ph}" required/>
             </div>
         </div>
 
         <div class="form-group">
-            <label class="form-label" th:text="#{hospitalization.notes}">Notes</label>
+            <label class="form-label" for="notes" th:text="#{hospitalization.notes}">Notes</label>
             <textarea th:field="*{notes}" class="form-control" rows="2" th:placeholder="#{hospitalization.admit.notes_ph}"></textarea>
         </div>
 

@@ -10,7 +10,7 @@
 
         <div class="form-grid-2">
             <div class="form-group">
-                <label class="form-label" th:text="#{radiology.form.patient}">Patient *</label>
+                <label class="form-label" for="patientId" th:text="#{radiology.form.patient}">Patient *</label>
                 <select th:field="*{patientId}" class="form-control" required>
                     <option value="" th:text="#{radiology.form.choose_patient}">— Choisir un patient —</option>
                     <option th:each="p : ${patients}" th:value="${p.id}"
@@ -18,21 +18,21 @@
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{radiology.form.doctor}">Médecin prescripteur *</label>
+                <label class="form-label" for="doctorId" th:text="#{radiology.form.doctor}">Médecin prescripteur *</label>
                 <select th:field="*{doctorId}" class="form-control" required>
                     <option value="" th:text="#{radiology.form.choose_doctor}">— Choisir un médecin —</option>
                     <option th:each="d : ${doctors}" th:value="${d.id}" th:text="${d.fullName}">Dr.</option>
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{radiology.form.priority}">Priorité</label>
+                <label class="form-label" for="priority" th:text="#{radiology.form.priority}">Priorité</label>
                 <select th:field="*{priority}" class="form-control">
                     <option value="NORMAL" th:text="#{priority.NORMAL}">Normal</option>
                     <option value="URGENT" th:text="#{priority.URGENT}">Urgent</option>
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{radiology.form.clinical_info}">Renseignements cliniques</label>
+                <label class="form-label" for="clinicalInfo" th:text="#{radiology.form.clinical_info}">Renseignements cliniques</label>
                 <input type="text" th:field="*{clinicalInfo}" class="form-control" th:placeholder="#{radiology.form.clinical_placeholder}" placeholder="Indication clinique…"/>
             </div>
         </div>
@@ -44,12 +44,12 @@
             <div class="table-wrap">
                 <table class="table">
                     <thead>
-                    <tr><th style="width:48px;"></th>
-                        <th th:text="#{radiology.form.col_code}">Code</th>
-                        <th th:text="#{radiology.form.col_exam}">Examen</th>
-                        <th th:text="#{radiology.form.col_type}">Type</th>
-                        <th th:text="#{radiology.form.col_region}">Région</th>
-                        <th th:text="#{radiology.form.col_price}">Tarif</th></tr>
+                    <tr><th scope="col" style="width:48px;"><span class="sr-only" th:text="#{common.selection}">Sélection</span></th>
+                        <th scope="col" th:text="#{radiology.form.col_code}">Code</th>
+                        <th scope="col" th:text="#{radiology.form.col_exam}">Examen</th>
+                        <th scope="col" th:text="#{radiology.form.col_type}">Type</th>
+                        <th scope="col" th:text="#{radiology.form.col_region}">Région</th>
+                        <th scope="col" th:text="#{radiology.form.col_price}">Tarif</th></tr>
                     </thead>
                     <tbody>
                     <tr th:if="${exams.isEmpty()}">
@@ -58,6 +58,7 @@
                     <tr th:each="e : ${exams}">
                         <td style="text-align:center;">
                             <input type="checkbox" name="examIds" th:value="${e.id}"
+                                   th:aria-label="${e.name}"
                                    th:checked="${request.examIds != null and #lists.contains(request.examIds, e.id)}"/>
                         </td>
                         <td><strong th:text="${e.code}">RX_THORAX</strong></td>

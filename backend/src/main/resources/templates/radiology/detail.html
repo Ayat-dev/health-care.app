@@ -53,9 +53,9 @@
     <div class="table-wrap">
         <table class="table">
             <thead>
-            <tr><th th:text="#{radiology.form.col_exam}">Examen</th>
-                <th th:text="#{radiology.form.col_type}">Type</th>
-                <th th:text="#{radiology.form.col_region}">Région</th></tr>
+            <tr><th scope="col" th:text="#{radiology.form.col_exam}">Examen</th>
+                <th scope="col" th:text="#{radiology.form.col_type}">Type</th>
+                <th scope="col" th:text="#{radiology.form.col_region}">Région</th></tr>
             </thead>
             <tbody>
             <tr th:each="it : ${request.items}">

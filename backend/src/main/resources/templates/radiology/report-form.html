@@ -28,13 +28,13 @@
     <div class="form-card">
         <div class="panel-header"><span th:text="#{radiology.report.heading}">Compte-rendu radiologique</span></div>
         <div class="form-group">
-            <label class="form-label" th:text="#{radiology.detail.findings}">Résultats / Description</label>
+            <label class="form-label" for="findings" th:text="#{radiology.detail.findings}">Résultats / Description</label>
             <textarea th:field="*{findings}" class="form-control" rows="8"
                       th:placeholder="#{radiology.report.findings_placeholder}"
                       placeholder="Description des images, structures explorées, anomalies…"></textarea>
         </div>
         <div class="form-group">
-            <label class="form-label" th:text="#{radiology.detail.conclusion}">Conclusion</label>
+            <label class="form-label" for="conclusion" th:text="#{radiology.detail.conclusion}">Conclusion</label>
             <textarea th:field="*{conclusion}" class="form-control" rows="4"
                       th:placeholder="#{radiology.report.conclusion_placeholder}"
                       placeholder="Synthèse diagnostique…"></textarea>
@@ -53,12 +53,12 @@
     <form method="post" th:action="@{/radiology/requests/{id}/images(id=${request.id})}"
           enctype="multipart/form-data" style="display:flex; gap:.5rem; align-items:flex-end; flex-wrap:wrap;">
         <div class="form-group" style="margin:0;">
-            <label class="form-label" th:text="#{radiology.report.add_image}">Ajouter une image (JPEG, PNG, WebP)</label>
-            <input type="file" name="file" accept="image/jpeg,image/png,image/webp" class="form-control" required/>
+            <label class="form-label" for="imageFile" th:text="#{radiology.report.add_image}">Ajouter une image (JPEG, PNG, WebP)</label>
+            <input type="file" id="imageFile" name="file" accept="image/jpeg,image/png,image/webp" class="form-control" required/>
         </div>
         <div class="form-group" style="margin:0; flex:1; min-width:180px;">
-            <label class="form-label" th:text="#{radiology.report.caption}">Légende (optionnel)</label>
-            <input type="text" name="caption" class="form-control" th:placeholder="#{radiology.report.caption_placeholder}" placeholder="ex. Cliché de face"/>
+            <label class="form-label" for="caption" th:text="#{radiology.report.caption}">Légende (optionnel)</label>
+            <input type="text" id="caption" name="caption" class="form-control" th:placeholder="#{radiology.report.caption_placeholder}" placeholder="ex. Cliché de face"/>
         </div>
         <button type="submit" class="btn btn-primary" th:text="#{radiology.report.upload}">Téléverser</button>
     </form>

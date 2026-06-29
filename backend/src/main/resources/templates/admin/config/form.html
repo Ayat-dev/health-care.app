@@ -13,50 +13,50 @@
             <div class="form-section-title" th:text="#{admin.config.section_identity}">Identité</div>
             <div class="form-grid-2">
                 <div class="form-group">
-                    <label class="form-label" th:text="#{admin.config.name}">Nom de la clinique *</label>
-                    <input type="text" name="name" th:value="${config.name}" class="form-control" required/>
+                    <label class="form-label" for="name" th:text="#{admin.config.name}">Nom de la clinique *</label>
+                    <input type="text" id="name" name="name" th:value="${config.name}" class="form-control" required/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" th:text="#{admin.config.slogan}">Slogan</label>
-                    <input type="text" name="slogan" th:value="${config.slogan}" class="form-control"/>
+                    <label class="form-label" for="slogan" th:text="#{admin.config.slogan}">Slogan</label>
+                    <input type="text" id="slogan" name="slogan" th:value="${config.slogan}" class="form-control"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" th:text="#{common.phone}">Téléphone</label>
-                    <input type="text" name="phone" th:value="${config.phone}" class="form-control"/>
+                    <label class="form-label" for="phone" th:text="#{common.phone}">Téléphone</label>
+                    <input type="text" id="phone" name="phone" th:value="${config.phone}" class="form-control"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" th:text="#{common.email}">Email</label>
-                    <input type="email" name="email" th:value="${config.email}" class="form-control"/>
+                    <label class="form-label" for="email" th:text="#{common.email}">Email</label>
+                    <input type="email" id="email" name="email" th:value="${config.email}" class="form-control"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" th:text="#{common.website}">Site web</label>
-                    <input type="text" name="website" th:value="${config.website}" class="form-control"/>
+                    <label class="form-label" for="website" th:text="#{common.website}">Site web</label>
+                    <input type="text" id="website" name="website" th:value="${config.website}" class="form-control"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" th:text="#{admin.config.logo_url}">URL du logo</label>
-                    <input type="text" name="logoUrl" th:value="${config.logoUrl}" class="form-control"/>
+                    <label class="form-label" for="logoUrl" th:text="#{admin.config.logo_url}">URL du logo</label>
+                    <input type="text" id="logoUrl" name="logoUrl" th:value="${config.logoUrl}" class="form-control"/>
                 </div>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{common.address}">Adresse</label>
-                <textarea name="address" class="form-control" rows="2" th:text="${config.address}"></textarea>
+                <label class="form-label" for="address" th:text="#{common.address}">Adresse</label>
+                <textarea id="address" name="address" class="form-control" rows="2" th:text="${config.address}"></textarea>
             </div>
             <div class="form-grid-3">
                 <div class="form-group">
-                    <label class="form-label" th:text="#{admin.config.currency}">Devise</label>
-                    <select name="currency" class="form-control">
+                    <label class="form-label" for="currency" th:text="#{admin.config.currency}">Devise</label>
+                    <select id="currency" name="currency" class="form-control">
                         <option th:each="c : ${ {'XOF','MAD','DZD','EUR','USD'} }"
                                 th:value="${c}" th:text="${c}"
                                 th:selected="${config.currency == c}">XOF</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" th:text="#{admin.config.timezone}">Fuseau horaire</label>
-                    <input type="text" name="timezone" th:value="${config.timezone}" class="form-control"/>
+                    <label class="form-label" for="timezone" th:text="#{admin.config.timezone}">Fuseau horaire</label>
+                    <input type="text" id="timezone" name="timezone" th:value="${config.timezone}" class="form-control"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" th:text="#{admin.config.default_language}">Langue par défaut</label>
-                    <select name="defaultLanguage" class="form-control">
+                    <label class="form-label" for="defaultLanguage" th:text="#{admin.config.default_language}">Langue par défaut</label>
+                    <select id="defaultLanguage" name="defaultLanguage" class="form-control">
                         <option value="fr" th:selected="${config.defaultLanguage == 'fr'}">Français</option>
                         <option value="en" th:selected="${config.defaultLanguage == 'en'}">English</option>
                     </select>
@@ -97,8 +97,8 @@
                     <input type="checkbox" name="mobileMoneyEnabled" value="true" th:checked="${config.mobileMoneyEnabled}"/> <span th:text="#{admin.config.mobile_money_enabled}">Mobile Money activé</span>
                 </label>
                 <div class="form-group">
-                    <label class="form-label" th:text="#{admin.config.mobile_money_provider}">Fournisseur Mobile Money</label>
-                    <select name="mobileMoneyProvider" class="form-control">
+                    <label class="form-label" for="mobileMoneyProvider" th:text="#{admin.config.mobile_money_provider}">Fournisseur Mobile Money</label>
+                    <select id="mobileMoneyProvider" name="mobileMoneyProvider" class="form-control">
                         <option value="" th:selected="${config.mobileMoneyProvider == null}">—</option>
                         <option value="ORANGE_MONEY" th:selected="${config.mobileMoneyProvider == 'ORANGE_MONEY'}">Orange Money</option>
                         <option value="MTN_MOMO" th:selected="${config.mobileMoneyProvider == 'MTN_MOMO'}">MTN MoMo</option>
@@ -121,25 +121,25 @@
             </p>
             <div class="form-grid-2">
                 <div class="form-group">
-                    <label class="form-label" th:text="#{admin.config.qr_amanata}">QR marchand AmanaTa</label>
+                    <label class="form-label" for="amanataQrFile" th:text="#{admin.config.qr_amanata}">QR marchand AmanaTa</label>
                     <img th:if="${config.amanataQrUrl}" th:src="@{${config.amanataQrUrl}}" alt="QR AmanaTa"
                          style="width:120px;height:120px;object-fit:contain;border:1px solid #e2e8f0;border-radius:8px;display:block;margin-bottom:8px;"/>
-                    <input type="file" name="amanataQrFile" accept="image/png,image/jpeg,image/webp" class="form-control"/>
+                    <input type="file" id="amanataQrFile" name="amanataQrFile" accept="image/png,image/jpeg,image/webp" class="form-control"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" th:text="#{admin.config.merchant_amanata}">Identifiant marchand AmanaTa (optionnel)</label>
-                    <input type="text" name="amanataMerchantId" th:value="${config.amanataMerchantId}" class="form-control"
+                    <label class="form-label" for="amanataMerchantId" th:text="#{admin.config.merchant_amanata}">Identifiant marchand AmanaTa (optionnel)</label>
+                    <input type="text" id="amanataMerchantId" name="amanataMerchantId" th:value="${config.amanataMerchantId}" class="form-control"
                            th:placeholder="#{admin.config.merchant_ph}" placeholder="code marchand affiché au patient"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" th:text="#{admin.config.qr_mynita}">QR marchand MyNITA</label>
+                    <label class="form-label" for="mynitaQrFile" th:text="#{admin.config.qr_mynita}">QR marchand MyNITA</label>
                     <img th:if="${config.mynitaQrUrl}" th:src="@{${config.mynitaQrUrl}}" alt="QR MyNITA"
                          style="width:120px;height:120px;object-fit:contain;border:1px solid #e2e8f0;border-radius:8px;display:block;margin-bottom:8px;"/>
-                    <input type="file" name="mynitaQrFile" accept="image/png,image/jpeg,image/webp" class="form-control"/>
+                    <input type="file" id="mynitaQrFile" name="mynitaQrFile" accept="image/png,image/jpeg,image/webp" class="form-control"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" th:text="#{admin.config.merchant_mynita}">Identifiant marchand MyNITA (optionnel)</label>
-                    <input type="text" name="mynitaMerchantId" th:value="${config.mynitaMerchantId}" class="form-control"
+                    <label class="form-label" for="mynitaMerchantId" th:text="#{admin.config.merchant_mynita}">Identifiant marchand MyNITA (optionnel)</label>
+                    <input type="text" id="mynitaMerchantId" name="mynitaMerchantId" th:value="${config.mynitaMerchantId}" class="form-control"
                            th:placeholder="#{admin.config.merchant_ph}" placeholder="code marchand affiché au patient"/>
                 </div>
             </div>
@@ -150,16 +150,16 @@
             <div class="form-section-title" th:text="#{admin.config.section_numbering}">Préfixes de numérotation</div>
             <div class="form-grid-3">
                 <div class="form-group">
-                    <label class="form-label" th:text="#{admin.config.prefix_patient}">Dossiers patients</label>
-                    <input type="text" name="patientRecordPrefix" th:value="${config.patientRecordPrefix}" class="form-control"/>
+                    <label class="form-label" for="patientRecordPrefix" th:text="#{admin.config.prefix_patient}">Dossiers patients</label>
+                    <input type="text" id="patientRecordPrefix" name="patientRecordPrefix" th:value="${config.patientRecordPrefix}" class="form-control"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" th:text="#{admin.config.prefix_invoice}">Factures</label>
-                    <input type="text" name="invoicePrefix" th:value="${config.invoicePrefix}" class="form-control"/>
+                    <label class="form-label" for="invoicePrefix" th:text="#{admin.config.prefix_invoice}">Factures</label>
+                    <input type="text" id="invoicePrefix" name="invoicePrefix" th:value="${config.invoicePrefix}" class="form-control"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" th:text="#{admin.config.prefix_prescription}">Ordonnances</label>
-                    <input type="text" name="prescriptionPrefix" th:value="${config.prescriptionPrefix}" class="form-control"/>
+                    <label class="form-label" for="prescriptionPrefix" th:text="#{admin.config.prefix_prescription}">Ordonnances</label>
+                    <input type="text" id="prescriptionPrefix" name="prescriptionPrefix" th:value="${config.prescriptionPrefix}" class="form-control"/>
                 </div>
             </div>
         </div>

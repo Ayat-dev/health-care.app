@@ -12,7 +12,7 @@
     </div>
 
     <form method="get" th:action="@{/hospitalization/list}" class="search-bar">
-        <select name="status" class="form-control" style="max-width:200px;">
+        <select name="status" class="form-control" style="max-width:200px;" th:aria-label="#{common.status}">
             <option value="" th:text="#{hospitalization.list.all_statuses}">— Tous statuts —</option>
             <option value="ADMIS" th:selected="${status == 'ADMIS'}" th:text="#{status.ADMIS}">Admis</option>
             <option value="TRANSFERE" th:selected="${status == 'TRANSFERE'}" th:text="#{status.TRANSFERE}">Transféré</option>
@@ -26,14 +26,14 @@
         <table class="table">
             <thead>
             <tr>
-                <th th:text="#{hospitalization.col.patient}">Patient</th>
-                <th th:text="#{hospitalization.col.room}">Chambre</th>
-                <th th:text="#{hospitalization.col.doctor}">Médecin</th>
-                <th th:text="#{hospitalization.col.admitted}">Admis le</th>
-                <th th:text="#{hospitalization.col.discharge}">Sortie</th>
-                <th th:text="#{hospitalization.col.duration}">Durée</th>
-                <th th:text="#{common.status}">Statut</th>
-                <th th:text="#{common.actions}">Actions</th>
+                <th scope="col" th:text="#{hospitalization.col.patient}">Patient</th>
+                <th scope="col" th:text="#{hospitalization.col.room}">Chambre</th>
+                <th scope="col" th:text="#{hospitalization.col.doctor}">Médecin</th>
+                <th scope="col" th:text="#{hospitalization.col.admitted}">Admis le</th>
+                <th scope="col" th:text="#{hospitalization.col.discharge}">Sortie</th>
+                <th scope="col" th:text="#{hospitalization.col.duration}">Durée</th>
+                <th scope="col" th:text="#{common.status}">Statut</th>
+                <th scope="col" th:text="#{common.actions}">Actions</th>
             </tr>
             </thead>
             <tbody>

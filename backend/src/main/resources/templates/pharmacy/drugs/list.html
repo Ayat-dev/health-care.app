@@ -15,8 +15,8 @@
 
     <form method="get" th:action="@{/pharmacy/drugs}" class="search-bar">
         <input type="text" name="q" th:value="${q}" class="form-control"
-               th:placeholder="#{pharmacy.drugs.search_placeholder}" placeholder="Nom, DCI ou code…" style="max-width:280px;"/>
-        <select name="category" class="form-control" style="max-width:220px;">
+               th:placeholder="#{pharmacy.drugs.search_placeholder}" th:aria-label="#{pharmacy.drugs.search_placeholder}" placeholder="Nom, DCI ou code…" style="max-width:280px;"/>
+        <select name="category" class="form-control" style="max-width:220px;" th:aria-label="#{pharmacy.drugs.col_category}">
             <option value="" th:text="#{pharmacy.drugs.all_categories}">— Toutes catégories —</option>
             <option th:each="c : ${categories}" th:value="${c}" th:text="${c}"
                     th:selected="${category == c}">Catégorie</option>
@@ -28,15 +28,15 @@
         <table class="table">
             <thead>
             <tr>
-                <th th:text="#{pharmacy.drugs.col_code}">Code</th>
-                <th th:text="#{pharmacy.drugs.col_name}">Nom commercial</th>
-                <th th:text="#{pharmacy.drugs.col_generic}">DCI</th>
-                <th th:text="#{pharmacy.drugs.col_form}">Forme</th>
-                <th th:text="#{pharmacy.drugs.col_dosage}">Dosage</th>
-                <th th:text="#{pharmacy.drugs.col_category}">Catégorie</th>
-                <th th:text="#{pharmacy.drugs.col_prescription}">Ordonnance</th>
-                <th th:text="#{common.status}">Statut</th>
-                <th th:text="#{common.actions}">Actions</th>
+                <th scope="col" th:text="#{pharmacy.drugs.col_code}">Code</th>
+                <th scope="col" th:text="#{pharmacy.drugs.col_name}">Nom commercial</th>
+                <th scope="col" th:text="#{pharmacy.drugs.col_generic}">DCI</th>
+                <th scope="col" th:text="#{pharmacy.drugs.col_form}">Forme</th>
+                <th scope="col" th:text="#{pharmacy.drugs.col_dosage}">Dosage</th>
+                <th scope="col" th:text="#{pharmacy.drugs.col_category}">Catégorie</th>
+                <th scope="col" th:text="#{pharmacy.drugs.col_prescription}">Ordonnance</th>
+                <th scope="col" th:text="#{common.status}">Statut</th>
+                <th scope="col" th:text="#{common.actions}">Actions</th>
             </tr>
             </thead>
             <tbody>

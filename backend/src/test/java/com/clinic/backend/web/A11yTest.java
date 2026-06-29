@@ -75,4 +75,23 @@ class A11yTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("scope=\"col\"")));
     }
+
+    // ── C2 : audit a11y des modules restants (labo, etc.) ───────────────────
+
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void formulaire_labo_associe_label_et_champ() throws Exception {
+        mvc.perform(get("/lab/requests/new"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("for=\"patientId\"")))
+                .andExpect(content().string(containsString("id=\"patientId\"")));
+    }
+
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void worklist_labo_porte_scope_col() throws Exception {
+        mvc.perform(get("/lab"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("scope=\"col\"")));
+    }
 }

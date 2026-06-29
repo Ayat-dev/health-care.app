@@ -53,7 +53,7 @@
         <!-- Transfert -->
         <form method="post" th:action="@{/hospitalization/{id}/transfer(id=${stay.id})}">
             <div class="detail-label" th:text="#{hospitalization.detail.transfer_to}">Transférer vers une autre chambre</div>
-            <select name="newRoomId" class="form-control" required style="margin:6px 0;">
+            <select name="newRoomId" class="form-control" required style="margin:6px 0;" th:aria-label="#{hospitalization.detail.transfer_to}">
                 <option value="" th:text="#{hospitalization.choose_room}">— Choisir une chambre —</option>
                 <option th:each="r : ${rooms}" th:value="${r.id}"
                         th:disabled="${r.full and r.id != stay.roomId}"
@@ -61,7 +61,7 @@
                                  + ' (' + ${r.availableCount} + ' ' + #{hospitalization.free_one} + ')'">Ch. 102</option>
             </select>
             <input type="text" name="reason" class="form-control" th:placeholder="#{hospitalization.detail.transfer_reason_ph}"
-                   style="margin-bottom:6px;"/>
+                   th:aria-label="#{hospitalization.detail.transfer_reason_ph}" style="margin-bottom:6px;"/>
             <button class="btn btn-ghost btn-sm" th:text="#{hospitalization.detail.transfer_btn}">Transférer</button>
         </form>
 
@@ -69,12 +69,12 @@
         <form method="post" th:action="@{/hospitalization/{id}/discharge(id=${stay.id})}"
               th:onsubmit="'return confirm(\'' + #{hospitalization.detail.discharge_confirm} + '\');'">
             <div class="detail-label" th:text="#{hospitalization.detail.discharge_label}">Enregistrer la sortie</div>
-            <select name="status" class="form-control" style="margin:6px 0;">
+            <select name="status" class="form-control" style="margin:6px 0;" th:aria-label="#{hospitalization.detail.discharge_label}">
                 <option value="SORTI" th:text="#{hospitalization.detail.discharge_normal}">Sortie normale</option>
                 <option value="DECEDE" th:text="#{hospitalization.detail.death}">Décès</option>
             </select>
             <input type="text" name="diagnosis" class="form-control" th:placeholder="#{hospitalization.detail.discharge_diag_ph}"
-                   style="margin-bottom:6px;"/>
+                   th:aria-label="#{hospitalization.detail.discharge_diag_ph}" style="margin-bottom:6px;"/>
             <button class="btn btn-primary btn-sm" th:text="#{hospitalization.detail.discharge_btn}">Enregistrer la sortie</button>
         </form>
     </div>

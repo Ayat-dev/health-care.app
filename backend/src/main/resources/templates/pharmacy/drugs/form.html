@@ -10,50 +10,50 @@
 
         <div class="form-grid-2">
             <div class="form-group">
-                <label class="form-label" th:text="#{pharmacy.drugs.col_code}">Code</label>
-                <input type="text" name="code" th:value="${drug.code}"
+                <label class="form-label" for="code" th:text="#{pharmacy.drugs.col_code}">Code</label>
+                <input type="text" id="code" name="code" th:value="${drug.code}"
                        class="form-control" placeholder="AMOX500"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{pharmacy.drugs.f_name}">Nom commercial *</label>
-                <input type="text" name="name" th:value="${drug.name}"
+                <label class="form-label" for="name" th:text="#{pharmacy.drugs.f_name}">Nom commercial *</label>
+                <input type="text" id="name" name="name" th:value="${drug.name}"
                        class="form-control" placeholder="Clamoxyl" required/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{pharmacy.drugs.f_generic}">DCI (nom générique)</label>
-                <input type="text" name="genericName" th:value="${drug.genericName}"
+                <label class="form-label" for="genericName" th:text="#{pharmacy.drugs.f_generic}">DCI (nom générique)</label>
+                <input type="text" id="genericName" name="genericName" th:value="${drug.genericName}"
                        class="form-control" placeholder="Amoxicilline"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{pharmacy.drugs.col_category}">Catégorie</label>
-                <input type="text" name="category" th:value="${drug.category}"
+                <label class="form-label" for="category" th:text="#{pharmacy.drugs.col_category}">Catégorie</label>
+                <input type="text" id="category" name="category" th:value="${drug.category}"
                        class="form-control" placeholder="ANTIBIOTIQUE"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{pharmacy.drugs.col_form}">Forme</label>
-                <input type="text" name="form" th:value="${drug.form}"
+                <label class="form-label" for="form" th:text="#{pharmacy.drugs.col_form}">Forme</label>
+                <input type="text" id="form" name="form" th:value="${drug.form}"
                        class="form-control" placeholder="COMPRIME"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{pharmacy.drugs.col_dosage}">Dosage</label>
-                <input type="text" name="dosageStrength" th:value="${drug.dosageStrength}"
+                <label class="form-label" for="dosageStrength" th:text="#{pharmacy.drugs.col_dosage}">Dosage</label>
+                <input type="text" id="dosageStrength" name="dosageStrength" th:value="${drug.dosageStrength}"
                        class="form-control" placeholder="500mg"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{pharmacy.drugs.f_unit}">Unité *</label>
-                <input type="text" name="unit" th:value="${drug.unit}"
+                <label class="form-label" for="unit" th:text="#{pharmacy.drugs.f_unit}">Unité *</label>
+                <input type="text" id="unit" name="unit" th:value="${drug.unit}"
                        class="form-control" placeholder="COMPRIME" required/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{pharmacy.drugs.f_dispensing}">Délivrance</label>
-                <select name="requiresPrescription" class="form-control">
+                <label class="form-label" for="requiresPrescription" th:text="#{pharmacy.drugs.f_dispensing}">Délivrance</label>
+                <select id="requiresPrescription" name="requiresPrescription" class="form-control">
                     <option value="true" th:selected="${drug.requiresPrescription}" th:text="#{pharmacy.drugs.rx_required}">Sur ordonnance</option>
                     <option value="false" th:selected="${!drug.requiresPrescription}" th:text="#{pharmacy.drugs.otc}">Vente libre</option>
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{common.status}">Statut</label>
-                <select name="active" class="form-control">
+                <label class="form-label" for="active" th:text="#{common.status}">Statut</label>
+                <select id="active" name="active" class="form-control">
                     <option value="true" th:selected="${drug.active}" th:text="#{pharmacy.drugs.active}">Actif</option>
                     <option value="false" th:selected="${!drug.active}" th:text="#{pharmacy.drugs.inactive}">Désactivé</option>
                 </select>
@@ -61,8 +61,8 @@
         </div>
 
         <div class="form-group">
-            <label class="form-label" th:text="#{pharmacy.drugs.f_notes}">Notes</label>
-            <textarea name="notes" class="form-control" rows="2" th:text="${drug.notes}"></textarea>
+            <label class="form-label" for="notes" th:text="#{pharmacy.drugs.f_notes}">Notes</label>
+            <textarea id="notes" name="notes" class="form-control" rows="2" th:text="${drug.notes}"></textarea>
         </div>
 
         <div class="form-actions">

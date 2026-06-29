@@ -11,16 +11,16 @@
         <div class="form-section">
             <div class="form-grid-2">
                 <div class="form-group">
-                    <label class="form-label" th:text="#{admin.users.username}">Identifiant *</label>
-                    <input type="text" name="username" th:value="${user.username}" class="form-control" required/>
+                    <label class="form-label" for="username" th:text="#{admin.users.username}">Identifiant *</label>
+                    <input type="text" id="username" name="username" th:value="${user.username}" class="form-control" required/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" th:text="#{admin.users.fullname}">Nom complet</label>
-                    <input type="text" name="fullName" th:value="${user.fullName}" class="form-control"/>
+                    <label class="form-label" for="fullName" th:text="#{admin.users.fullname}">Nom complet</label>
+                    <input type="text" id="fullName" name="fullName" th:value="${user.fullName}" class="form-control"/>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" th:text="#{admin.users.password_new}">Mot de passe initial *</label>
-                    <input type="password" name="password" class="form-control" required/>
+                    <label class="form-label" for="password" th:text="#{admin.users.password_new}">Mot de passe initial *</label>
+                    <input type="password" id="password" name="password" class="form-control" required/>
                     <small class="form-hint" th:text="#{admin.users.password_hint}">Minimum 8 caractères, au moins 1 chiffre.</small>
                 </div>
             </div>

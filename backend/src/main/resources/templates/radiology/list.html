@@ -12,10 +12,10 @@
     </div>
 
     <form method="get" th:action="@{/radiology/requests}" class="search-bar">
-        <input type="date" name="from" th:value="${from}" class="form-control" style="max-width:170px;"/>
+        <input type="date" name="from" th:value="${from}" class="form-control" style="max-width:170px;" th:aria-label="#{common.date_from}"/>
         <span>→</span>
-        <input type="date" name="to" th:value="${to}" class="form-control" style="max-width:170px;"/>
-        <select name="status" class="form-control" style="max-width:170px;">
+        <input type="date" name="to" th:value="${to}" class="form-control" style="max-width:170px;" th:aria-label="#{common.date_to}"/>
+        <select name="status" class="form-control" style="max-width:170px;" th:aria-label="#{common.status}">
             <option value="" th:text="#{radiology.list.all_statuses}">— Tous statuts —</option>
             <option value="EN_ATTENTE" th:selected="${status == 'EN_ATTENTE'}" th:text="#{status.EN_ATTENTE}">En attente</option>
             <option value="EN_COURS" th:selected="${status == 'EN_COURS'}" th:text="#{status.EN_COURS}">En cours</option>
@@ -23,7 +23,7 @@
             <option value="LIVRE" th:selected="${status == 'LIVRE'}" th:text="#{status.LIVRE}">Livré</option>
             <option value="ANNULE" th:selected="${status == 'ANNULE'}" th:text="#{status.ANNULE}">Annulé</option>
         </select>
-        <select name="priority" class="form-control" style="max-width:160px;">
+        <select name="priority" class="form-control" style="max-width:160px;" th:aria-label="#{radiology.col.priority}">
             <option value="" th:text="#{radiology.list.all_priorities}">— Toutes priorités —</option>
             <option value="NORMAL" th:selected="${priority == 'NORMAL'}" th:text="#{priority.NORMAL}">Normal</option>
             <option value="URGENT" th:selected="${priority == 'URGENT'}" th:text="#{priority.URGENT}">Urgent</option>
@@ -35,13 +35,13 @@
         <table class="table">
             <thead>
             <tr>
-                <th th:text="#{radiology.col.number}">N°</th>
-                <th th:text="#{radiology.col.priority}">Priorité</th>
-                <th th:text="#{radiology.col.patient}">Patient</th>
-                <th th:text="#{radiology.col.prescriber}">Prescripteur</th>
-                <th th:text="#{radiology.col.requested_at}">Demandé le</th>
-                <th th:text="#{common.status}">Statut</th>
-                <th th:text="#{common.actions}">Actions</th>
+                <th scope="col" th:text="#{radiology.col.number}">N°</th>
+                <th scope="col" th:text="#{radiology.col.priority}">Priorité</th>
+                <th scope="col" th:text="#{radiology.col.patient}">Patient</th>
+                <th scope="col" th:text="#{radiology.col.prescriber}">Prescripteur</th>
+                <th scope="col" th:text="#{radiology.col.requested_at}">Demandé le</th>
+                <th scope="col" th:text="#{common.status}">Statut</th>
+                <th scope="col" th:text="#{common.actions}">Actions</th>
             </tr>
             </thead>
             <tbody>

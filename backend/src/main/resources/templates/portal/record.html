@@ -13,7 +13,7 @@
         <div th:unless="${consultations.isEmpty()}" class="table-wrap">
             <table class="table">
                 <thead>
-                <tr><th th:text="#{common.date}">Date</th><th th:text="#{portal.col.doctor}">Médecin</th><th th:text="#{portal.col.reason}">Motif</th><th th:text="#{portal.col.diagnosis}">Diagnostic</th><th th:text="#{common.status}">Statut</th></tr>
+                <tr><th scope="col" th:text="#{common.date}">Date</th><th scope="col" th:text="#{portal.col.doctor}">Médecin</th><th scope="col" th:text="#{portal.col.reason}">Motif</th><th scope="col" th:text="#{portal.col.diagnosis}">Diagnostic</th><th scope="col" th:text="#{common.status}">Statut</th></tr>
                 </thead>
                 <tbody>
                 <tr th:each="c : ${consultations}">
@@ -42,7 +42,7 @@
                 <div class="table-wrap">
                     <table class="table">
                         <thead>
-                        <tr><th th:text="#{portal.col.test}">Analyse</th><th th:text="#{portal.col.result}">Résultat</th><th th:text="#{portal.col.refrange}">Valeurs de référence</th></tr>
+                        <tr><th scope="col" th:text="#{portal.col.test}">Analyse</th><th scope="col" th:text="#{portal.col.result}">Résultat</th><th scope="col" th:text="#{portal.col.refrange}">Valeurs de référence</th></tr>
                         </thead>
                         <tbody>
                         <tr th:each="it : ${lr.items}" th:classappend="${it.abnormal} ? 'row-abnormal'">
@@ -86,7 +86,7 @@
         <div th:unless="${invoices.isEmpty()}" class="table-wrap">
             <table class="table">
                 <thead>
-                <tr><th th:text="#{portal.col.number}">N°</th><th th:text="#{common.date}">Date</th><th th:text="#{portal.col.patient_amount}">Montant patient</th><th th:text="#{portal.col.paid}">Réglé</th><th th:text="#{portal.col.balance}">Reste dû</th><th th:text="#{common.status}">Statut</th></tr>
+                <tr><th scope="col" th:text="#{portal.col.number}">N°</th><th scope="col" th:text="#{common.date}">Date</th><th scope="col" th:text="#{portal.col.patient_amount}">Montant patient</th><th scope="col" th:text="#{portal.col.paid}">Réglé</th><th scope="col" th:text="#{portal.col.balance}">Reste dû</th><th scope="col" th:text="#{common.status}">Statut</th></tr>
                 </thead>
                 <tbody>
                 <tr th:each="inv : ${invoices}">

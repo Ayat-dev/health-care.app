@@ -9,8 +9,8 @@
 
         <div class="form-grid-2">
             <div class="form-group">
-                <label class="form-label" th:text="#{pharmacy.receive.drug}">Médicament *</label>
-                <select name="drugId" class="form-control" required>
+                <label class="form-label" for="drugId" th:text="#{pharmacy.receive.drug}">Médicament *</label>
+                <select id="drugId" name="drugId" class="form-control" required>
                     <option value="" th:text="#{pharmacy.receive.choose_drug}">— Choisir un médicament —</option>
                     <option th:each="d : ${drugs}" th:value="${d.id}"
                             th:text="${d.name + (d.dosageStrength != null ? ' ' + d.dosageStrength : '')}"
@@ -18,43 +18,43 @@
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{pharmacy.receive.batch}">Numéro de lot</label>
-                <input type="text" name="batchNumber" th:value="${item.batchNumber}"
+                <label class="form-label" for="batchNumber" th:text="#{pharmacy.receive.batch}">Numéro de lot</label>
+                <input type="text" id="batchNumber" name="batchNumber" th:value="${item.batchNumber}"
                        class="form-control" placeholder="LOT-2026-ABC"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{pharmacy.receive.expiry}">Date de péremption *</label>
-                <input type="date" name="expiryDate" th:value="${item.expiryDate}"
+                <label class="form-label" for="expiryDate" th:text="#{pharmacy.receive.expiry}">Date de péremption *</label>
+                <input type="date" id="expiryDate" name="expiryDate" th:value="${item.expiryDate}"
                        class="form-control" required/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{pharmacy.receive.qty}">Quantité reçue *</label>
-                <input type="number" name="quantity" th:value="${item.quantity}"
+                <label class="form-label" for="quantity" th:text="#{pharmacy.receive.qty}">Quantité reçue *</label>
+                <input type="number" id="quantity" name="quantity" th:value="${item.quantity}"
                        class="form-control" min="1" step="1" required/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{pharmacy.receive.threshold}">Seuil d'alerte</label>
-                <input type="number" name="quantityAlert" th:value="${item.quantityAlert}"
+                <label class="form-label" for="quantityAlert" th:text="#{pharmacy.receive.threshold}">Seuil d'alerte</label>
+                <input type="number" id="quantityAlert" name="quantityAlert" th:value="${item.quantityAlert}"
                        class="form-control" min="0" step="1" placeholder="10"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{pharmacy.receive.purchase_price}">Prix d'achat</label>
-                <input type="number" name="purchasePrice" th:value="${item.purchasePrice}"
+                <label class="form-label" for="purchasePrice" th:text="#{pharmacy.receive.purchase_price}">Prix d'achat</label>
+                <input type="number" id="purchasePrice" name="purchasePrice" th:value="${item.purchasePrice}"
                        class="form-control" min="0" step="0.01"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{pharmacy.receive.selling_price}">Prix de vente *</label>
-                <input type="number" name="sellingPrice" th:value="${item.sellingPrice}"
+                <label class="form-label" for="sellingPrice" th:text="#{pharmacy.receive.selling_price}">Prix de vente *</label>
+                <input type="number" id="sellingPrice" name="sellingPrice" th:value="${item.sellingPrice}"
                        class="form-control" min="0" step="0.01" required/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{pharmacy.receive.supplier}">Fournisseur</label>
-                <input type="text" name="supplier" th:value="${item.supplier}"
+                <label class="form-label" for="supplier" th:text="#{pharmacy.receive.supplier}">Fournisseur</label>
+                <input type="text" id="supplier" name="supplier" th:value="${item.supplier}"
                        class="form-control" placeholder="Laborex"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{pharmacy.receive.received_at}">Date de réception</label>
-                <input type="date" name="receivedAt" th:value="${item.receivedAt}" class="form-control"/>
+                <label class="form-label" for="receivedAt" th:text="#{pharmacy.receive.received_at}">Date de réception</label>
+                <input type="date" id="receivedAt" name="receivedAt" th:value="${item.receivedAt}" class="form-control"/>
             </div>
         </div>
 

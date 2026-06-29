@@ -17,7 +17,7 @@
         <div th:unless="${appointments.isEmpty()}" class="table-wrap">
             <table class="table">
                 <thead>
-                <tr><th th:text="#{common.date}">Date</th><th th:text="#{portal.col.doctor}">Médecin</th><th th:text="#{common.type}">Type</th><th th:text="#{portal.col.reason}">Motif</th><th th:text="#{common.status}">Statut</th><th></th></tr>
+                <tr><th scope="col" th:text="#{common.date}">Date</th><th scope="col" th:text="#{portal.col.doctor}">Médecin</th><th scope="col" th:text="#{common.type}">Type</th><th scope="col" th:text="#{portal.col.reason}">Motif</th><th scope="col" th:text="#{common.status}">Statut</th><th scope="col"><span class="sr-only" th:text="#{common.actions}">Actions</span></th></tr>
                 </thead>
                 <tbody>
                 <tr th:each="a : ${appointments}">

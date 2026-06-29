@@ -10,18 +10,18 @@
 
         <div class="form-grid-2">
             <div class="form-group">
-                <label class="form-label" th:text="#{common.name_required}">Nom *</label>
-                <input type="text" name="name" th:value="${provider.name}"
+                <label class="form-label" for="name" th:text="#{common.name_required}">Nom *</label>
+                <input type="text" id="name" name="name" th:value="${provider.name}"
                        class="form-control" placeholder="IPM" required/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{common.code}">Code</label>
-                <input type="text" name="code" th:value="${provider.code}"
+                <label class="form-label" for="code" th:text="#{common.code}">Code</label>
+                <input type="text" id="code" name="code" th:value="${provider.code}"
                        class="form-control" placeholder="IPM"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{common.type}">Type</label>
-                <select name="type" class="form-control">
+                <label class="form-label" for="type" th:text="#{common.type}">Type</label>
+                <select id="type" name="type" class="form-control">
                     <option value="" th:selected="${provider.type == null}">—</option>
                     <option value="PUBLIQUE" th:selected="${provider.type == 'PUBLIQUE'}" th:text="#{instype.PUBLIQUE}">Publique</option>
                     <option value="PRIVEE" th:selected="${provider.type == 'PRIVEE'}" th:text="#{instype.PRIVEE}">Privée</option>
@@ -29,17 +29,17 @@
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{admin.insurance.coverage}">Prise en charge (%)</label>
-                <input type="number" name="coveragePercent" th:value="${provider.coveragePercent}"
+                <label class="form-label" for="coveragePercent" th:text="#{admin.insurance.coverage}">Prise en charge (%)</label>
+                <input type="number" id="coveragePercent" name="coveragePercent" th:value="${provider.coveragePercent}"
                        class="form-control" min="0" max="100" step="0.01" placeholder="80"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{common.contact}">Contact</label>
-                <input type="text" name="contact" th:value="${provider.contact}" class="form-control"/>
+                <label class="form-label" for="contact" th:text="#{common.contact}">Contact</label>
+                <input type="text" id="contact" name="contact" th:value="${provider.contact}" class="form-control"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{common.status}">Statut</label>
-                <select name="active" class="form-control">
+                <label class="form-label" for="active" th:text="#{common.status}">Statut</label>
+                <select id="active" name="active" class="form-control">
                     <option value="true" th:selected="${provider.active}" th:text="#{common.active}">Actif</option>
                     <option value="false" th:selected="${!provider.active}" th:text="#{common.inactive}">Désactivé</option>
                 </select>

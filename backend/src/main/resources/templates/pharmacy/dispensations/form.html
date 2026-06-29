@@ -17,7 +17,7 @@
 
         <div class="form-grid-2">
             <div class="form-group">
-                <label class="form-label" th:text="#{pharmacy.dispense.patient}">Patient *</label>
+                <label class="form-label" for="patientId" th:text="#{pharmacy.dispense.patient}">Patient *</label>
                 <select th:field="*{patientId}" class="form-control" required>
                     <option value="" th:text="#{pharmacy.dispense.choose_patient}">— Choisir un patient —</option>
                     <option th:each="p : ${patients}" th:value="${p.id}"
@@ -25,7 +25,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{pharmacy.dispense.note}">Note</label>
+                <label class="form-label" for="notes" th:text="#{pharmacy.dispense.note}">Note</label>
                 <input type="text" th:field="*{notes}" class="form-control" th:placeholder="#{pharmacy.dispense.optional}" placeholder="Optionnel"/>
             </div>
         </div>
@@ -38,12 +38,12 @@
         <div class="table-wrap">
             <table class="table">
                 <thead>
-                <tr><th style="width:70%;" th:text="#{pharmacy.col.drug}">Médicament</th><th th:text="#{pharmacy.col.quantity}">Quantité</th></tr>
+                <tr><th scope="col" style="width:70%;" th:text="#{pharmacy.col.drug}">Médicament</th><th scope="col" th:text="#{pharmacy.col.quantity}">Quantité</th></tr>
                 </thead>
                 <tbody>
                 <tr th:each="line,st : *{items}">
                     <td>
-                        <select th:field="*{items[__${st.index}__].drugId}" class="form-control">
+                        <select th:field="*{items[__${st.index}__].drugId}" class="form-control" th:aria-label="#{pharmacy.col.drug}">
                             <option value="" th:text="#{pharmacy.dispense.no_drug}">— Aucun —</option>
                             <option th:each="d : ${drugs}" th:value="${d.id}"
                                     th:text="${d.name + (d.dosageStrength != null ? ' ' + d.dosageStrength : '')}">Médicament</option>
@@ -51,7 +51,7 @@
                     </td>
                     <td>
                         <input type="number" th:field="*{items[__${st.index}__].quantity}"
-                               class="form-control" min="0" step="1" style="max-width:120px;"/>
+                               class="form-control" min="0" step="1" style="max-width:120px;" th:aria-label="#{pharmacy.col.quantity}"/>
                     </td>
                 </tr>
                 </tbody>

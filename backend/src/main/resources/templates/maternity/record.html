@@ -77,11 +77,11 @@
     <div th:unless="${record.visits.isEmpty()}" class="table-wrap">
         <table class="table">
             <thead>
-            <tr><th th:text="#{maternity.visit.cpn_short}">CPN</th><th th:text="#{common.date}">Date</th>
-                <th th:text="#{maternity.ga_short}">SA</th><th th:text="#{maternity.visit.col_weight}">Poids</th>
-                <th th:text="#{maternity.visit.col_bp}">Tension</th><th th:text="#{maternity.visit.col_fhr}">RCF</th>
-                <th th:text="#{maternity.visit.col_uh}">HU</th><th th:text="#{maternity.visit.col_edema}">Œdème</th>
-                <th th:text="#{maternity.visit.col_proteinuria}">Protéinurie</th><th th:text="#{maternity.visit.col_vat}">VAT</th><th></th></tr>
+            <tr><th scope="col" th:text="#{maternity.visit.cpn_short}">CPN</th><th scope="col" th:text="#{common.date}">Date</th>
+                <th scope="col" th:text="#{maternity.ga_short}">SA</th><th scope="col" th:text="#{maternity.visit.col_weight}">Poids</th>
+                <th scope="col" th:text="#{maternity.visit.col_bp}">Tension</th><th scope="col" th:text="#{maternity.visit.col_fhr}">RCF</th>
+                <th scope="col" th:text="#{maternity.visit.col_uh}">HU</th><th scope="col" th:text="#{maternity.visit.col_edema}">Œdème</th>
+                <th scope="col" th:text="#{maternity.visit.col_proteinuria}">Protéinurie</th><th scope="col" th:text="#{maternity.visit.col_vat}">VAT</th><th scope="col"><span class="sr-only" th:text="#{common.actions}">Actions</span></th></tr>
             </thead>
             <tbody>
             <tr th:each="v : ${record.visits}"

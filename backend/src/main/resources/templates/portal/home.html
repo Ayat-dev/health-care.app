@@ -40,7 +40,7 @@
         <div th:unless="${upcoming.isEmpty()}" class="table-wrap">
             <table class="table">
                 <thead>
-                <tr><th th:text="#{common.date}">Date</th><th th:text="#{portal.col.doctor}">Médecin</th><th th:text="#{portal.col.reason}">Motif</th><th th:text="#{common.status}">Statut</th></tr>
+                <tr><th scope="col" th:text="#{common.date}">Date</th><th scope="col" th:text="#{portal.col.doctor}">Médecin</th><th scope="col" th:text="#{portal.col.reason}">Motif</th><th scope="col" th:text="#{common.status}">Statut</th></tr>
                 </thead>
                 <tbody>
                 <tr th:each="a : ${upcoming}">

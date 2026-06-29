@@ -60,7 +60,7 @@
         <div th:if="${dashboard.topPathologies.isEmpty()}" class="empty-state" th:text="#{reports.dashboard.no_consultations_month}">Aucune consultation clôturée ce mois.</div>
         <div th:unless="${dashboard.topPathologies.isEmpty()}" class="table-wrap">
             <table class="table">
-                <thead><tr><th th:text="#{reports.col.diagnosis}">Diagnostic</th><th style="text-align:right;" th:text="#{reports.col.cases}">Cas</th></tr></thead>
+                <thead><tr><th scope="col" th:text="#{reports.col.diagnosis}">Diagnostic</th><th scope="col" style="text-align:right;" th:text="#{reports.col.cases}">Cas</th></tr></thead>
                 <tbody>
                 <tr th:each="p : ${dashboard.topPathologies}">
                     <td th:text="${p.label}">Paludisme</td>
@@ -76,7 +76,7 @@
         <div th:if="${dashboard.paymentMethodBreakdown.isEmpty()}" class="empty-state" th:text="#{reports.dashboard.no_payments_month}">Aucun encaissement ce mois.</div>
         <div th:unless="${dashboard.paymentMethodBreakdown.isEmpty()}" class="table-wrap">
             <table class="table">
-                <thead><tr><th th:text="#{reports.col.method}">Mode</th><th style="text-align:right;" th:text="#{reports.col.amount}">Montant</th></tr></thead>
+                <thead><tr><th scope="col" th:text="#{reports.col.method}">Mode</th><th scope="col" style="text-align:right;" th:text="#{reports.col.amount}">Montant</th></tr></thead>
                 <tbody>
                 <tr th:each="m : ${dashboard.paymentMethodBreakdown}">
                     <td><span class="badge" th:text="${@paymentMethods.label(m.key)}">ESPECES</span></td>

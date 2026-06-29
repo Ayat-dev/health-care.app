@@ -10,18 +10,18 @@
 
         <div class="form-grid-2">
             <div class="form-group">
-                <label class="form-label" th:text="#{hospitalization.room_form.number}">Numéro de chambre *</label>
+                <label class="form-label" for="roomNumber" th:text="#{hospitalization.room_form.number}">Numéro de chambre *</label>
                 <input type="text" th:field="*{roomNumber}" class="form-control" placeholder="101" required/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{hospitalization.room_form.department}">Service</label>
+                <label class="form-label" for="departmentId" th:text="#{hospitalization.room_form.department}">Service</label>
                 <select th:field="*{departmentId}" class="form-control">
                     <option value="" th:text="#{hospitalization.room_form.no_department}">— Aucun —</option>
                     <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.name}">Médecine générale</option>
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{hospitalization.room_form.type}">Type *</label>
+                <label class="form-label" for="type" th:text="#{hospitalization.room_form.type}">Type *</label>
                 <select th:field="*{type}" class="form-control">
                     <option value="STANDARD" th:text="#{roomtype.STANDARD}">Standard</option>
                     <option value="PRIVE" th:text="#{roomtype.PRIVE}">Privée</option>
@@ -30,15 +30,15 @@
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{hospitalization.room_form.capacity}">Capacité (lits) *</label>
+                <label class="form-label" for="capacity" th:text="#{hospitalization.room_form.capacity}">Capacité (lits) *</label>
                 <input type="number" th:field="*{capacity}" class="form-control" min="1" value="1" required/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{hospitalization.room_form.rate}">Tarif journalier (F) *</label>
+                <label class="form-label" for="dailyRate" th:text="#{hospitalization.room_form.rate}">Tarif journalier (F) *</label>
                 <input type="number" th:field="*{dailyRate}" class="form-control" min="0" step="0.01" required/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{common.status}">Statut</label>
+                <label class="form-label" for="active" th:text="#{common.status}">Statut</label>
                 <select th:field="*{active}" class="form-control">
                     <option value="true" th:text="#{hospitalization.rooms.active}">Active</option>
                     <option value="false" th:text="#{hospitalization.rooms.inactive}">Désactivée</option>
@@ -46,7 +46,7 @@
             </div>
         </div>
         <div class="form-group">
-            <label class="form-label" th:text="#{hospitalization.notes}">Notes</label>
+            <label class="form-label" for="notes" th:text="#{hospitalization.notes}">Notes</label>
             <textarea th:field="*{notes}" class="form-control" rows="2"></textarea>
         </div>
 

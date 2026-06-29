@@ -10,18 +10,18 @@
 
         <div class="form-grid-2">
             <div class="form-group">
-                <label class="form-label" th:text="#{common.code_required}">Code *</label>
-                <input type="text" name="code" th:value="${act.code}"
+                <label class="form-label" for="code" th:text="#{common.code_required}">Code *</label>
+                <input type="text" id="code" name="code" th:value="${act.code}"
                        class="form-control" placeholder="CONS_GEN" required/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{common.name_required}">Nom *</label>
-                <input type="text" name="name" th:value="${act.name}"
+                <label class="form-label" for="name" th:text="#{common.name_required}">Nom *</label>
+                <input type="text" id="name" name="name" th:value="${act.name}"
                        class="form-control" placeholder="Consultation médecine générale" required/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{common.department}">Département</label>
-                <select name="departmentId" class="form-control">
+                <label class="form-label" for="departmentId" th:text="#{common.department}">Département</label>
+                <select id="departmentId" name="departmentId" class="form-control">
                     <option value="" th:selected="${act.departmentId == null}" th:text="#{admin.acts.dept_none}">— Aucun (clinique entière)</option>
                     <option th:each="d : ${departments}"
                             th:value="${d.id}" th:text="${d.name}"
@@ -29,13 +29,13 @@
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{common.price_required}">Tarif *</label>
-                <input type="number" name="price" th:value="${act.price}"
+                <label class="form-label" for="price" th:text="#{common.price_required}">Tarif *</label>
+                <input type="number" id="price" name="price" th:value="${act.price}"
                        class="form-control" min="0" step="0.01" placeholder="5000" required/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{common.status}">Statut</label>
-                <select name="active" class="form-control">
+                <label class="form-label" for="active" th:text="#{common.status}">Statut</label>
+                <select id="active" name="active" class="form-control">
                     <option value="true" th:selected="${act.active}" th:text="#{common.active}">Actif</option>
                     <option value="false" th:selected="${!act.active}" th:text="#{common.inactive}">Désactivé</option>
                 </select>

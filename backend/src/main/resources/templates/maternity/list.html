@@ -12,7 +12,7 @@
     </div>
 
     <form method="get" th:action="@{/maternity}" class="search-bar">
-        <select name="status" class="form-control" style="max-width:200px;" onchange="this.form.submit()">
+        <select name="status" class="form-control" style="max-width:200px;" onchange="this.form.submit()" th:aria-label="#{common.status}">
             <option value="" th:text="#{maternity.list.all_status}">— Tous statuts —</option>
             <option value="EN_COURS"  th:selected="${status == 'EN_COURS'}"  th:text="#{status.EN_COURS}">En cours</option>
             <option value="ACCOUCHEE" th:selected="${status == 'ACCOUCHEE'}" th:text="#{status.ACCOUCHEE}">Accouchée</option>
@@ -23,9 +23,9 @@
     <div class="table-wrap">
         <table class="table">
             <thead>
-            <tr><th th:text="#{maternity.col.patient}">Patiente</th><th th:text="#{maternity.list.col_record}">Dossier</th>
-                <th th:text="#{maternity.col.followed_by}">Suivi par</th><th th:text="#{maternity.col.edd}">DPA</th>
-                <th th:text="#{maternity.list.col_ga}">Âge gest.</th><th th:text="#{common.status}">Statut</th><th></th></tr>
+            <tr><th scope="col" th:text="#{maternity.col.patient}">Patiente</th><th scope="col" th:text="#{maternity.list.col_record}">Dossier</th>
+                <th scope="col" th:text="#{maternity.col.followed_by}">Suivi par</th><th scope="col" th:text="#{maternity.col.edd}">DPA</th>
+                <th scope="col" th:text="#{maternity.list.col_ga}">Âge gest.</th><th scope="col" th:text="#{common.status}">Statut</th><th scope="col"><span class="sr-only" th:text="#{common.actions}">Actions</span></th></tr>
             </thead>
             <tbody>
             <tr th:if="${records.isEmpty()}">

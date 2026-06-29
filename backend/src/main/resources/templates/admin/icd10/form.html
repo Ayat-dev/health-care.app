@@ -10,24 +10,24 @@
 
         <div class="form-grid-2">
             <div class="form-group">
-                <label class="form-label" th:text="#{common.code_required}">Code *</label>
-                <input type="text" name="code" th:value="${code.code}"
+                <label class="form-label" for="code" th:text="#{common.code_required}">Code *</label>
+                <input type="text" id="code" name="code" th:value="${code.code}"
                        class="form-control" placeholder="J06.9" required/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{common.category}">Catégorie</label>
-                <input type="text" name="category" th:value="${code.category}"
+                <label class="form-label" for="category" th:text="#{common.category}">Catégorie</label>
+                <input type="text" id="category" name="category" th:value="${code.category}"
                        class="form-control" placeholder="Maladies de l'appareil respiratoire"/>
             </div>
         </div>
         <div class="form-group">
-            <label class="form-label" th:text="#{admin.icd10.title_label}">Libellé *</label>
-            <input type="text" name="title" th:value="${code.title}"
+            <label class="form-label" for="title" th:text="#{admin.icd10.title_label}">Libellé *</label>
+            <input type="text" id="title" name="title" th:value="${code.title}"
                    class="form-control" placeholder="Infection aiguë des voies respiratoires supérieures" required/>
         </div>
         <div class="form-group" style="max-width:220px;">
-            <label class="form-label" th:text="#{common.status}">Statut</label>
-            <select name="active" class="form-control">
+            <label class="form-label" for="active" th:text="#{common.status}">Statut</label>
+            <select id="active" name="active" class="form-control">
                 <option value="true" th:selected="${code.active}" th:text="#{common.active}">Actif</option>
                 <option value="false" th:selected="${!code.active}" th:text="#{common.inactive}">Désactivé</option>
             </select>

@@ -14,15 +14,15 @@
 <form method="get" th:action="@{/reports/financial}" class="form-card no-print"
       style="display:flex; gap:.75rem; align-items:flex-end; margin-bottom:16px;">
     <div class="form-group" style="margin:0;">
-        <label class="form-label" th:text="#{reports.period.month}">Mois</label>
-        <select name="month" class="form-control">
+        <label class="form-label" for="month" th:text="#{reports.period.month}">Mois</label>
+        <select id="month" name="month" class="form-control">
             <option th:each="mm : ${#numbers.sequence(1,12)}" th:value="${mm}"
                     th:text="${mm}" th:selected="${mm == month}">1</option>
         </select>
     </div>
     <div class="form-group" style="margin:0;">
-        <label class="form-label" th:text="#{reports.period.year}">Année</label>
-        <input type="number" name="year" class="form-control" th:value="${year}" style="width:120px;"/>
+        <label class="form-label" for="year" th:text="#{reports.period.year}">Année</label>
+        <input type="number" id="year" name="year" class="form-control" th:value="${year}" style="width:120px;"/>
     </div>
     <button type="submit" class="btn btn-primary btn-sm" th:text="#{reports.period.show}">Afficher</button>
 </form>
@@ -48,7 +48,7 @@
     <div th:if="${report.collectedByMethod.isEmpty()}" class="empty-state" th:text="#{reports.financial.no_payments_period}">Aucun encaissement sur la période.</div>
     <div th:unless="${report.collectedByMethod.isEmpty()}" class="table-wrap">
         <table class="table">
-            <thead><tr><th th:text="#{reports.col.method}">Mode</th><th style="text-align:right;" th:text="#{reports.col.amount}">Montant</th></tr></thead>
+            <thead><tr><th scope="col" th:text="#{reports.col.method}">Mode</th><th scope="col" style="text-align:right;" th:text="#{reports.col.amount}">Montant</th></tr></thead>
             <tbody>
             <tr th:each="m : ${report.collectedByMethod}">
                 <td><span class="badge" th:text="${@paymentMethods.label(m.key)}">ESPECES</span></td>

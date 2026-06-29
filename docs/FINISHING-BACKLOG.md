@@ -44,7 +44,7 @@
 |---|---|---|---|---|
 | A | Multi-tenant — finitions | 4 | 4 | ✅ terminé |
 | B | PWA — finitions | 4 | 0 | 🔲 à démarrer |
-| C | Accessibilité (A11y) — finitions | 3 | 1 | 🔄 en cours |
+| C | Accessibilité (A11y) — finitions | 3 | 2 | 🔄 en cours |
 | D | Divers (durcissement/polish) | 8 | 0 | 🔲 à démarrer |
 | Z | (Tier 2) Grosses features parquées | — | — | 📦 listées, hors périmètre finitions |
 
@@ -158,10 +158,24 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
   dossier patient laissé tel quel (déjà `role=tab`/`aria-selected`, JS-géré — pas de régression).
   *Vérifié* : `mvnd test` → **196 verts, 0 skip** (PostgreSQL Testcontainers inclus).
 
-- [ ] **C2 — Audit a11y des templates restants (lot 2).**
-  Idem C1 sur le reste : pharmacie, labo, imagerie, hospitalisation, maternité, rapports, admin,
-  portail patient, setup. Mêmes critères.
-  *Acceptation* : tous les templates audités ; checklist a11y cochée par vue.
+- [x] **C2 — Audit a11y des templates restants (lot 2). ✅ FAIT 2026-06-29.**
+  Mêmes critères que C1, appliqués à **tout le reste** : pharmacie (drugs/stock-receive/dispense + dashboard/stock/worklist/list/detail),
+  labo (form/result-entry + worklist/list/detail), imagerie (form/report-form + worklist/list/detail),
+  hospitalisation (admit/room-form + list/rooms/detail ; beds = grille de cartes, RAS), maternité
+  (form/visit-form/delivery-form + list/record), rapports (financial/activity/epidemiology/outstanding/dashboard),
+  admin (8 formulaires + 8 listes + audit + config), portail patient (form + home/appointments/record + **layout**), setup.
+  Posé `<label for>`+`id` sur **tous** les champs (`th:field` génère déjà l'`id` → seul `for` ajouté ;
+  `name=` simple → `for`+`id`). `<th scope="col">` sur toutes les tables (+ `<th scope="row">` sur les
+  rangées de saisie labo, `sr-only` pour colonnes Actions vides, `aria-label` sur cases à cocher labo/imagerie
+  reprenant le nom de l'analyse/examen). `aria-label` sur tous les filtres non étiquetés + les contrôles d'action
+  inline du détail hospitalisation. **Chrome portail** mis à parité C1 : skip-link → `#portal-main`, `main[tabindex=-1]`,
+  `nav[aria-label]`. Print-only (bulletins labo/imagerie, pdf-report) exclus (hors chrome interactif). +1 clé i18n
+  `common.selection` ×3 langues. setup/wizard déjà conforme (for/id présents). +2 tests `A11yTest` (labo form/for, worklist scope).
+  *Vérifié* : `mvnd test` → **196 verts, 0 skip** (PageRenderSmoke + Portal + I18nBundle inclus).
+
+- [ ] **C2-reliquat (optionnel) — pattern ARIA tablist complet.** Les onglets (dossier patient, dossier maternité)
+  portent `role=tablist`/`role=tab`/`aria-selected` mais pas `role=tabpanel`+`aria-controls`/`aria-labelledby`
+  (géré en JS). Laissé tel quel pour ne pas régresser le JS ; à compléter si un audit lecteur d'écran le réclame.
 
 - [ ] **C3 — Tests a11y automatisés (axe-core).**
   Intégrer axe-core sur les vues-clés rendues (via un test qui charge le HTML rendu + assert
@@ -270,6 +284,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-06-29 | **C2 — audit a11y lot 2 (le reste)** | `for`/`id` sur tous les champs des formulaires pharmacie/labo/imagerie/hospitalisation/maternité/rapports/admin(×8 forms + config)/portail (`th:field`→`for` seul ; `name=`→`for`+`id`). `<th scope="col">` sur **toutes** les tables restantes + `<th scope="row">` (saisie labo, grille semaine déjà en C1), `sr-only` colonnes Actions, `aria-label` cases à cocher labo/imagerie (nom analyse) + filtres non étiquetés + actions inline détail hospi. Chrome **portail** mis à parité C1 (skip-link/`#portal-main`/`nav[aria-label]`). +1 clé `common.selection` ×3. setup déjà conforme. Print-only exclus. +2 tests `A11yTest`. **196 verts, 0 skip.** |
 | 2026-06-29 | **C1 — audit a11y lot 1 (labels/scope/aria)** | `for`/`id` sur tous les champs des 5 formulaires (patients/appointments/consultations/billing form+pay) ; `aria-label` par colonne sur lignes de facturation dynamiques (Thymeleaf + JS) ; `<th scope="col">` sur toutes les tables (+ `sr-only` pour colonne Actions vide, `<th scope="row">` heure grille semaine) ; `aria-label` sur les filtres non étiquetés. 2 clés i18n `common.date_from/to` ×3. +2 tests `A11yTest`. Contraste badges OK (déjà ≥4.5:1). **196 verts, 0 skip.** |
 | 2026-06-29 | **A4 — SUPER_ADMIN prod + comptes inter-cliniques → chantier A TERMINÉ** | `ProdDataInitializer` : bootstrap SUPER_ADMIN (clinic_id NULL) via `CLINIC_SUPERADMIN_*` et/ou admin clinique via `CLINIC_ADMIN_*` (au moins un, sinon /setup). `UserService.createForClinic(clinicId,dto)` (clinic_id explicite, rôle ADMIN forcé) + endpoints `GET/POST /admin/clinics/{id}/admin` + template `admin-form.html` + lien liste + 3 clés i18n ×3 + flash `#{${success}}`. `.env.example` MAJ. +3 tests (service createForClinic + 2 gating SUPER_ADMIN/ADMIN). **194 verts, 0 skip.** Bootstrap prod non testable en H2 (revue). |
 | 2026-06-29 | **A3 — seed catalogues + config PLATEAU** | `DataInitializer` (runAs clinic2) : 2 départements/2 actes/2 analyses + `ClinicConfig` « Cabinet du Plateau ». Pas d'imagerie (preuve d'isolation gardée). Injections `Department/ActCatalog/ClinicConfigRepository` + helpers. `MultiTenancy.catalogues_*` réécrit (isolation par id) ; **A1 rendu indépendant du seed** (code neuf `A1_REUSE`, l'ancien réutilisait MED_GEN désormais présent côté PLATEAU → collision). **191 verts, 0 skip.** |

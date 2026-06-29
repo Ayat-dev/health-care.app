@@ -20,47 +20,47 @@
 
         <div class="form-grid-2">
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.visit.number}">N° de CPN *</label>
+                <label class="form-label" for="visitNumber" th:text="#{maternity.visit.number}">N° de CPN *</label>
                 <input type="number" min="1" th:field="*{visitNumber}" class="form-control" required/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.visit.date}">Date de la visite *</label>
+                <label class="form-label" for="visitDate" th:text="#{maternity.visit.date}">Date de la visite *</label>
                 <input type="date" th:field="*{visitDate}" class="form-control" required/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.col.doctor}">Médecin / sage-femme</label>
+                <label class="form-label" for="doctorId" th:text="#{maternity.col.doctor}">Médecin / sage-femme</label>
                 <select th:field="*{doctorId}" class="form-control">
                     <option value="" th:text="#{maternity.no_one}">— Aucun —</option>
                     <option th:each="d : ${doctors}" th:value="${d.id}" th:text="${d.fullName}">Dr.</option>
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.visit.ga}">Âge gestationnel (SA)</label>
+                <label class="form-label" for="gestationalAgeWeeks" th:text="#{maternity.visit.ga}">Âge gestationnel (SA)</label>
                 <input type="number" min="0" max="45" th:field="*{gestationalAgeWeeks}" class="form-control"
                        th:placeholder="#{maternity.visit.ga_ph}"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.visit.weight}">Poids (kg)</label>
+                <label class="form-label" for="weightKg" th:text="#{maternity.visit.weight}">Poids (kg)</label>
                 <input type="number" step="0.1" th:field="*{weightKg}" class="form-control"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.visit.uh}">Hauteur utérine (cm)</label>
+                <label class="form-label" for="uterineHeightCm" th:text="#{maternity.visit.uh}">Hauteur utérine (cm)</label>
                 <input type="number" step="0.1" th:field="*{uterineHeightCm}" class="form-control"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.visit.bp_sys}">Tension systolique (mmHg)</label>
+                <label class="form-label" for="bpSystolic" th:text="#{maternity.visit.bp_sys}">Tension systolique (mmHg)</label>
                 <input type="number" th:field="*{bpSystolic}" class="form-control" th:placeholder="#{maternity.visit.bp_sys_ph}"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.visit.bp_dia}">Tension diastolique (mmHg)</label>
+                <label class="form-label" for="bpDiastolic" th:text="#{maternity.visit.bp_dia}">Tension diastolique (mmHg)</label>
                 <input type="number" th:field="*{bpDiastolic}" class="form-control" th:placeholder="#{maternity.visit.bp_dia_ph}"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.visit.fhr}">Rythme cardiaque fœtal (bpm)</label>
+                <label class="form-label" for="fetalHeartRate" th:text="#{maternity.visit.fhr}">Rythme cardiaque fœtal (bpm)</label>
                 <input type="number" th:field="*{fetalHeartRate}" class="form-control" th:placeholder="#{maternity.visit.fhr_ph}"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.visit.presentation}">Présentation</label>
+                <label class="form-label" for="presentation" th:text="#{maternity.visit.presentation}">Présentation</label>
                 <select th:field="*{presentation}" class="form-control">
                     <option value="" th:text="#{common.none}">—</option>
                     <option value="CEPHALIQUE" th:text="#{presentation.CEPHALIQUE}">Céphalique</option>
@@ -86,15 +86,15 @@
         </div>
 
         <div class="form-group" style="margin-top:8px;">
-            <label class="form-label" th:text="#{maternity.visit.observations}">Observations</label>
+            <label class="form-label" for="observations" th:text="#{maternity.visit.observations}">Observations</label>
             <textarea th:field="*{observations}" class="form-control" rows="2"></textarea>
         </div>
         <div class="form-group">
-            <label class="form-label" th:text="#{maternity.visit.recommendations}">Recommandations</label>
+            <label class="form-label" for="recommendations" th:text="#{maternity.visit.recommendations}">Recommandations</label>
             <textarea th:field="*{recommendations}" class="form-control" rows="2"></textarea>
         </div>
         <div class="form-group">
-            <label class="form-label" th:text="#{maternity.visit.next_date}">Date de la prochaine visite</label>
+            <label class="form-label" for="nextVisitDate" th:text="#{maternity.visit.next_date}">Date de la prochaine visite</label>
             <input type="date" th:field="*{nextVisitDate}" class="form-control"/>
         </div>
 

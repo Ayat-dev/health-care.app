@@ -42,7 +42,7 @@
     <div class="table-wrap">
         <table class="table">
             <thead>
-            <tr><th>#</th><th th:text="#{pharmacy.col.drug}">Médicament</th><th style="text-align:right;" th:text="#{pharmacy.dashboard.qty_dispensed}">Quantité dispensée</th></tr>
+            <tr><th scope="col">#</th><th scope="col" th:text="#{pharmacy.col.drug}">Médicament</th><th scope="col" style="text-align:right;" th:text="#{pharmacy.dashboard.qty_dispensed}">Quantité dispensée</th></tr>
             </thead>
             <tbody>
             <tr th:if="${dash.topDispensed.isEmpty()}">

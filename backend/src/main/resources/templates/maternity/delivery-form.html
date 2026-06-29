@@ -18,11 +18,11 @@
 
         <div class="form-grid-2">
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.delivery.date} + ' *'">Date d'accouchement *</label>
+                <label class="form-label" for="deliveryDate" th:text="#{maternity.delivery.date} + ' *'">Date d'accouchement *</label>
                 <input type="date" th:field="*{deliveryDate}" class="form-control" required/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.delivery.type}">Type d'accouchement</label>
+                <label class="form-label" for="deliveryType" th:text="#{maternity.delivery.type}">Type d'accouchement</label>
                 <select th:field="*{deliveryType}" class="form-control">
                     <option value="" th:text="#{common.none}">—</option>
                     <option value="NATUREL" th:text="#{deliverytype.NATUREL}">Naturel (voie basse)</option>
@@ -31,7 +31,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.delivery.outcome}">Issue</label>
+                <label class="form-label" for="deliveryOutcome" th:text="#{maternity.delivery.outcome}">Issue</label>
                 <select th:field="*{deliveryOutcome}" class="form-control">
                     <option value="" th:text="#{common.none}">—</option>
                     <option value="VIVANT" th:text="#{deliveryoutcome.VIVANT}">Né vivant</option>
@@ -40,7 +40,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.delivery.newborn_gender}">Sexe du nouveau-né</label>
+                <label class="form-label" for="newbornGender" th:text="#{maternity.delivery.newborn_gender}">Sexe du nouveau-né</label>
                 <select th:field="*{newbornGender}" class="form-control">
                     <option value="" th:text="#{common.none}">—</option>
                     <option value="M" th:text="#{gender.M}">Masculin</option>
@@ -48,21 +48,21 @@
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.delivery.newborn_weight}">Poids de naissance (g)</label>
+                <label class="form-label" for="newbornWeightG" th:text="#{maternity.delivery.newborn_weight}">Poids de naissance (g)</label>
                 <input type="number" min="0" th:field="*{newbornWeightG}" class="form-control" th:placeholder="#{maternity.delivery.newborn_weight_ph}"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.delivery.apgar1}">Apgar à 1 min (/10)</label>
+                <label class="form-label" for="newbornApgar1" th:text="#{maternity.delivery.apgar1}">Apgar à 1 min (/10)</label>
                 <input type="number" min="0" max="10" th:field="*{newbornApgar1}" class="form-control"/>
             </div>
             <div class="form-group">
-                <label class="form-label" th:text="#{maternity.delivery.apgar5}">Apgar à 5 min (/10)</label>
+                <label class="form-label" for="newbornApgar5" th:text="#{maternity.delivery.apgar5}">Apgar à 5 min (/10)</label>
                 <input type="number" min="0" max="10" th:field="*{newbornApgar5}" class="form-control"/>
             </div>
         </div>
 
         <div class="form-group">
-            <label class="form-label" th:text="#{maternity.delivery.complications}">Complications</label>
+            <label class="form-label" for="complications" th:text="#{maternity.delivery.complications}">Complications</label>
             <textarea th:field="*{complications}" class="form-control" rows="2"
                       th:placeholder="#{maternity.delivery.complications_ph}"></textarea>
         </div>

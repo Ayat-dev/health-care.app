@@ -15,12 +15,13 @@
     <script th:src="@{/js/ui.js}" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#portal-main" th:text="#{a11y.skip_to_content}">Aller au contenu</a>
 <svg th:replace="~{fragments/icons :: sprite}"></svg>
 <div class="portal-shell">
     <header class="portal-header">
         <span class="brand-icon">⚕</span>
         <span class="brand-name">ClinicApp</span>
-        <nav class="portal-nav">
+        <nav class="portal-nav" th:aria-label="#{a11y.main_nav}">
             <a th:href="@{/portal}" th:text="#{portal.nav.home}"
                th:classappend="${currentUri == '/portal'} ? 'active'">Accueil</a>
             <a th:href="@{/portal/appointments}" th:text="#{portal.nav.appointments}"
@@ -50,7 +51,7 @@
         </div>
     </header>
 
-    <main class="portal-main">
+    <main class="portal-main" id="portal-main" tabindex="-1">
         <th:block th:replace="${content}"/>
     </main>
 </div>
