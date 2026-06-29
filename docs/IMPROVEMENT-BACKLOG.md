@@ -16,6 +16,13 @@
 > **État de référence au 2026-06-19** : 14 modules cliniques faits, RBAC propre (corrigé ce
 > jour : variable `th:each` réservée `mod`→`navMod` qui 500-ait toutes les pages ; gating
 > lecture pharmacie). Socle fonctionnel solide ; les manques sont surtout **non-fonctionnels**.
+>
+> **🔔 2026-06-29 — les finitions restantes sont suivies dans un tracker dédié : [`docs/FINISHING-BACKLOG.md`](FINISHING-BACKLOG.md)**
+> (multi-tenant finitions · PWA · A11y · Divers). Ce fichier-ci devient l'**historique P1→P6**
+> (référence ponctuelle, 52k tokens — ne pas relire d'un coup) ; le tracker est la **source de
+> vérité des finitions**. **NB : la note P4.2 ci-dessous (« slice fondation… ») est PÉRIMÉE** —
+> le multi-tenant est en **isolation complète** (V20→V30, validé PostgreSQL 16.14, cf. journal
+> entrées 2026-06-27). `mvnd test` au 2026-06-29 = **189 verts**.
 
 ---
 
