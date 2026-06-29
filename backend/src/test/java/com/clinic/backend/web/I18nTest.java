@@ -59,4 +59,18 @@ class I18nTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Dashboard")));
     }
+
+    /** Slice 13 (audit RTL fin) : une page applicative à fort tableau/formulaire (liste
+     *  patients) passe bien le document en RTL + langue arabe une fois authentifié — c'est
+     *  l'attribut {@code [dir="rtl"]} qui active les correctifs ciblés d'{@code app.css}
+     *  (en-têtes de table {@code text-align:start}, flèche {@code <select>} à gauche,
+     *  bordures d'accent en {@code border-inline-start}, etc.). */
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void module_a_fort_tableau_en_arabe_est_rtl() throws Exception {
+        mvc.perform(get("/patients").param("lang", "ar"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("dir=\"rtl\"")))
+                .andExpect(content().string(containsString("lang=\"ar\"")));
+    }
 }
