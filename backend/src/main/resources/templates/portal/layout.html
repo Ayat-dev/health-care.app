@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title th:text="${title} + ' — Portail patient'">ClinicApp</title>
+    <title th:text="${title} + ' — ' + #{portal.title_suffix}">ClinicApp</title>
     <link rel="stylesheet" th:href="@{/css/app.css}"/>
     <!-- PWA (P3.1) -->
     <link rel="manifest" th:href="@{/manifest.webmanifest}"/>
@@ -21,11 +21,11 @@
         <span class="brand-icon">⚕</span>
         <span class="brand-name">ClinicApp</span>
         <nav class="portal-nav">
-            <a th:href="@{/portal}"
+            <a th:href="@{/portal}" th:text="#{portal.nav.home}"
                th:classappend="${currentUri == '/portal'} ? 'active'">Accueil</a>
-            <a th:href="@{/portal/appointments}"
+            <a th:href="@{/portal/appointments}" th:text="#{portal.nav.appointments}"
                th:classappend="${#strings.startsWith(currentUri, '/portal/appointments')} ? 'active'">Mes rendez-vous</a>
-            <a th:href="@{/portal/record}"
+            <a th:href="@{/portal/record}" th:text="#{portal.nav.record}"
                th:classappend="${#strings.startsWith(currentUri, '/portal/record')} ? 'active'">Mon dossier</a>
         </nav>
         <div class="portal-user">
@@ -45,7 +45,7 @@
             </details>
             <span sec:authentication="name">Patient</span>
             <form th:action="@{/logout}" method="post" style="display:inline;">
-                <button type="submit" class="btn btn-ghost btn-sm">Déconnexion</button>
+                <button type="submit" class="btn btn-ghost btn-sm" th:text="#{layout.logout}">Déconnexion</button>
             </form>
         </div>
     </header>

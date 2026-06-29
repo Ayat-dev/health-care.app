@@ -6,6 +6,7 @@ import com.clinic.backend.billing.BillingService;
 import com.clinic.backend.config.ResourceNotFoundException;
 import com.clinic.backend.consultation.ConsultationService;
 import com.clinic.backend.dto.AppointmentDto;
+import com.clinic.backend.i18n.WebI18n;
 import com.clinic.backend.lab.LabService;
 import com.clinic.backend.model.User;
 import com.clinic.backend.patient.Patient;
@@ -48,6 +49,7 @@ public class PortalWebController {
     private final RadiologyService radiologyService;
     private final BillingService billingService;
     private final UserRepository userRepository;
+    private final WebI18n i18n;
 
     // ── Accueil ────────────────────────────────────────────────────────────
     @GetMapping
@@ -94,8 +96,7 @@ public class PortalWebController {
         dto.setStatus("PLANIFIE");
         try {
             appointmentService.create(dto);
-            ra.addFlashAttribute("success",
-                    "Votre demande de rendez-vous a été enregistrée. L'accueil la confirmera prochainement.");
+            ra.addFlashAttribute("success", i18n.t("portal.flash.requested"));
             return "redirect:/portal/appointments";
         } catch (IllegalArgumentException e) {
             model.addAttribute("patient", patient);

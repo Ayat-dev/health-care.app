@@ -1,50 +1,50 @@
-<html th:replace="~{portal/layout :: layout('Demander un rendez-vous', ~{::content})}">
+<html th:replace="~{portal/layout :: layout(#{portal.form.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
     <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
 
     <div class="form-card">
-        <h2 style="margin-bottom:16px;">Demander un rendez-vous</h2>
-        <p class="form-hint text-muted" style="margin-bottom:20px;">
-            Choisissez un médecin et un créneau. Votre demande sera confirmée par l'accueil de la clinique.
+        <h2 style="margin-bottom:16px;" th:text="#{portal.form.heading}">Demander un rendez-vous</h2>
+        <p class="form-hint text-muted" style="margin-bottom:20px;" th:text="#{portal.form.hint}">
+            Choisissez un médecin et un créneau.
         </p>
 
         <form th:action="@{/portal/appointments/request}" method="post">
             <div class="form-group">
-                <label class="form-label">Médecin *</label>
+                <label class="form-label" th:text="#{portal.form.doctor}">Médecin *</label>
                 <select name="doctorId" class="form-control" required>
-                    <option value="">— Sélectionner —</option>
+                    <option value="" th:text="#{portal.form.select}">— Sélectionner —</option>
                     <option th:each="d : ${doctors}" th:value="${d.id}" th:text="${d.fullName}"
                             th:selected="${appointment.doctorId == d.id}">Dr.</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Date et heure souhaitées *</label>
+                <label class="form-label" th:text="#{portal.form.datetime}">Date et heure souhaitées *</label>
                 <input type="datetime-local" name="startTime" class="form-control" required
                        th:value="${appointment.startTime != null ? #temporals.format(appointment.startTime,'yyyy-MM-dd''T''HH:mm') : ''}"/>
-                <small class="text-muted">Horaires de la clinique : 07h00 – 20h00.</small>
+                <small class="text-muted" th:text="#{portal.form.hours}">Horaires de la clinique : 07h00 – 20h00.</small>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Type</label>
+                <label class="form-label" th:text="#{portal.form.type}">Type</label>
                 <select name="type" class="form-control">
-                    <option value="CONSULTATION" th:selected="${appointment.type == 'CONSULTATION'}">Consultation</option>
-                    <option value="SUIVI" th:selected="${appointment.type == 'SUIVI'}">Suivi</option>
-                    <option value="TELECONSULTATION" th:selected="${appointment.type == 'TELECONSULTATION'}">Téléconsultation</option>
+                    <option value="CONSULTATION" th:selected="${appointment.type == 'CONSULTATION'}" th:text="#{apptype.CONSULTATION}">Consultation</option>
+                    <option value="SUIVI" th:selected="${appointment.type == 'SUIVI'}" th:text="#{apptype.SUIVI}">Suivi</option>
+                    <option value="TELECONSULTATION" th:selected="${appointment.type == 'TELECONSULTATION'}" th:text="#{apptype.TELECONSULTATION}">Téléconsultation</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Motif</label>
+                <label class="form-label" th:text="#{portal.form.reason}">Motif</label>
                 <textarea name="reason" class="form-control" rows="3"
-                          placeholder="Décrivez brièvement la raison de votre visite"
+                          th:placeholder="#{portal.form.reason_ph}"
                           th:text="${appointment.reason}"></textarea>
             </div>
 
             <div class="form-actions mt-16" style="display:flex; gap:8px;">
-                <button type="submit" class="btn btn-primary">Envoyer la demande</button>
-                <a th:href="@{/portal/appointments}" class="btn btn-ghost">Annuler</a>
+                <button type="submit" class="btn btn-primary" th:text="#{portal.form.submit}">Envoyer la demande</button>
+                <a th:href="@{/portal/appointments}" class="btn btn-ghost" th:text="#{common.cancel}">Annuler</a>
             </div>
         </form>
     </div>

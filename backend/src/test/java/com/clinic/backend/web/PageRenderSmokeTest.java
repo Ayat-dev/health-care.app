@@ -464,4 +464,31 @@ class PageRenderSmokeTest {
                 .andExpect(content().string(containsString("Audit log")))
                 .andExpect(content().string(containsString("Entity type")));
     }
+
+    /** Slice 12 — Portail patient : accueil / mes rendez-vous / mon dossier / demande de RDV
+     *  traduits FR→EN (dont le statut dynamique des RDV {@code #{status.*}}). Le compte seedé
+     *  {@code patient} (rôle PATIENT, rattaché au dossier de p1) accède à son espace. */
+    @Test
+    @WithUserDetails(value = "patient", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void portal_i18n_fr_puis_en() throws Exception {
+        // Accueil : carte FR « Mon dossier médical »
+        mvc.perform(get("/portal"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Mon dossier médical")));
+        // Accueil : bascule EN
+        mvc.perform(get("/portal").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("My medical record")))
+                .andExpect(content().string(containsString("Upcoming appointments")));
+        // Mon dossier : panneaux traduits + en-tête de colonne
+        mvc.perform(get("/portal/record").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("My invoices")))
+                .andExpect(content().string(containsString("Lab results")));
+        // Demande de RDV : formulaire traduit
+        mvc.perform(get("/portal/appointments/request").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Request an appointment")))
+                .andExpect(content().string(containsString("Send request")));
+    }
 }
