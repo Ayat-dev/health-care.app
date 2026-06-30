@@ -45,7 +45,7 @@
 | A | Multi-tenant — finitions | 4 | 4 | ✅ terminé |
 | B | PWA — finitions | 4 | 4 | ✅ terminé |
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
-| D | Divers (durcissement/polish) | 8 | 4 | 🔄 en cours |
+| D | Divers (durcissement/polish) | 8 | 5 | 🔄 en cours |
 | Z | (Tier 2) Grosses features parquées | — | — | 📦 listées, hors périmètre finitions |
 
 **Ordre conseillé** : A (clôt le multi-tenant, petites slices à forte valeur) → D4a (sécu) →
@@ -315,9 +315,27 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 > kill immédiat par appareil (aujourd'hui : TTL court 15 min ou logout-all pour le kill total).
 
 ### D2 — Monitoring / ops
-- [ ] **D2a — Dashboards Grafana provisionnés + métriques métier.** Provisionner datasource + JSON
-  dashboards ; ajouter compteurs/`@Timed` métier (consultations, encaissements…) ; label `clinic_id`
-  pour le multi-tenant. *Acc.* : dashboard chargé au boot Grafana + métriques métier visibles dans `/actuator/prometheus`.
+- [x] **D2a — Dashboards Grafana provisionnés + métriques métier. ✅ FAIT 2026-06-30.**
+  Compteurs métier Micrometer (pkg `metrics`, `BusinessMetrics`) tagués **`clinic_id`** (résolu via
+  `TenantContext`, multi-tenant) : `clinicapp.consultations.completed` (incr. dans
+  `ConsultationService.complete`) + `clinicapp.payments.recorded` & `clinicapp.payments.amount`
+  (tag additionnel **`method`**, incr. dans `BillingService.recordPayment`). Enregistrement **à la
+  volée** (`Counter.builder(...).register`, Micrometer déduplique par nom+tags → cardinalité bornée
+  cliniques×modes). Côté Grafana : **auto-provisionnement au boot** — `monitoring/grafana/provisioning/`
+  (datasource Prometheus `http://prometheus:9090` + provider de dashboards) + dashboard
+  `monitoring/grafana/dashboards/clinicapp-business.json` (variable `$clinic`, 4 stats + débits
+  consultations/encaissements + camembert montant/mode + HTTP système). `docker-compose.yml` monte
+  `provisioning/` (→ `/etc/grafana/provisioning`) et `dashboards/` (→ `/var/lib/grafana/dashboards`)
+  dans le service `grafana`. **NB** : `baseUnit("XOF")` retiré du compteur montant (Micrometer
+  l'injecte dans le nom → `..._XOF_total`, peu lisible) — nom propre `clinicapp_payments_amount_total`,
+  XOF dans la description. **NB test** (gotcha P4.3) : ni `PrometheusMeterRegistry` ni l'endpoint
+  `/actuator/prometheus` ne sont câblés en profil test → impossible d'asserter le rendu Prometheus ;
+  la couverture porte sur le registre Micrometer (source de cette sortie), vérif format en dev.
+  +3 tests `BusinessMetricsTest` (label `clinic_id` sur consultations ; `clinic_id`+`method` sur
+  encaissements nombre+montant ; compteurs distincts par clinique). *Vérifié* : `mvnd test` →
+  **220 verts, 0 skip** (Testcontainers a tourné, Docker présent).
+- [ ] **D2b — build-info (git/version) + alerting.** Plugin Spring Boot `build-info` (expose version/git
+  dans `/actuator/info`) + règles d'alerte Prometheus/Alertmanager de base. *Acc.* : `/actuator/info` montre version+git ; règle d'alerte définie.
 - [ ] **D2b — build-info (git/version) + alerting.** Plugin Spring Boot `build-info` (expose version/git
   dans `/actuator/info`) + règles d'alerte Prometheus/Alertmanager de base. *Acc.* : `/actuator/info` montre version+git ; règle d'alerte définie.
 
@@ -397,6 +415,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-06-30 | **D2a — Grafana provisionné + métriques métier** | Pkg `metrics`/`BusinessMetrics` : compteurs Micrometer tagués **`clinic_id`** (via `TenantContext`) — `clinicapp.consultations.completed` (`ConsultationService.complete`) + `clinicapp.payments.{recorded,amount}` (tag `method`, `BillingService.recordPayment`), enregistrés à la volée (dédup nom+tags). Grafana auto-provisionné : `monitoring/grafana/provisioning/{datasources,dashboards}` + dashboard `clinicapp-business.json` (var `$clinic`, stats + débits + camembert mode + HTTP). `docker-compose` monte provisioning+dashboards dans `grafana`. NB : `baseUnit("XOF")` retiré (sinon nom `..._XOF_total`). NB test : `PrometheusMeterRegistry`/endpoint non câblés en profil test (gotcha P4.3) → assert sur le registre Micrometer, format vérifié en dev. +3 tests `BusinessMetricsTest`. **220 verts, 0 skip.** |
 | 2026-06-30 | **D1d — rate-limit IP du login (Bucket4j) → bloc D1 TERMINÉ** | Dép. `bucket4j-core:8.7.0`. `LoginRateLimiter` (`@Component`, token-bucket/IP en mémoire) + `LoginRateLimitFilter` (classe simple, PAS un bean → pas d'auto-enregistrement Boot/double comptage) inséré sur les 2 chaînes avant l'auth → 429 + `Retry-After` au-delà de la limite (X-Forwarded-For-aware). Config `app.security.login-rate-limit.{max-attempts,window-minutes}` (20/15min). Complète le lockout compte (P1.3) contre le DoS distribué. +2 tests `LoginRateLimitTest` (limite=3 via `@TestPropertySource`). NB : limite relâchée (1e6) en profil test (suite enchaîne >20 logins 127.0.0.1 contexte partagé). **217 verts, 3 skip.** |
 | 2026-06-30 | **D1c — vue admin « sessions actives » + révocation par appareil** | Page `/admin/users/{id}/sessions` (ADMIN) liste les refresh actifs + bouton Révoquer → `RefreshTokenService.revokeSession(tokenId, userId)` (garde-fou owner, idempotent). Métadonnées appareil (`user_agent`/`ip_address`/`last_used_at`/`created_at` reporté) estampillées au login + **reportées à la rotation** → migration **V32** (3 cols nullables) + `RefreshToken` enrichi ; `AuthController` capture UA+IP (X-Forwarded-For). DTO `RefreshSessionDto` (jamais le jeton). Lien dans `users/list.html` + template `sessions.html` + 15 clés `admin.sessions.*` ×3. **Affinage** : replay révoqué-par-rotation (`replacedById != null`) = vol → coupe la lignée ; révoqué-sans-remplacement (admin/logout) → 401 sans escalade. +3 tests `AdminSessionsTest`. NB : pas de blocklist par jeton → access courant expire en 15 min ; kill immédiat total = logout-all. **215 verts, 3 skip.** |
 | 2026-06-30 | **D1b — purge planifiée des refresh tokens** | `RefreshTokenCleanupScheduler` (cron `0 30 3 * * *`) → `RefreshTokenService.purgeStaleTokens()` → repo `deleteExpiredOrRevokedBefore(cutoff)` (`@Modifying` JPQL `expiresAt < cutoff OR revokedAt < cutoff`). Tenant-agnostique (pas `@TenantId`) → **pas de `runAs`**. Rétention `app.jwt.refresh-cleanup-retention-days` (défaut 7 j ; `.env.example`) garde les jetons révoqués pour la détection de vol. +1 test `RefreshTokenCleanupTest` (FK user_id → seed sur id admin). **212 verts, 3 skip.** |

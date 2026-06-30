@@ -50,6 +50,7 @@ public class BillingService {
     private final UserRepository userRepository;
     private final ClinicConfigService clinicConfigService;
     private final com.clinic.backend.realtime.WorklistEvents worklistEvents;
+    private final com.clinic.backend.metrics.BusinessMetrics businessMetrics;
 
     // ── Listes / recherche ────────────────────────────────────────────────────
     @Transactional(readOnly = true)
@@ -391,6 +392,7 @@ public class BillingService {
         inv.setPaidAmount(inv.getPaidAmount().add(amount).setScale(2, RoundingMode.HALF_UP));
         refreshStatus(inv);
         Invoice saved = invoiceRepository.save(inv);
+        businessMetrics.paymentRecorded(payment.getMethod(), amount); // D2a — métrique métier (clinic_id + method)
         // Temps réel (P5.1 Lot D) : encaissement → la facture soldée quitte la file caisse partout.
         worklistEvents.billingQueueChanged("Encaissement enregistré");
         return saved;

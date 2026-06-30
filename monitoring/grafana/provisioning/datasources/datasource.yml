@@ -1,0 +1,15 @@
+# ============================================================
+#  Grafana — datasource Prometheus auto-provisionnée (D2a)
+#  Chargée au démarrage de Grafana (volume monté sur
+#  /etc/grafana/provisioning/datasources). Prometheus est
+#  joignable sur le réseau Docker privé (medical_net).
+# ============================================================
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false

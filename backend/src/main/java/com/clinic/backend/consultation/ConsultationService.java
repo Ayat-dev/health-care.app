@@ -32,6 +32,7 @@ public class ConsultationService {
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
     private final com.clinic.backend.billing.BillingService billingService;
+    private final com.clinic.backend.metrics.BusinessMetrics businessMetrics;
 
     // ── Listes / recherche ────────────────────────────────────────────────
     @Transactional(readOnly = true)
@@ -126,6 +127,7 @@ public class ConsultationService {
         }
         c.setStatus("TERMINE");
         Consultation saved = consultationRepository.save(c);
+        businessMetrics.consultationCompleted(); // D2a — métrique métier (clinic_id auto)
         // Auto-facturation (P5.1 Lot B) : la consultation clôturée alimente la facture ouverte du patient.
         Long patientId = saved.getPatient() != null ? saved.getPatient().getId() : null;
         billingService.chargeConsultation(patientId, saved.getId());
