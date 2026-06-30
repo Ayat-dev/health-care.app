@@ -71,6 +71,7 @@ services:
     profiles: ["monitoring"]
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alert.rules.yml:/etc/prometheus/alert.rules.yml:ro
       - prometheus_data:/prometheus
     # Pas de port publié : interrogé uniquement par Grafana sur le réseau privé.
     expose:

@@ -9,6 +9,19 @@ global:
   scrape_interval: 30s
   evaluation_interval: 30s
 
+# D2b — règles d'alerte de base (disponibilité backend, heap, taux d'erreurs 5xx).
+# Évaluées à chaque evaluation_interval, visibles dans l'onglet « Alerts ».
+rule_files:
+  - /etc/prometheus/alert.rules.yml
+
+# Routage des alertes (e-mail/webhook) = optionnel : décommenter + démarrer un
+# conteneur Alertmanager pour notifier réellement. Sans lui, Prometheus se contente
+# d'afficher l'état PENDING/FIRING dans son UI.
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']
+
 scrape_configs:
   - job_name: 'clinicapp-backend'
     metrics_path: /actuator/prometheus

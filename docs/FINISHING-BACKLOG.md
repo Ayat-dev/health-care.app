@@ -45,7 +45,7 @@
 | A | Multi-tenant — finitions | 4 | 4 | ✅ terminé |
 | B | PWA — finitions | 4 | 4 | ✅ terminé |
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
-| D | Divers (durcissement/polish) | 8 | 5 | 🔄 en cours |
+| D | Divers (durcissement/polish) | 8 | 6 | 🔄 en cours |
 | Z | (Tier 2) Grosses features parquées | — | — | 📦 listées, hors périmètre finitions |
 
 **Ordre conseillé** : A (clôt le multi-tenant, petites slices à forte valeur) → D4a (sécu) →
@@ -334,10 +334,23 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
   +3 tests `BusinessMetricsTest` (label `clinic_id` sur consultations ; `clinic_id`+`method` sur
   encaissements nombre+montant ; compteurs distincts par clinique). *Vérifié* : `mvnd test` →
   **220 verts, 0 skip** (Testcontainers a tourné, Docker présent).
-- [ ] **D2b — build-info (git/version) + alerting.** Plugin Spring Boot `build-info` (expose version/git
-  dans `/actuator/info`) + règles d'alerte Prometheus/Alertmanager de base. *Acc.* : `/actuator/info` montre version+git ; règle d'alerte définie.
-- [ ] **D2b — build-info (git/version) + alerting.** Plugin Spring Boot `build-info` (expose version/git
-  dans `/actuator/info`) + règles d'alerte Prometheus/Alertmanager de base. *Acc.* : `/actuator/info` montre version+git ; règle d'alerte définie.
+- [x] **D2b — build-info (git/version) + alerting. ✅ FAIT 2026-06-30.**
+  `/actuator/info` expose désormais une section **`build`** (version/artefact/heure — goal
+  `spring-boot:build-info`, génère `META-INF/build-info.properties` → `BuildProperties`) **et**
+  **`git`** (branche/commit/heure — plugin `io.github.git-commit-id:9.0.1`, génère `git.properties`
+  → `GitProperties`, mode `full`). Le `.git` est à la **racine du dépôt** (parent du module
+  `backend`) → `dotGitDirectory=${project.basedir}/../.git` ; `failOnNoGitDirectory=false` (build OK
+  hors dépôt git : CI/tarball). Config : `management.info.{build,git}.enabled=true` +
+  `management.info.git.mode=full`. **Alerting Prometheus** : `monitoring/alert.rules.yml` (3 règles —
+  `ClinicAppBackendDown` `up==0` 2m critical · `ClinicAppHighHeapUsage` heap>90% 5m ·
+  `ClinicAppHighServerErrorRate` 5xx>5% 5m), référencé via `rule_files` dans `prometheus.yml` +
+  monté dans le conteneur prometheus (`docker-compose`). Routage Alertmanager laissé optionnel
+  (stanza commentée — sans lui, Prometheus affiche PENDING/FIRING dans son UI). +2 tests
+  `ActuatorInfoTest` (`BuildProperties`/`GitProperties` injectés + `/actuator/info` contient
+  `build`/version/`git`). **NB** : les fichiers générés (`build-info.properties`/`git.properties`)
+  vont dans `target/classes` au build → présents au moment des tests (≠ gotcha prometheus de D2a,
+  car `/actuator/info` est un endpoint core mappé sous MockMvc). *Vérifié* : `mvnd test` →
+  **222 verts, 0 skip**.
 
 ### D3 — Crypto (extension)
 - [ ] **D3a — Chiffrer constantes/diagnostics consultation + résultats labo.** Nécessite d'élargir
@@ -415,6 +428,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-06-30 | **D2b — build-info (git/version) + alerting Prometheus** | `/actuator/info` gagne `build` (goal `spring-boot:build-info`→`BuildProperties`) + `git` (plugin `git-commit-id:9.0.1`→`GitProperties`, mode full). `.git` à la racine → `dotGitDirectory=${project.basedir}/../.git`, `failOnNoGitDirectory=false`. Config `management.info.{build,git}.enabled` + `git.mode=full`. Alerting : `monitoring/alert.rules.yml` (3 règles : backend down / heap>90% / 5xx>5%) via `rule_files` dans `prometheus.yml`, monté dans le conteneur ; Alertmanager optionnel (commenté). +2 tests `ActuatorInfoTest`. NB : fichiers générés dans `target/classes` → présents aux tests ; `/actuator/info` mappé sous MockMvc (≠ gotcha prometheus D2a). **222 verts, 0 skip.** |
 | 2026-06-30 | **D2a — Grafana provisionné + métriques métier** | Pkg `metrics`/`BusinessMetrics` : compteurs Micrometer tagués **`clinic_id`** (via `TenantContext`) — `clinicapp.consultations.completed` (`ConsultationService.complete`) + `clinicapp.payments.{recorded,amount}` (tag `method`, `BillingService.recordPayment`), enregistrés à la volée (dédup nom+tags). Grafana auto-provisionné : `monitoring/grafana/provisioning/{datasources,dashboards}` + dashboard `clinicapp-business.json` (var `$clinic`, stats + débits + camembert mode + HTTP). `docker-compose` monte provisioning+dashboards dans `grafana`. NB : `baseUnit("XOF")` retiré (sinon nom `..._XOF_total`). NB test : `PrometheusMeterRegistry`/endpoint non câblés en profil test (gotcha P4.3) → assert sur le registre Micrometer, format vérifié en dev. +3 tests `BusinessMetricsTest`. **220 verts, 0 skip.** |
 | 2026-06-30 | **D1d — rate-limit IP du login (Bucket4j) → bloc D1 TERMINÉ** | Dép. `bucket4j-core:8.7.0`. `LoginRateLimiter` (`@Component`, token-bucket/IP en mémoire) + `LoginRateLimitFilter` (classe simple, PAS un bean → pas d'auto-enregistrement Boot/double comptage) inséré sur les 2 chaînes avant l'auth → 429 + `Retry-After` au-delà de la limite (X-Forwarded-For-aware). Config `app.security.login-rate-limit.{max-attempts,window-minutes}` (20/15min). Complète le lockout compte (P1.3) contre le DoS distribué. +2 tests `LoginRateLimitTest` (limite=3 via `@TestPropertySource`). NB : limite relâchée (1e6) en profil test (suite enchaîne >20 logins 127.0.0.1 contexte partagé). **217 verts, 3 skip.** |
 | 2026-06-30 | **D1c — vue admin « sessions actives » + révocation par appareil** | Page `/admin/users/{id}/sessions` (ADMIN) liste les refresh actifs + bouton Révoquer → `RefreshTokenService.revokeSession(tokenId, userId)` (garde-fou owner, idempotent). Métadonnées appareil (`user_agent`/`ip_address`/`last_used_at`/`created_at` reporté) estampillées au login + **reportées à la rotation** → migration **V32** (3 cols nullables) + `RefreshToken` enrichi ; `AuthController` capture UA+IP (X-Forwarded-For). DTO `RefreshSessionDto` (jamais le jeton). Lien dans `users/list.html` + template `sessions.html` + 15 clés `admin.sessions.*` ×3. **Affinage** : replay révoqué-par-rotation (`replacedById != null`) = vol → coupe la lignée ; révoqué-sans-remplacement (admin/logout) → 401 sans escalade. +3 tests `AdminSessionsTest`. NB : pas de blocklist par jeton → access courant expire en 15 min ; kill immédiat total = logout-all. **215 verts, 3 skip.** |
