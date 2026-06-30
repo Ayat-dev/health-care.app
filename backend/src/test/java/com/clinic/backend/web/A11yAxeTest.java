@@ -74,13 +74,13 @@ class A11yAxeTest {
     private static final Set<String> BLOCKING_IMPACTS = Set.of("critical", "serious");
 
     /**
-     * Patron ARIA des onglets (dossier patient/maternité) géré en JS : porte
-     * {@code role=tab}/{@code aria-selected} mais pas {@code aria-controls}/{@code role=tabpanel}
-     * (C2-reliquat, volontairement différé pour ne pas régresser le JS). Exclu de l'audit
-     * automatique tant que ce reliquat n'est pas traité.
+     * Plus aucune règle différée (C2-reliquat traité 2026-07-01) : le patron ARIA « Tabs »
+     * du dossier patient/maternité porte désormais en <b>statique</b> (templates) la sémantique
+     * complète — {@code role=tablist}/{@code tab}/{@code tabpanel}, {@code aria-controls} ↔
+     * {@code aria-labelledby}, {@code tabindex} mobile — donc {@code aria-required-children} et
+     * {@code aria-required-attr} sont à présent audités sans exclusion.
      */
-    private static final Set<String> DEFERRED_RULES =
-            Set.of("aria-required-children", "aria-required-attr");
+    private static final Set<String> DEFERRED_RULES = Set.of();
 
     private static volatile String axeSource;
 
@@ -106,7 +106,8 @@ class A11yAxeTest {
         audit("/dashboard",
                 "/patients",
                 "/patients/new",
-                "/patients/1",
+                "/patients/1",          // dossier patient → patron ARIA « Tabs » complet (C2-reliquat)
+                "/maternity/1",         // dossier maternité → mêmes onglets ARIA
                 "/consultations/1",
                 "/lab",
                 "/lab/requests/new");

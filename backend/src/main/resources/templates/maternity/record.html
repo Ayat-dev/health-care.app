@@ -40,14 +40,14 @@
 
 <!-- Onglets (deep-linkables via #hash + ARIA — même patron que le dossier patient) -->
 <div class="tabs mt-16" role="tablist" th:aria-label="#{maternity.record.tabs_label}">
-    <button class="tab active" role="tab" aria-selected="true" data-tab="pregnancy" th:text="#{maternity.record.tab_pregnancy}">Grossesse</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="visits" th:text="#{maternity.record.tab_visits}">Consultations CPN</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="delivery" th:text="#{maternity.record.tab_delivery}">Accouchement</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="newborn" th:text="#{maternity.record.tab_newborn}">Nouveau-né</button>
+    <button class="tab active" id="tab-btn-pregnancy" role="tab" aria-selected="true" aria-controls="tab-pregnancy" tabindex="0" data-tab="pregnancy" th:text="#{maternity.record.tab_pregnancy}">Grossesse</button>
+    <button class="tab" id="tab-btn-visits" role="tab" aria-selected="false" aria-controls="tab-visits" tabindex="-1" data-tab="visits" th:text="#{maternity.record.tab_visits}">Consultations CPN</button>
+    <button class="tab" id="tab-btn-delivery" role="tab" aria-selected="false" aria-controls="tab-delivery" tabindex="-1" data-tab="delivery" th:text="#{maternity.record.tab_delivery}">Accouchement</button>
+    <button class="tab" id="tab-btn-newborn" role="tab" aria-selected="false" aria-controls="tab-newborn" tabindex="-1" data-tab="newborn" th:text="#{maternity.record.tab_newborn}">Nouveau-né</button>
 </div>
 
 <!-- Grossesse -->
-<div id="tab-pregnancy" class="tab-content active panel">
+<div id="tab-pregnancy" class="tab-content active panel" role="tabpanel" aria-labelledby="tab-btn-pregnancy" tabindex="0">
     <div class="form-grid-2 panel-body">
         <div><span class="detail-label" th:text="#{maternity.col.followed_by}">Suivi par</span> <span th:text="${record.doctorName ?: '—'}">—</span></div>
         <div><span class="detail-label" th:text="#{maternity.record.gravidity_parity}">Gravidité / Parité</span>
@@ -67,7 +67,7 @@
 </div>
 
 <!-- Consultations CPN -->
-<div id="tab-visits" class="tab-content panel" style="display:none">
+<div id="tab-visits" class="tab-content panel" style="display:none" role="tabpanel" aria-labelledby="tab-btn-visits" tabindex="0">
     <div class="panel-header" style="padding:0 0 12px;">
         <span th:text="#{maternity.visits.heading}">Consultations prénatales</span>
         <a th:if="${record.status != 'CLOTURE'}" th:href="@{/maternity/{id}/visits/new(id=${record.id})}"
@@ -108,7 +108,7 @@
 </div>
 
 <!-- Accouchement -->
-<div id="tab-delivery" class="tab-content panel" style="display:none">
+<div id="tab-delivery" class="tab-content panel" style="display:none" role="tabpanel" aria-labelledby="tab-btn-delivery" tabindex="0">
     <div th:if="${record.deliveryDate == null}" class="empty-state">
         <span th:text="#{maternity.delivery.empty_record}">Aucun accouchement enregistré.</span>
         <a th:if="${record.status == 'EN_COURS'}" th:href="@{/maternity/{id}/delivery(id=${record.id})}"
@@ -127,7 +127,7 @@
 </div>
 
 <!-- Nouveau-né -->
-<div id="tab-newborn" class="tab-content panel" style="display:none">
+<div id="tab-newborn" class="tab-content panel" style="display:none" role="tabpanel" aria-labelledby="tab-btn-newborn" tabindex="0">
     <div th:if="${record.deliveryDate == null}" class="empty-state" th:text="#{maternity.newborn.empty}">Données disponibles après l'accouchement.</div>
     <div th:unless="${record.deliveryDate == null}" class="form-grid-2 panel-body">
         <div><span class="detail-label" th:text="#{maternity.newborn.gender}">Sexe</span>

@@ -209,9 +209,20 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
   `common.selection` ×3 langues. setup/wizard déjà conforme (for/id présents). +2 tests `A11yTest` (labo form/for, worklist scope).
   *Vérifié* : `mvnd test` → **196 verts, 0 skip** (PageRenderSmoke + Portal + I18nBundle inclus).
 
-- [ ] **C2-reliquat (optionnel) — pattern ARIA tablist complet.** Les onglets (dossier patient, dossier maternité)
-  portent `role=tablist`/`role=tab`/`aria-selected` mais pas `role=tabpanel`+`aria-controls`/`aria-labelledby`
-  (géré en JS). Laissé tel quel pour ne pas régresser le JS ; à compléter si un audit lecteur d'écran le réclame.
+- [x] **C2-reliquat — pattern ARIA tablist complet. ✅ FAIT 2026-07-01.**
+  La sémantique « Tabs » du motif WAI-ARIA est désormais portée **en statique** par les 2 templates à
+  onglets (`patients/detail.html` 9 onglets, `maternity/record.html` 4 onglets), pas seulement injectée
+  en JS : chaque onglet `role=tab` gagne `id`/`aria-controls`→panneau + `tabindex` mobile (roving :
+  actif `0`, autres `-1`) ; chaque panneau `role=tabpanel` + `aria-labelledby`→onglet + `tabindex=0`
+  (focalisable). `js/ui.js` (`initTabs`, patron mutualisé) **gère l'état dynamique** : bascule
+  `aria-selected`/`tabindex`/affichage, **navigation clavier** ←/→/↑/↓ + Origine/Fin (activation
+  automatique + focus), et garde la liaison ARIA en **filet « si absent »** (templates = source de
+  vérité, JS = secours pour une future page). **Point clé** : `A11yAxeTest` (C3) auditant le HTML
+  **rendu serveur avant le JS de page**, mettre l'ARIA en statique permet de **lever l'exclusion** des
+  règles `aria-required-children`/`aria-required-attr` (`DEFERRED_RULES` désormais vide) — et d'ajouter
+  `/maternity/1` aux vues auditées. **Vérifié réellement exécuté** (pas skippé) : `A11yAxeTest` 5 tests,
+  0 violation critique/sérieuse sur `/patients/1` + `/maternity/1` avec les règles tablist actives.
+  *Vérifié* : `mvnd test` → **250 verts, 0 skip**.
 
 - [x] **C3 — Tests a11y automatisés (axe-core). ✅ FAIT 2026-06-30.**
   Nouveau `A11yAxeTest` (frère de `A11yTest`) : exécute le **vrai moteur axe-core** (WCAG 2.0/2.1
@@ -244,8 +255,8 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
   se **skippe** (assumeTrue) au lieu d'échouer — même posture que A1. Règles `aria-required-children/attr`
   exclues (C2-reliquat ARIA tablist, encore différé).
 
-> **✅ Chantier C (accessibilité) TERMINÉ** — C1→C3 faits. Reste optionnel : C2-reliquat (pattern
-> ARIA tablist complet) si un audit lecteur d'écran le réclame.
+> **✅ Chantier C (accessibilité) TERMINÉ** — C1→C3 **+ C2-reliquat** (pattern ARIA tablist complet,
+> 2026-07-01) faits. Plus rien d'optionnel en suspens sur l'a11y.
 
 > **Parqué (C)** : audit lecteur d'écran réel (manuel, exploitation — non automatisable ici).
 
@@ -523,6 +534,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-07-01 | **C2-reliquat — pattern ARIA tablist complet** | Sémantique « Tabs » WAI-ARIA portée **en statique** par `patients/detail.html` (9 onglets) + `maternity/record.html` (4) : onglets `id`/`aria-controls`/`tabindex` roving, panneaux `role=tabpanel`/`aria-labelledby`/`tabindex=0`. `js/ui.js initTabs` gère l'état dynamique + **clavier** ←/→/↑/↓/Origine/Fin (activation auto+focus) ; liaison ARIA en filet « si absent ». Comme `A11yAxeTest` audite le HTML **pré-JS**, le statique permet de **lever l'exclusion** `aria-required-children`/`aria-required-attr` (`DEFERRED_RULES` vide) + ajout `/maternity/1` aux vues. Axe **réellement exécuté** (5 tests, 0 skip) → 0 violation tablist. **250 verts, 0 skip.** |
 | 2026-06-30 | **D4d — i18n des reliquats FR en dur → bloc D4 + chantier D TERMINÉS** | Balayage outillé (templates sans `#{` + sweep accents non liés à `th:*`/`#{`). Onglet Aperçu déjà traduit (note backlog périmée). 6 vues FR en dur traduites FR/EN/AR : `notifications/list.html`, `dashboard-doctor.html` (titres/colonnes/états + badges enum→`#{status.*}`/`#{priority.*}`), `error.html`, `fragments/ui.html` (← Retour partagé→`common.back`), `setup/wizard.html` (+`th:lang`/`th:dir` RTL), `teleconsultation/room.html` (+RTL). Faux positifs écartés : défauts `th:text` multi-lignes, commentaires, emojis, noms de langue (Français/English/العربية). ~60 clés ×3 (`error/notifications/dashboard.doctor/setup/teleconsultation.*` + `common.{patient,doctor,reason,diagnosis,number,priority}`). **Bundles ré-alignés 1401 clés** (diff vide). +2 tests `PageRenderSmokeTest`. **250 verts, 0 skip.** |
 | 2026-06-30 | **D4c — recherche globale étendue + libellés CIM-10 + top pathologies sur codes** | **(1)** `GlobalSearchService` +3 catégories gatées par module : Consultations (`searchForPalette` nom patient OU code CIM-10, non chiffré), Rendez-vous (`searchForPalette` → `/appointments/{id}/edit`), Médicaments (`DrugRepository.search` → `/pharmacy/drugs/{id}/edit`). 3 clés `search.section.{consultations,appointments,drugs}` ×3. **(2)** `Icd10Service.{splitCodes,titlesByCode,resolveCodes,displayLabel}` + repo `findByCodeInUpper` ; `ConsultationDto.icd10Resolved` rempli seulement dans `getDtoById` ; `detail.html` liste « CODE — Titre ». **(3)** `ReportService.topDiagnoses` agrège `findCompletedIcd10Codes` (découpe multi-codes, compte/code, résout libellés en lot) → remplace `findCompletedDiagnoses` (supprimé). Test D3a `top_pathologies_*` réécrit sur codes (B54=2/J45=2, preuve découpage) ; +2 `GlobalSearchTest` (consult K29 / drug Paracétamol) +1 `Icd10CatalogTest` (résolution). **248 verts, 0 skip.** |
 | 2026-06-30 | **D4b — portail patient : annulation RDV + PDF + profil/mot de passe** | 3 actions sous `hasRole('PATIENT')`, cloisonnées au dossier (`PortalService.currentPatient()`). Annulation : `POST /portal/appointments/{id}/cancel` (ownership→403, PLANIFIE/CONFIRME seulement). PDF : `PortalDocumentService` (ownership + validé pour labo/imagerie, réutilise `PdfExportService`+`getBulletinDto` images base64 D4a) → endpoints `/portal/{lab,radiology,prescriptions,invoices}/…/pdf` ; `BillingWebController.pdfInline` passé **public** ; liens ⬇ PDF + section Ordonnances dans `record.html`. Profil : `/portal/profile` + `POST /profile/password` → `UserService.changeOwnPassword` (vérifie l'actuel, politique ≥8+chiffre, bump token-version + revokeAll). `portal/profile.html` + lien nav. 22 clés i18n ×3. +9 tests `PortalTest` (dont doc/RDV d'autrui→403). NB : `AccessDeniedException` contrôleur/service → 403 via `ExceptionTranslationFilter`. **245 verts, 0 skip.** |

@@ -41,19 +41,19 @@
 
 <!-- Onglets (deep-linkables via #hash, sémantique ARIA tablist) -->
 <div class="tabs" role="tablist" th:aria-label="#{patients.detail.tabs_aria}">
-    <button class="tab active" role="tab" aria-selected="true" data-tab="overview" th:text="#{patients.detail.tab_overview}">Aperçu</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="info" th:text="#{patients.detail.tab_info}">Informations</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="medical" th:text="#{patients.detail.tab_medical}">Médical</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="consultations" th:text="#{patients.detail.tab_consultations}">Consultations</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="lab" th:text="#{patients.detail.tab_lab}">Laboratoire</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="imaging" th:text="#{patients.detail.tab_imaging}">Imagerie</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="stays" th:text="#{patients.detail.tab_stays}">Séjours</button>
-    <button th:if="${patient.gender == 'F'}" class="tab" role="tab" aria-selected="false" data-tab="maternity" th:text="#{patients.detail.tab_maternity}">Maternité</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="billing" th:text="#{patients.detail.tab_billing}">Facturation</button>
+    <button class="tab active" id="tab-btn-overview" role="tab" aria-selected="true" aria-controls="tab-overview" tabindex="0" data-tab="overview" th:text="#{patients.detail.tab_overview}">Aperçu</button>
+    <button class="tab" id="tab-btn-info" role="tab" aria-selected="false" aria-controls="tab-info" tabindex="-1" data-tab="info" th:text="#{patients.detail.tab_info}">Informations</button>
+    <button class="tab" id="tab-btn-medical" role="tab" aria-selected="false" aria-controls="tab-medical" tabindex="-1" data-tab="medical" th:text="#{patients.detail.tab_medical}">Médical</button>
+    <button class="tab" id="tab-btn-consultations" role="tab" aria-selected="false" aria-controls="tab-consultations" tabindex="-1" data-tab="consultations" th:text="#{patients.detail.tab_consultations}">Consultations</button>
+    <button class="tab" id="tab-btn-lab" role="tab" aria-selected="false" aria-controls="tab-lab" tabindex="-1" data-tab="lab" th:text="#{patients.detail.tab_lab}">Laboratoire</button>
+    <button class="tab" id="tab-btn-imaging" role="tab" aria-selected="false" aria-controls="tab-imaging" tabindex="-1" data-tab="imaging" th:text="#{patients.detail.tab_imaging}">Imagerie</button>
+    <button class="tab" id="tab-btn-stays" role="tab" aria-selected="false" aria-controls="tab-stays" tabindex="-1" data-tab="stays" th:text="#{patients.detail.tab_stays}">Séjours</button>
+    <button th:if="${patient.gender == 'F'}" class="tab" id="tab-btn-maternity" role="tab" aria-selected="false" aria-controls="tab-maternity" tabindex="-1" data-tab="maternity" th:text="#{patients.detail.tab_maternity}">Maternité</button>
+    <button class="tab" id="tab-btn-billing" role="tab" aria-selected="false" aria-controls="tab-billing" tabindex="-1" data-tab="billing" th:text="#{patients.detail.tab_billing}">Facturation</button>
 </div>
 
 <!-- Onglet Aperçu (coup d'œil + timeline) — P3.6 -->
-<div id="tab-overview" class="tab-content active panel">
+<div id="tab-overview" class="tab-content active panel" role="tabpanel" aria-labelledby="tab-btn-overview" tabindex="0">
 
     <!-- Alertes -->
     <div th:if="${!overview.alerts.isEmpty()}" class="overview-alerts">
@@ -127,7 +127,7 @@
 </div>
 
 <!-- Onglet Informations -->
-<div id="tab-info" class="tab-content panel" style="display:none">
+<div id="tab-info" class="tab-content panel" style="display:none" role="tabpanel" aria-labelledby="tab-btn-info" tabindex="0">
     <div class="form-grid-2">
         <div><span class="detail-label" th:text="#{patients.detail.info_phone}">Téléphone</span>
              <span th:text="${patient.phone ?: '—'}">—</span></div>
@@ -149,7 +149,7 @@
 </div>
 
 <!-- Onglet Médical -->
-<div id="tab-medical" class="tab-content panel" style="display:none">
+<div id="tab-medical" class="tab-content panel" style="display:none" role="tabpanel" aria-labelledby="tab-btn-medical" tabindex="0">
     <div class="form-grid-2">
         <div><span class="detail-label" th:text="#{patients.detail.blood_type}">Groupe sanguin</span>
              <span th:text="${patient.bloodType ?: '—'}">—</span></div>
@@ -167,7 +167,7 @@
 </div>
 
 <!-- Onglet Consultations -->
-<div id="tab-consultations" class="tab-content panel" style="display:none">
+<div id="tab-consultations" class="tab-content panel" style="display:none" role="tabpanel" aria-labelledby="tab-btn-consultations" tabindex="0">
     <div class="panel-header" style="padding:0 0 12px;">
         <span th:text="#{patients.detail.consultations_history}">Historique des consultations</span>
         <a th:href="@{/consultations/new(patientId=${patient.id})}" class="btn btn-primary btn-sm" th:text="#{patients.detail.new_consultation}">+ Nouvelle consultation</a>
@@ -195,7 +195,7 @@
 </div>
 
 <!-- Onglet Laboratoire -->
-<div id="tab-lab" class="tab-content panel" style="display:none">
+<div id="tab-lab" class="tab-content panel" style="display:none" role="tabpanel" aria-labelledby="tab-btn-lab" tabindex="0">
     <div class="panel-header" style="padding:0 0 12px;">
         <span th:text="#{patients.detail.lab_history}">Historique des analyses</span>
         <a th:href="@{/lab/requests/new(patientId=${patient.id})}" class="btn btn-primary btn-sm" th:text="#{patients.detail.new_lab}">+ Nouvelle demande</a>
@@ -227,7 +227,7 @@
 </div>
 
 <!-- Onglet Imagerie -->
-<div id="tab-imaging" class="tab-content panel" style="display:none">
+<div id="tab-imaging" class="tab-content panel" style="display:none" role="tabpanel" aria-labelledby="tab-btn-imaging" tabindex="0">
     <div class="panel-header" style="padding:0 0 12px;">
         <span th:text="#{patients.detail.imaging_history}">Historique d'imagerie</span>
         <a th:href="@{/radiology/requests/new(patientId=${patient.id})}" class="btn btn-primary btn-sm" th:text="#{patients.detail.new_lab}">+ Nouvelle demande</a>
@@ -259,7 +259,7 @@
 </div>
 
 <!-- Onglet Séjours -->
-<div id="tab-stays" class="tab-content panel" style="display:none">
+<div id="tab-stays" class="tab-content panel" style="display:none" role="tabpanel" aria-labelledby="tab-btn-stays" tabindex="0">
     <div class="panel-header" style="padding:0 0 12px;">
         <span th:text="#{patients.detail.stays_history}">Historique des hospitalisations</span>
         <a th:href="@{/hospitalization/admit(patientId=${patient.id})}" class="btn btn-primary btn-sm" th:text="#{patients.detail.admit}">+ Admettre</a>
@@ -288,7 +288,7 @@
 </div>
 
 <!-- Onglet Maternité (patientes uniquement) -->
-<div th:if="${patient.gender == 'F'}" id="tab-maternity" class="tab-content panel" style="display:none">
+<div th:if="${patient.gender == 'F'}" id="tab-maternity" class="tab-content panel" style="display:none" role="tabpanel" aria-labelledby="tab-btn-maternity" tabindex="0">
     <div class="panel-header" style="padding:0 0 12px;">
         <span th:text="#{patients.detail.maternity_followup}">Suivi de grossesse</span>
         <a th:if="${maternityRecord == null}" th:href="@{/maternity/new(patientId=${patient.id})}"
@@ -316,7 +316,7 @@
 </div>
 
 <!-- Onglet Facturation -->
-<div id="tab-billing" class="tab-content panel" style="display:none">
+<div id="tab-billing" class="tab-content panel" style="display:none" role="tabpanel" aria-labelledby="tab-btn-billing" tabindex="0">
     <div class="panel-header" style="padding:0 0 12px;">
         <span th:text="#{patients.detail.invoices}">Factures</span>
         <a th:href="@{/billing/invoices/new(patientId=${patient.id})}" class="btn btn-primary btn-sm" th:text="#{patients.detail.new_invoice}">+ Nouvelle facture</a>

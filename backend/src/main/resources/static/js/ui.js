@@ -13,6 +13,14 @@
  * revient sur la page. Aucune dépendance, aucun `onclick` inline,
  * aucun usage de l'objet global `event`.
  *
+ * Accessibilité (motif WAI-ARIA « Tabs », C2-reliquat) : le JS pose la
+ * sémantique complète que le HTML ne porte pas — `role=tablist` sur la barre,
+ * et pour chaque onglet `aria-controls` ↔ son panneau `aria-labelledby`, plus
+ * un `tabindex` mobile (roving : seul l'onglet actif est tabbable). Navigation
+ * clavier : ←/→ (et ↑/↓), Origine/Fin déplacent ET activent (activation
+ * automatique), le panneau est focalisable (`tabindex=0`). Les onglets/panneaux
+ * étant générés ensemble côté serveur, on relie par convention `#tab-<name>`.
+ *
  * Sûr à charger partout : si la page n'a pas de `.tab[data-tab]`, no-op.
  */
 (function () {
@@ -20,29 +28,74 @@
         const tabs = Array.from(document.querySelectorAll('.tab[data-tab]'));
         if (!tabs.length) return;
 
-        const panels = Array.from(document.querySelectorAll('.tab-content'));
-        panels.forEach(p => p.setAttribute('role', 'tabpanel'));
+        // La barre porte role=tablist (déjà dans les templates, posé ici par sûreté).
+        const tablist = tabs[0].closest('.tabs');
+        if (tablist && tablist.getAttribute('role') !== 'tablist') {
+            tablist.setAttribute('role', 'tablist');
+        }
 
+        const panels = Array.from(document.querySelectorAll('.tab-content'));
         const def = (tabs.find(t => t.classList.contains('active')) || tabs[0]).dataset.tab;
 
-        function activate(name, updateHash) {
+        // Liaison ARIA onglet ↔ panneau (un panneau = #tab-<name>, un onglet = #tab-btn-<name>).
+        // Les templates portent déjà cette sémantique en statique (auditable par axe avant JS) ;
+        // on ne complète ici que ce qui manquerait (filet pour une future page à onglets).
+        tabs.forEach(t => {
+            const name = t.dataset.tab;
+            if (!t.id) t.id = 'tab-btn-' + name;
+            const panel = document.getElementById('tab-' + name);
+            if (panel) {
+                if (!t.getAttribute('aria-controls')) t.setAttribute('aria-controls', panel.id);
+                if (panel.getAttribute('role') !== 'tabpanel') panel.setAttribute('role', 'tabpanel');
+                if (!panel.getAttribute('aria-labelledby')) panel.setAttribute('aria-labelledby', t.id);
+                if (!panel.hasAttribute('tabindex')) panel.setAttribute('tabindex', '0');
+            }
+        });
+
+        function activate(name, updateHash, setFocus) {
             const panel = document.getElementById('tab-' + name);
             if (!panel) return;
             panels.forEach(p => p.style.display = 'none');
-            tabs.forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+            tabs.forEach(t => {
+                t.classList.remove('active');
+                t.setAttribute('aria-selected', 'false');
+                t.setAttribute('tabindex', '-1'); // roving : non-actifs hors séquence de tabulation
+            });
             panel.style.display = 'block';
             const btn = tabs.find(t => t.dataset.tab === name);
-            if (btn) { btn.classList.add('active'); btn.setAttribute('aria-selected', 'true'); }
+            if (btn) {
+                btn.classList.add('active');
+                btn.setAttribute('aria-selected', 'true');
+                btn.setAttribute('tabindex', '0');
+                if (setFocus) btn.focus();
+            }
             if (updateHash && location.hash !== '#' + name) {
                 history.replaceState(null, '', '#' + name);
             }
         }
 
-        tabs.forEach(t => t.addEventListener('click', () => activate(t.dataset.tab, true)));
-        window.addEventListener('hashchange', () => activate((location.hash || '#' + def).slice(1), false));
+        tabs.forEach((t, i) => {
+            t.addEventListener('click', () => activate(t.dataset.tab, true, false));
+            // Clavier : flèches/Origine/Fin déplacent le focus ET activent (activation auto).
+            t.addEventListener('keydown', (e) => {
+                let target = null;
+                switch (e.key) {
+                    case 'ArrowRight':
+                    case 'ArrowDown': target = tabs[(i + 1) % tabs.length]; break;
+                    case 'ArrowLeft':
+                    case 'ArrowUp':   target = tabs[(i - 1 + tabs.length) % tabs.length]; break;
+                    case 'Home':      target = tabs[0]; break;
+                    case 'End':       target = tabs[tabs.length - 1]; break;
+                    default: return;
+                }
+                e.preventDefault();
+                activate(target.dataset.tab, true, true);
+            });
+        });
+        window.addEventListener('hashchange', () => activate((location.hash || '#' + def).slice(1), false, false));
 
         const initial = (location.hash || '#' + def).slice(1);
-        activate(document.getElementById('tab-' + initial) ? initial : def, false);
+        activate(document.getElementById('tab-' + initial) ? initial : def, false, false);
     }
 
     document.addEventListener('DOMContentLoaded', initTabs);
