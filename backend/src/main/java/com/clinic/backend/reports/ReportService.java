@@ -34,6 +34,7 @@ import java.time.Period;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Read-only reporting layer (module 14). Owns no tables — it aggregates across the
@@ -254,9 +255,16 @@ public class ReportService {
     // ════════════════════════════════ HELPERS ══════════════════════════════════
 
     private List<LabelValueDto> topDiagnoses(LocalDateTime from, LocalDateTime to, int limit) {
-        return consultationRepository.findTopDiagnoses(from, to).stream()
+        // Diagnostic chiffré au repos (D3a) → agrégation en Java après déchiffrement
+        // (impossible de GROUP BY sur du chiffré à IV aléatoire). Tx readOnly ouverte ici.
+        Map<String, Long> counts = consultationRepository.findCompletedDiagnoses(from, to).stream()
+                .filter(d -> d != null && !d.isBlank())
+                .map(String::trim)
+                .collect(Collectors.groupingBy(d -> d, LinkedHashMap::new, Collectors.counting()));
+        return counts.entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
                 .limit(limit)
-                .map(row -> new LabelValueDto((String) row[0], ((Number) row[1]).longValue()))
+                .map(e -> new LabelValueDto(e.getKey(), e.getValue()))
                 .toList();
     }
 

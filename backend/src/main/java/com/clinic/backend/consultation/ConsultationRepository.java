@@ -62,16 +62,19 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Long
            "WHERE c.consultationDate >= :from AND c.consultationDate < :to AND c.status <> 'ANNULE'")
     long countBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
-    /** Top diagnostics (pathologies) des consultations clôturées sur la période — [label, count]. */
+    /**
+     * Diagnostics (déchiffrés) des consultations clôturées sur la période. Le diagnostic
+     * étant chiffré au repos (D3a, IV aléatoire), on ne peut PLUS faire de {@code GROUP BY}
+     * en SQL ; on récupère les valeurs (déchiffrées par le convertisseur sur la projection)
+     * et l'agrégation « top pathologies » se fait en Java côté service (recherche intacte).
+     */
     @Query("""
-        SELECT c.diagnosis, COUNT(c) FROM Consultation c
+        SELECT c.diagnosis FROM Consultation c
         WHERE c.status = 'TERMINE'
-          AND c.diagnosis IS NOT NULL AND c.diagnosis <> ''
+          AND c.diagnosis IS NOT NULL
           AND c.consultationDate >= :from AND c.consultationDate < :to
-        GROUP BY c.diagnosis
-        ORDER BY COUNT(c) DESC
         """)
-    List<Object[]> findTopDiagnoses(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+    List<String> findCompletedDiagnoses(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
     /** Consultations par département sur la période — [departmentName, count]. */
     @Query("""

@@ -1,6 +1,7 @@
 package com.clinic.backend.consultation;
 
 import com.clinic.backend.appointment.Appointment;
+import com.clinic.backend.crypto.PhiStringConverter;
 import com.clinic.backend.department.Department;
 import com.clinic.backend.model.User;
 import com.clinic.backend.patient.Patient;
@@ -73,21 +74,30 @@ public class Consultation {
     private Integer respiratoryRate;
 
     // ── Clinique ────────────────────────────────────────────────────────────
+    // PHI au repos (D3a) : les narratifs cliniques sont chiffrés en base (AES-GCM).
+    // PAS icd10_codes (code structuré, recherché/agrégé — cf. D4c) ni les constantes
+    // numériques. Le diagnostic est chiffré ; son agrégation « top pathologies » se
+    // fait désormais en Java après déchiffrement (cf. ReportService) — recherche intacte.
+    @Convert(converter = PhiStringConverter.class)
     @Column(name = "chief_complaint", columnDefinition = "TEXT")
     private String chiefComplaint;
 
+    @Convert(converter = PhiStringConverter.class)
     @Column(columnDefinition = "TEXT")
     private String history;
 
+    @Convert(converter = PhiStringConverter.class)
     @Column(name = "physical_exam", columnDefinition = "TEXT")
     private String physicalExam;
 
+    @Convert(converter = PhiStringConverter.class)
     @Column(columnDefinition = "TEXT")
     private String diagnosis;
 
     @Column(name = "icd10_codes", length = 255)
     private String icd10Codes;
 
+    @Convert(converter = PhiStringConverter.class)
     @Column(name = "treatment_plan", columnDefinition = "TEXT")
     private String treatmentPlan;
 

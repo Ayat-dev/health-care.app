@@ -1,5 +1,6 @@
 package com.clinic.backend.lab;
 
+import com.clinic.backend.crypto.PhiStringConverter;
 import com.clinic.backend.model.User;
 import jakarta.persistence.*;
 import org.hibernate.annotations.TenantId;
@@ -35,12 +36,17 @@ public class LabResult {
     @JoinColumn(name = "laborantin_id")
     private User laborantin;
 
+    // PHI au repos (D3a) : valeur de résultat + plage de référence + notes chiffrées
+    // (AES-GCM). PAS l'unité (courte, non-PHI). L'auto-détection d'anomalie lit la
+    // valeur via l'entité (déchiffrée), aucune requête SQL ne filtre dessus.
+    @Convert(converter = PhiStringConverter.class)
     @Column(name = "result_value", columnDefinition = "TEXT", nullable = false)
     private String resultValue;
 
     @Column(length = 30)
     private String unit;
 
+    @Convert(converter = PhiStringConverter.class)
     @Column(name = "reference_range", columnDefinition = "TEXT")
     private String referenceRange;
 
@@ -54,6 +60,7 @@ public class LabResult {
     @JoinColumn(name = "validated_by")
     private User validatedBy;
 
+    @Convert(converter = PhiStringConverter.class)
     @Column(columnDefinition = "TEXT")
     private String notes;
 
