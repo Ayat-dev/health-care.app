@@ -1,5 +1,6 @@
 package com.clinic.backend.security;
 
+import com.clinic.backend.dto.RefreshSessionDto;
 import com.clinic.backend.model.RefreshToken;
 import com.clinic.backend.model.User;
 import com.clinic.backend.repository.RefreshTokenRepository;
@@ -49,10 +50,22 @@ public class RefreshTokenService {
     /** Émet un nouveau refresh token et renvoie sa valeur BRUTE (non stockée). */
     @Transactional
     public String issue(User user) {
+        return issue(user, null, null);
+    }
+
+    /**
+     * Émet un refresh token en estampillant les métadonnées d'appareil (D1c) pour la vue
+     * admin « sessions actives ». Renvoie la valeur BRUTE (non stockée).
+     */
+    @Transactional
+    public String issue(User user, String userAgent, String ipAddress) {
         String raw = generateRaw();
         RefreshToken token = new RefreshToken(
                 user.getId(), sha256(raw),
                 LocalDateTime.now().plusNanos(refreshExpirationMs * 1_000_000));
+        token.setUserAgent(truncate(userAgent));
+        token.setIpAddress(ipAddress);
+        token.setLastUsedAt(LocalDateTime.now());
         refreshTokenRepository.save(token);
         return raw;
     }
@@ -65,17 +78,33 @@ public class RefreshTokenService {
      */
     @Transactional
     public RotationResult rotate(String rawToken) {
+        return rotate(rawToken, null, null);
+    }
+
+    /**
+     * Variante avec métadonnées d'appareil (D1c) : la session conserve son identité
+     * (user-agent reporté) à travers la rotation, et {@code last_used_at} est rafraîchi.
+     */
+    @Transactional
+    public RotationResult rotate(String rawToken, String userAgent, String ipAddress) {
         RefreshToken existing = refreshTokenRepository.findByTokenHash(sha256(rawToken))
                 .orElseThrow(() -> new IllegalArgumentException("Refresh token invalide."));
 
         User user = userRepository.findById(existing.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("Refresh token invalide."));
 
-        // Réutilisation d'un jeton déjà révoqué = vol présumé → on coupe tout.
+        // Jeton déjà révoqué : deux cas distincts.
+        //  • révoqué PAR ROTATION (replacedById != null) et rejoué = vol présumé (l'attaquant et
+        //    le client légitime détiennent le même brut) → on coupe toute la lignée + version.
+        //  • révoqué SANS remplacement (admin « révoquer cette session » / logout) = jeton mort
+        //    sans rejeu suspect → simple 401, SANS escalade (sinon révoquer un appareil tuerait
+        //    aussi les autres sessions légitimes de l'utilisateur).
         if (existing.getRevokedAt() != null) {
-            log.warn("Réutilisation d'un refresh token révoqué (user {}) — révocation de toute la lignée.",
-                    user.getUsername());
-            revokeAllForUser(user);
+            if (existing.getReplacedById() != null) {
+                log.warn("Réutilisation d'un refresh token rotaté (user {}) — révocation de toute la lignée.",
+                        user.getUsername());
+                revokeAllForUser(user);
+            }
             throw new IllegalArgumentException("Refresh token invalide.");
         }
         if (existing.getExpiresAt().isBefore(LocalDateTime.now())) {
@@ -89,6 +118,11 @@ public class RefreshTokenService {
         RefreshToken rotated = new RefreshToken(
                 user.getId(), sha256(newRaw),
                 LocalDateTime.now().plusNanos(refreshExpirationMs * 1_000_000));
+        // L'identité de l'appareil suit la chaîne ; à défaut on garde celle du jeton tournant.
+        rotated.setUserAgent(truncate(userAgent != null ? userAgent : existing.getUserAgent()));
+        rotated.setIpAddress(ipAddress != null ? ipAddress : existing.getIpAddress());
+        rotated.setCreatedAt(existing.getCreatedAt()); // âge de la session = début de la chaîne
+        rotated.setLastUsedAt(LocalDateTime.now());
         refreshTokenRepository.save(rotated);
 
         existing.setRevokedAt(LocalDateTime.now());
@@ -137,6 +171,55 @@ public class RefreshTokenService {
                     deleted, cutoff);
         }
         return deleted;
+    }
+
+    /**
+     * D1c — sessions actives (refresh tokens utilisables) d'un utilisateur, pour la vue admin.
+     * N'expose jamais le jeton, seulement l'id (cible de révocation) + les métadonnées.
+     */
+    @Transactional(readOnly = true)
+    public List<RefreshSessionDto> listActiveForUser(Long userId) {
+        return refreshTokenRepository
+                .findByUserIdAndRevokedAtIsNullAndExpiresAtAfterOrderByLastUsedAtDesc(userId, LocalDateTime.now())
+                .stream().map(this::toSessionDto).toList();
+    }
+
+    /**
+     * D1c — révocation CIBLÉE d'une session (un appareil), par id de refresh token. L'appareil
+     * ne pourra plus rafraîchir (son prochain /refresh → 401) ; son access token courant expire
+     * dans son TTL court (pas de blocklist par jeton — révocation immédiate de TOUT l'utilisateur
+     * = logout-all / bump de version). {@code expectedUserId} garde-fou : la session doit bien
+     * appartenir à l'utilisateur ciblé. Idempotent.
+     *
+     * @return true si une session active a été révoquée
+     */
+    @Transactional
+    public boolean revokeSession(Long tokenId, Long expectedUserId) {
+        return refreshTokenRepository.findById(tokenId)
+                .filter(t -> t.getUserId().equals(expectedUserId))
+                .filter(t -> t.getRevokedAt() == null)
+                .map(t -> {
+                    t.setRevokedAt(LocalDateTime.now());
+                    log.info("Session révoquée (refresh token {}, user {}).", tokenId, expectedUserId);
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    private RefreshSessionDto toSessionDto(RefreshToken t) {
+        RefreshSessionDto dto = new RefreshSessionDto();
+        dto.setId(t.getId());
+        dto.setUserAgent(t.getUserAgent());
+        dto.setIpAddress(t.getIpAddress());
+        dto.setCreatedAt(t.getCreatedAt());
+        dto.setLastUsedAt(t.getLastUsedAt());
+        dto.setExpiresAt(t.getExpiresAt());
+        return dto;
+    }
+
+    private String truncate(String value) {
+        if (value == null) return null;
+        return value.length() > 256 ? value.substring(0, 256) : value;
     }
 
     private String generateRaw() {

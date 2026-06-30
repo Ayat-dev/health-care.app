@@ -1,6 +1,7 @@
 package com.clinic.backend.controller.web;
 
 import com.clinic.backend.dto.UserDto;
+import com.clinic.backend.security.RefreshTokenService;
 import com.clinic.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,6 +17,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AdminUserWebController {
 
     private final UserService userService;
+    private final RefreshTokenService refreshTokenService;
 
     @GetMapping
     public String list(Model model) {
@@ -80,5 +82,23 @@ public class AdminUserWebController {
             ra.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/admin/users";
+    }
+
+    // ── D1c — sessions actives (refresh tokens) + révocation ciblée par appareil ──
+
+    @GetMapping("/{id}/sessions")
+    public String sessions(@PathVariable Long id, Model model) {
+        model.addAttribute("user", userService.toDto(userService.getById(id)));
+        model.addAttribute("sessions", refreshTokenService.listActiveForUser(id));
+        return "admin/users/sessions";
+    }
+
+    @PostMapping("/{id}/sessions/{tokenId}/revoke")
+    public String revokeSession(@PathVariable Long id, @PathVariable Long tokenId,
+                                RedirectAttributes ra) {
+        boolean revoked = refreshTokenService.revokeSession(tokenId, id);
+        ra.addFlashAttribute(revoked ? "success" : "error",
+                revoked ? "admin.sessions.revoked" : "admin.sessions.revoke_failed");
+        return "redirect:/admin/users/" + id + "/sessions";
     }
 }

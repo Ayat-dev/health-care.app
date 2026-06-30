@@ -37,6 +37,7 @@
                 <td th:text="${u.createdAt != null ? #temporals.format(u.createdAt,'dd/MM/yyyy') : '—'}">—</td>
                 <td>
                     <a th:href="@{/admin/users/{id}/edit(id=${u.id})}" class="btn btn-ghost btn-sm" th:text="#{common.edit}">Modifier</a>
+                    <a th:href="@{/admin/users/{id}/sessions(id=${u.id})}" class="btn btn-ghost btn-sm" th:text="#{admin.sessions.link}">Sessions</a>
                     <form th:action="@{/admin/users/{id}/toggle(id=${u.id})}" method="post" style="display:inline">
                         <button type="submit" class="btn btn-ghost btn-sm"
                                 th:text="${u.active} ? #{common.deactivate} : #{common.activate}">Désactiver</button>

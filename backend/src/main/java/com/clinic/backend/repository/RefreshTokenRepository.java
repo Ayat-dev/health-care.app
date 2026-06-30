@@ -17,6 +17,10 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
     /** Jetons encore actifs d'un utilisateur (révocation en masse : logout-all / désactivation). */
     List<RefreshToken> findByUserIdAndRevokedAtIsNull(Long userId);
 
+    /** D1c — sessions actives (non révoquées ET non expirées) d'un utilisateur, plus récentes d'abord. */
+    List<RefreshToken> findByUserIdAndRevokedAtIsNullAndExpiresAtAfterOrderByLastUsedAtDesc(
+            Long userId, LocalDateTime now);
+
     /**
      * D1b — purge des jetons hors service depuis avant {@code cutoff} : soit expirés,
      * soit révoqués. On garde un jeton révoqué tant qu'il pourrait encore être présenté

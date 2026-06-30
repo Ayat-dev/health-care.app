@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(#{admin.sessions.title}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${success}" class="alert alert-info" th:text="#{${success}}">OK</div>
+<div th:if="${error}" class="alert alert-error" th:text="#{${error}}">Erreur</div>
+
+<div class="panel">
+    <div class="panel-header">
+        <span>
+            <span th:text="#{admin.sessions.panel}">Sessions actives</span>
+            — <code th:text="${user.username}">admin</code>
+            <span th:if="${user.fullName}" th:text="'(' + ${user.fullName} + ')'">(Nom)</span>
+        </span>
+        <a th:href="@{/admin/users}" class="btn btn-ghost btn-sm" th:text="#{common.back}">← Retour</a>
+    </div>
+
+    <p class="form-hint" style="padding:0 1rem" th:text="#{admin.sessions.hint}">
+        Une session = un appareil connecté (refresh token actif). Révoquer empêche cet appareil
+        de renouveler son accès ; le jeton d'accès courant expire dans sa courte durée de vie.
+    </p>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col" th:text="#{admin.sessions.col_device}">Appareil</th>
+                <th scope="col" th:text="#{admin.sessions.col_ip}">IP</th>
+                <th scope="col" th:text="#{admin.sessions.col_created}">Ouverte le</th>
+                <th scope="col" th:text="#{admin.sessions.col_lastused}">Dernier usage</th>
+                <th scope="col" th:text="#{admin.sessions.col_expires}">Expire le</th>
+                <th scope="col"><span class="sr-only" th:text="#{common.actions}">Actions</span></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${sessions.isEmpty()}">
+                <td colspan="6" class="empty-state" th:text="#{admin.sessions.empty}">Aucune session active.</td>
+            </tr>
+            <tr th:each="s : ${sessions}">
+                <td th:text="${s.userAgent != null ? s.userAgent : '—'}"
+                    th:title="${s.userAgent}">Navigateur</td>
+                <td><code th:text="${s.ipAddress != null ? s.ipAddress : '—'}">—</code></td>
+                <td th:text="${s.createdAt != null ? #temporals.format(s.createdAt,'dd/MM/yyyy HH:mm') : '—'}">—</td>
+                <td th:text="${s.lastUsedAt != null ? #temporals.format(s.lastUsedAt,'dd/MM/yyyy HH:mm') : '—'}">—</td>
+                <td th:text="${s.expiresAt != null ? #temporals.format(s.expiresAt,'dd/MM/yyyy HH:mm') : '—'}">—</td>
+                <td>
+                    <form th:action="@{/admin/users/{id}/sessions/{tokenId}/revoke(id=${user.id},tokenId=${s.id})}"
+                          method="post" style="display:inline"
+                          th:onsubmit="'return confirm(\'' + #{admin.sessions.revoke_confirm} + '\');'">
+                        <button type="submit" class="btn btn-ghost btn-sm" th:text="#{admin.sessions.revoke}">Révoquer</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</th:block></body>
+</html>

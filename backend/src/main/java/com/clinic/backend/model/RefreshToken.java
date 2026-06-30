@@ -39,6 +39,16 @@ public class RefreshToken {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    // D1c — métadonnées d'appareil (vue admin « sessions actives »), reportées à la rotation.
+    @Column(name = "user_agent", length = 256)
+    private String userAgent;
+
+    @Column(name = "ip_address", length = 45)
+    private String ipAddress;
+
+    @Column(name = "last_used_at")
+    private LocalDateTime lastUsedAt;
+
     public RefreshToken() {}
 
     public RefreshToken(Long userId, String tokenHash, LocalDateTime expiresAt) {
@@ -50,6 +60,7 @@ public class RefreshToken {
     @PrePersist
     void onCreate() {
         if (createdAt == null) createdAt = LocalDateTime.now();
+        if (lastUsedAt == null) lastUsedAt = createdAt;
     }
 
     /** Utilisable = non révoqué ET non expiré. */
@@ -66,4 +77,12 @@ public class RefreshToken {
     public Long getReplacedById() { return replacedById; }
     public void setReplacedById(Long replacedById) { this.replacedById = replacedById; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    /** D1c — la rotation reporte l'âge de la session (début de la chaîne). */
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public String getUserAgent() { return userAgent; }
+    public void setUserAgent(String userAgent) { this.userAgent = userAgent; }
+    public String getIpAddress() { return ipAddress; }
+    public void setIpAddress(String ipAddress) { this.ipAddress = ipAddress; }
+    public LocalDateTime getLastUsedAt() { return lastUsedAt; }
+    public void setLastUsedAt(LocalDateTime lastUsedAt) { this.lastUsedAt = lastUsedAt; }
 }

@@ -21,7 +21,7 @@
   branche — décision utilisateur 2026-06-28) + `/clear`.
 - **Format commit** : `feat(finish): <slice> — <résumé>` (ou `fix`/`chore`/`test`/`docs`).
 - **DB** : nouvelle migration Flyway à chaque changement de schéma (jamais modifier une existante).
-  **Dernière version = V30** (8 Java migrations possibles, cf. V28/V30). Migration multi-tenant =
+  **Dernière version = V32** (D1c ; 8 Java migrations possibles, cf. V28/V30). Migration multi-tenant =
   patron 3 temps portable (`ADD COLUMN nullable` → `UPDATE backfill CENTRALE` → `SET NOT NULL`).
   DROP de contrainte inline non nommée = **migration Java** (introspection `INFORMATION_SCHEMA`,
   cf. `V28__multitenant_hospitalization.java`).
@@ -45,7 +45,7 @@
 | A | Multi-tenant — finitions | 4 | 4 | ✅ terminé |
 | B | PWA — finitions | 4 | 4 | ✅ terminé |
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
-| D | Divers (durcissement/polish) | 8 | 2 | 🔄 en cours |
+| D | Divers (durcissement/polish) | 8 | 3 | 🔄 en cours |
 | Z | (Tier 2) Grosses features parquées | — | — | 📦 listées, hors périmètre finitions |
 
 **Ordre conseillé** : A (clôt le multi-tenant, petites slices à forte valeur) → D4a (sécu) →
@@ -277,8 +277,24 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
   préserver la détection de réutilisation/vol. +1 test `RefreshTokenCleanupTest` (purge expiré/révoqué
   ancien, garde actif + expiré/révoqué récent). *NB* : FK `refresh_tokens.user_id`→`users` → le test
   amorce les jetons sur l'id de `admin` (pas un id fictif). *Vérifié* : `mvnd test` → **212 verts, 3 skip**.
-- [ ] **D1c — Vue admin « sessions actives » + révocation ciblée par appareil.** Lister les refresh
-  actifs d'un user, révoquer un appareil précis. *Acc.* : page admin liste + bouton révoquer → 401 sur cet appareil.
+- [x] **D1c — Vue admin « sessions actives » + révocation ciblée par appareil. ✅ FAIT 2026-06-30.**
+  Page `/admin/users/{id}/sessions` (ADMIN, dans `AdminUserWebController`) liste les sessions actives
+  (refresh tokens non révoqués/non expirés) d'un user + bouton **Révoquer** par session ;
+  `POST /{id}/sessions/{tokenId}/revoke` → `RefreshTokenService.revokeSession(tokenId, expectedUserId)`
+  (garde-fou : la session doit appartenir au user ciblé ; idempotent). Une session = sa **chaîne de
+  rotation** (un seul refresh actif à la fois) ; l'identité d'appareil (`user_agent`, `ip_address`,
+  `last_used_at`, `created_at` reporté) est estampillée au login et **reportée à chaque rotation** —
+  migration **V32** (3 colonnes nullables) + `RefreshToken` enrichi ; `AuthController` capture
+  user-agent + IP (X-Forwarded-For-aware) sur login/refresh. DTO `RefreshSessionDto` (n'expose jamais
+  le jeton, seulement l'id + métadonnées). Lien « Sessions » ajouté dans `admin/users/list.html` +
+  template `admin/users/sessions.html` + 15 clés i18n `admin.sessions.*` ×3 langues.
+  **Affinage sécu** : rejouer un refresh **révoqué par rotation** (`replacedById != null`) = vol → on
+  coupe toute la lignée (inchangé) ; mais révoqué **sans remplacement** (révocation admin / logout) →
+  simple 401 **sans escalade**, sinon révoquer un appareil tuerait les autres sessions légitimes du user.
+  +3 tests `AdminSessionsTest` (page ADMIN 200 / MEDECIN 403 ; révoquer → `/refresh` de cet appareil 401).
+  *NB* : pas de blocklist par jeton → l'access token courant de l'appareil révoqué expire dans son TTL
+  court (15 min) ; révocation **immédiate** de TOUT le user = logout-all/bump de version (existant).
+  *Vérifié* : `mvnd test` → **215 verts, 3 skip**.
 - [ ] **D1d — Rate-limit IP sur le login (Bucket4j).** Complète le lockout par compte (P1.3) contre
   le DoS distribué. *Acc.* : N tentatives/IP/fenêtre → 429.
 
@@ -365,6 +381,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-06-30 | **D1c — vue admin « sessions actives » + révocation par appareil** | Page `/admin/users/{id}/sessions` (ADMIN) liste les refresh actifs + bouton Révoquer → `RefreshTokenService.revokeSession(tokenId, userId)` (garde-fou owner, idempotent). Métadonnées appareil (`user_agent`/`ip_address`/`last_used_at`/`created_at` reporté) estampillées au login + **reportées à la rotation** → migration **V32** (3 cols nullables) + `RefreshToken` enrichi ; `AuthController` capture UA+IP (X-Forwarded-For). DTO `RefreshSessionDto` (jamais le jeton). Lien dans `users/list.html` + template `sessions.html` + 15 clés `admin.sessions.*` ×3. **Affinage** : replay révoqué-par-rotation (`replacedById != null`) = vol → coupe la lignée ; révoqué-sans-remplacement (admin/logout) → 401 sans escalade. +3 tests `AdminSessionsTest`. NB : pas de blocklist par jeton → access courant expire en 15 min ; kill immédiat total = logout-all. **215 verts, 3 skip.** |
 | 2026-06-30 | **D1b — purge planifiée des refresh tokens** | `RefreshTokenCleanupScheduler` (cron `0 30 3 * * *`) → `RefreshTokenService.purgeStaleTokens()` → repo `deleteExpiredOrRevokedBefore(cutoff)` (`@Modifying` JPQL `expiresAt < cutoff OR revokedAt < cutoff`). Tenant-agnostique (pas `@TenantId`) → **pas de `runAs`**. Rétention `app.jwt.refresh-cleanup-retention-days` (défaut 7 j ; `.env.example`) garde les jetons révoqués pour la détection de vol. +1 test `RefreshTokenCleanupTest` (FK user_id → seed sur id admin). **212 verts, 3 skip.** |
 | 2026-06-30 | **D1a — refresh token en cookie HttpOnly (front web)** | Mode opt-in `login {"cookie":"true"}` → refresh en cookie `HttpOnly`/`Secure`/`SameSite=Strict` path `/api/auth`, **jamais en JSON** (access court reste JSON). Sans flag = JSON inchangé (API/desktop). Helper `security/RefreshCookieManager` (`ResponseCookie`→`Set-Cookie`). `/refresh`+`/logout` : cookie prioritaire, rotation repose le cookie, échec/logout efface (`Max-Age 0`) ; `@RequestBody(required=false)`+`HttpServletRequest`. Flag `app.jwt.refresh-cookie-secure` (true par défaut, false dev/test ; `JWT_REFRESH_COOKIE_SECURE` `.env.example`). +3 tests `RefreshCookieTest`. **211 verts, 3 skip.** |
 | 2026-06-30 | **B4 — file de synchro hors-ligne → chantier B TERMINÉ** | Décisions verrouillées : RDV seul · file IndexedDB **chiffrée** AES-GCM (clé non-extractible) · conflit → échec+notif+conservé. `js/offline-sync.js` (global, no-op sans IDB/WebCrypto) intercepte le form RDV *hors-ligne*, chiffre+enfile (UUID+statut en clair), rejoue au `online`/`DOMContentLoaded` **en contexte page** (CSRF meta + session). Endpoint `POST /appointments/offline` → `createIdempotent` ; dédup `Idempotency-Key`/`findByRequestKey` → 0 doublon ; col `appointments.request_key VARCHAR(36) UNIQUE` (**V31**, nullable, UNIQUE portable H2+PG). Conflit → 409 → item ÉCHEC conservé. Bannière `#offline-queue-status` (compteurs sans déchiffrer). 6 clés `offline.*` ×3. Background Sync différé (clé/CSRF page + support). +2 tests `OfflineSyncTest`. JS pur non testé MockMvc (contrat serveur couvert). **208 verts, 3 skip.** |

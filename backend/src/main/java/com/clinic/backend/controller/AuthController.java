@@ -59,7 +59,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody Map<String, String> data) {
+    public ResponseEntity<Map<String, String>> login(@RequestBody Map<String, String> data,
+                                                      HttpServletRequest request) {
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -80,7 +81,8 @@ public class AuthController {
         // P4.4 : access token court + refresh token long (révocable, rotatif).
         String accessToken = jwtService.generateToken(
                 user.getUsername(), user.getRole(), user.getTokenVersion());
-        String refreshToken = refreshTokenService.issue(user);
+        String refreshToken = refreshTokenService.issue(
+                user, userAgent(request), clientIp(request));
 
         Map<String, String> body = new HashMap<>();
         body.put("accessToken", accessToken);
@@ -108,6 +110,21 @@ public class AuthController {
         return "true".equalsIgnoreCase(data.get("cookie"));
     }
 
+    /** D1c — user-agent de l'appareil (pour la vue admin « sessions actives »). */
+    private String userAgent(HttpServletRequest request) {
+        return request != null ? request.getHeader("User-Agent") : null;
+    }
+
+    /** D1c — IP cliente, en tenant compte d'un éventuel proxy inverse (X-Forwarded-For). */
+    private String clientIp(HttpServletRequest request) {
+        if (request == null) return null;
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
+    }
+
     /**
      * Échange un refresh token contre un nouvel access token (+ refresh token rotaté).
      * Appelable sans access token valide (il peut être expiré) → endpoint public.
@@ -127,7 +144,8 @@ public class AuthController {
             return ResponseEntity.badRequest().body(Map.of("error", "refreshToken manquant."));
         }
         try {
-            RefreshTokenService.RotationResult result = refreshTokenService.rotate(refreshToken);
+            RefreshTokenService.RotationResult result = refreshTokenService.rotate(
+                    refreshToken, userAgent(request), clientIp(request));
             User user = result.user();
             String accessToken = jwtService.generateToken(
                     user.getUsername(), user.getRole(), user.getTokenVersion());
