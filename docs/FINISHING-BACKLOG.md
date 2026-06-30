@@ -43,7 +43,7 @@
 | # | Chantier | Slices | Faits | Statut |
 |---|---|---|---|---|
 | A | Multi-tenant — finitions | 4 | 4 | ✅ terminé |
-| B | PWA — finitions | 4 | 2 | 🚧 en cours |
+| B | PWA — finitions | 4 | 3 | 🚧 en cours |
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
 | D | Divers (durcissement/polish) | 8 | 0 | 🔲 à démarrer |
 | Z | (Tier 2) Grosses features parquées | — | — | 📦 listées, hors périmètre finitions |
@@ -136,11 +136,17 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
   **NB** : Thymeleaf échappe l'apostrophe (`l'app` → `l&#39;app`) → le test assert sur le titre
   sans apostrophe. *Vérifié* : `mvnd test` → **204 verts, 3 skip**.
 
-- [ ] **B3 — Précache des ressources-clés (app shell renforcé).**
-  Étendre `sw.js` : précacher au `install` la liste explicite de l'app shell (css/js/images/manifest/
-  offline.html) pour un premier rendu hors-ligne fiable. **Toujours zéro page HTML / PHI / auth**
-  en cache. Versionner le cache (bump à chaque déploiement).
-  *Acceptation* : couper le réseau après 1ère visite → shell + `offline.html` servis ; aucune PHI cachée.
+- [x] **B3 — Précache des ressources-clés (app shell renforcé). ✅ FAIT 2026-06-30.**
+  `sw.js` : `SHELL_ASSETS` rendu **explicite et complet** — il ne précachait que 5 ressources
+  (offline/app.css/pwa.js/manifest/icon.svg), ratant `js/{ui,search,worklist-live}.js` et les 3 PNG
+  B1. Désormais 11 entrées (offline.html + app.css + les 4 JS + manifest + svg + 3 PNG). Cache
+  **versionné** `clinicapp-shell-v2` (bump documenté « à chaque déploiement qui modifie l'app shell » ;
+  l'`activate` purge déjà tout `clinicapp-shell-*` ≠ version courante). **Toujours zéro page HTML /
+  PHI / auth** en cache (navigations = réseau-d'abord → repli `offline.html` ; `BYPASS_PREFIXES`
+  inchangé). +2 tests `PwaShellTest` : extrait `SHELL_ASSETS` du `/sw.js` servi et (1) vérifie que
+  **chaque** ressource est servie en 200 — garde-fou contre l'échec **atomique** de `cache.addAll`
+  (1 entrée 404 = install SW cassée), (2) vérifie qu'aucune entrée n'est sensible (préfixes API/FHIR/
+  uploads/auth interdits, extensions statiques seulement). *Vérifié* : `mvnd test` → **206 verts, 3 skip**.
 
 - [ ] **B4 — File de synchro des écritures hors-ligne (LE gros morceau).**
   Permettre quelques **écritures** hors-ligne (ex. prise de constantes / création RDV) mises en
@@ -324,6 +330,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-06-30 | **B3 — app shell précaché renforcé** | `sw.js` : `SHELL_ASSETS` explicite & complet (5→11 entrées : ajoute `js/{ui,search,worklist-live}.js` + 3 PNG B1) ; cache versionné `v1`→`v2` (purge `activate` déjà en place). Zéro page/PHI/auth en cache (navigations réseau-d'abord → `offline.html`). +2 tests `PwaShellTest` (extrait `SHELL_ASSETS` du `/sw.js` → chaque ressource 200 [garde l'échec atomique de `addAll`] + aucune entrée sensible). **206 verts, 3 skip.** |
 | 2026-06-30 | **B2 — invite d'installation PWA** | `js/pwa.js` capture `beforeinstallprompt` (preventDefault) → affiche `#pwa-install-btn` (masqué dans le chrome `base.html` + `portal/layout.html`) ; clic → `prompt()` + `userChoice.finally` purge/remasque ; garde standalone (jamais si installé) + `appinstalled` → remasque. No-op sur login (pas de bouton) et navigateurs sans support. 3 clés `pwa.{install,install_title,installed}` ×3 langues. +1 test `PageRenderSmokeTest`. NB : Thymeleaf échappe l'apostrophe → assert sur le titre. **204 verts, 3 skip.** |
 | 2026-06-30 | **B1 — icônes PNG PWA** | Généré `icon-{192,512}.png` (`any`) + `icon-maskable-512.png` (`maskable`, croix à 78 % pour la safe-zone) ; `manifest.webmanifest` déclare les 3 PNG + le SVG (repassé `any`). Pas d'ImageMagick ici (`convert`=NTFS Windows) → script **Pillow** jetable redessinant la géométrie de l'`icon.svg` (supersampling ×4 + LANCZOS). Rendu vérifié à l'œil. Pas de migration/PHI/CDN. **203 verts, 3 skip.** |
 | 2026-06-30 | **C3 — tests a11y axe-core → chantier C TERMINÉ** | Nouveau `A11yAxeTest` : axe-core réel (WCAG A/AA) sur 15 vues authentifiées (login + médecin/caisse/admin/owner) → **0 violation critique/sérieuse**. Stack 100% Java sans réseau : HTML authentifié via `mvc.perform` (`@WithUserDetails`) → audité dans **HtmlUnit nu** ; `/axe.min.js` lu du JAR `com.deque.html.axe-core:selenium` (aucun CDN). Deps test : `org.htmlunit:htmlunit` + JAR deque. 4 pièges tranchés : Promise non sérialisable (→ callback + `JSON.stringify`) ; `@WithUserDetails` non propagé au pont HtmlUnit→MockMvc (→ `mvc.perform`) ; JS appli qui fait planter HtmlUnit (→ `WebConnection` stub, sous-ressources vides) ; `loadHtmlCodeIntoCurrentWindow` reste `readyState=loading` (→ vraie nav `getPage`). CI-safe (skip si moteur JS HS). **203 verts, 0 skip.** |

@@ -15,15 +15,24 @@
  * ici : elle nécessiterait une file IndexedDB + rejouabilité côté serveur.
  */
 
-const CACHE_VERSION = 'clinicapp-shell-v1';
+// Bump à CHAQUE déploiement qui modifie l'app shell (invalide l'ancien précache).
+const CACHE_VERSION = 'clinicapp-shell-v2';
 
-// Ressources « app shell » sûres à précharger (aucune donnée patient).
+// Liste EXPLICITE de l'« app shell » statique & stable, préchargée à l'install pour
+// un 1er rendu hors-ligne fiable (B3). Aucune donnée patient / page HTML / auth ici.
+// addAll est atomique : chaque entrée DOIT être servie en 200 (cf. test PwaShellTest).
 const SHELL_ASSETS = [
   '/offline.html',
   '/css/app.css',
   '/js/pwa.js',
+  '/js/ui.js',
+  '/js/search.js',
+  '/js/worklist-live.js',
   '/manifest.webmanifest',
-  '/images/icon.svg'
+  '/images/icon.svg',
+  '/images/icon-192.png',
+  '/images/icon-512.png',
+  '/images/icon-maskable-512.png'
 ];
 
 // Chemins à NE jamais intercepter / mettre en cache (auth + données dynamiques).
