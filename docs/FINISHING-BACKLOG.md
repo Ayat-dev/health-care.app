@@ -45,7 +45,7 @@
 | A | Multi-tenant — finitions | 4 | 4 | ✅ terminé |
 | B | PWA — finitions | 4 | 4 | ✅ terminé |
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
-| D | Divers (durcissement/polish) | 8 | 7 | 🔄 en cours |
+| D | Divers (durcissement/polish) | 12 | 8 | 🔄 en cours |
 | Z | (Tier 2) Grosses features parquées | — | — | 📦 listées, hors périmètre finitions |
 
 **Ordre conseillé** : A (clôt le multi-tenant, petites slices à forte valeur) → D4a (sécu) →
@@ -369,9 +369,28 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
   `AesGcmCipher.decrypt` qui tolère les valeurs legacy sans préfixe `gcm:` (seeds SQL). +2 tests
   `ClinicalPhiEncryptionTest` (diagnosis JDBC brut = `gcm:…` / clair via JPA ; top pathologies
   comptées 2 vs 1 malgré chiffrement). *Vérifié* : `mvnd test` → **224 verts, 0 skip**.
-- [ ] **D3b — Chiffrer les fichiers uploadés au repos (niveau appli) + rotation de clé outillée.**
-  Chiffrer le contenu stocké par `FileStorageService` (au-delà du volume) ; commande/route de
-  re-chiffrement pour rotation de `app.encryption.key`. *Acc.* : fichier sur disque illisible ; rotation rejoue le déchiffrement/re-chiffrement.
+- [x] **D3b — Chiffrer les fichiers uploadés au repos + rotation de clé outillée. ✅ FAIT 2026-06-30.**
+  `AesGcmCipher` gagne une variante **binaire** (`encryptBytes`/`decryptBytes`/`isEncryptedBytes`,
+  format `MAGIC "GCM1"(4) ‖ IV(12) ‖ ciphertext+tag` ; le marqueur ne collisionne pas avec
+  JPEG/PNG/WebP → distingue clair vs chiffré). Nouveau `FileEncryptionService` : clé courante +
+  **clé précédente optionnelle** (repli), `encrypt`/`decrypt` (tolère les fichiers clairs legacy) et
+  `rotateAll(root)` (relit courante/ancienne/clair → ré-écrit chiffré courant ; chiffre aussi au
+  passage les fichiers encore en clair). `FileStorageService.storeImage` écrit désormais le contenu
+  **chiffré** (`Files.write` au lieu de `transferTo`) et `load` **déchiffre**. **Servir** : le handler
+  de ressources statiques `/uploads/**` est **remplacé** par `UploadedFileController`
+  (`GET /uploads/**` → `load()` déchiffre, `Cache-Control: no-store` car PHI) — sinon les images
+  seraient servies chiffrées. **Rotation outillée** : `POST /api/admin/maintenance/rotate-file-encryption`
+  (`MaintenanceApiController`, `hasAnyRole('ADMIN','SUPER_ADMIN')`) → `{"rotated": n}`. **Clé dédiée**
+  `app.storage.encryption.key` (défaut = clé maître `app.encryption.key`) + `…previous-key` →
+  **découple la rotation des fichiers de celle des colonnes PHI** (D3a) : tourner la clé des fichiers
+  ne rend jamais la base illisible. `.env.example` + `application.properties` documentés. +6 tests
+  `FileEncryptionTest` (chiffré sur disque/clair via load ; legacy passthrough ; rotation
+  ancienne→nouvelle clé + l'ancienne ne lit plus ; rotation chiffre le legacy ; comptage ; répertoire
+  absent → 0). **NB** : full master-key rotation des colonnes PHI = hors périmètre (re-save d'entités,
+  futur). *Vérifié* : `mvnd test` → **230 verts, 0 skip**.
+
+> **✅ Bloc D3 (crypto) TERMINÉ** — D3a (colonnes PHI consultation/labo) + D3b (fichiers au repos +
+> rotation outillée) faits. Parqué : rotation de la **clé maître** des colonnes PHI (batch re-save).
 
 ### D4 — Fonctionnel / UX (polish)
 - [ ] **D4a — Export `format=pdf|excel` sur `/api/reports/*` + images radio base64 en PDF.** Pour les
@@ -441,6 +460,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-06-30 | **D3b — chiffrement fichiers au repos + rotation → bloc D3 TERMINÉ** | `AesGcmCipher` variante binaire (`encryptBytes`/`decryptBytes`/`isEncryptedBytes`, format `GCM1‖IV‖ct+tag`, marqueur ≠ JPEG/PNG). `FileEncryptionService` (clé courante + précédente en repli, tolère clair legacy) + `rotateAll(root)`. `FileStorageService.storeImage` écrit chiffré, `load` déchiffre. Handler statique `/uploads/**` **remplacé** par `UploadedFileController` (déchiffre, `Cache-Control: no-store`). Route `POST /api/admin/maintenance/rotate-file-encryption` (ADMIN/SUPER_ADMIN). Clé **dédiée** `app.storage.encryption.key` (défaut = clé maître) + `…previous-key` → découple la rotation fichiers de la base PHI. `.env.example`+`application.properties`. +6 tests `FileEncryptionTest`. **230 verts, 0 skip.** |
 | 2026-06-30 | **D3a — chiffrement PHI clinique (consultation + labo)** | `@Convert(PhiStringConverter)` (AES-GCM P2.5) sur Consultation `chief_complaint`/`history`/`physical_exam`/`diagnosis`/`treatment_plan` + LabResult `result_value`/`reference_range`/`notes`. PAS `icd10_codes` (recherché, D4c) / `unit` / constantes numériques. **Aucune migration** (colonnes déjà TEXT). Point dur : `diagnosis` chiffré casse `GROUP BY` SQL (IV aléatoire) → repo `findCompletedDiagnoses` (valeurs déchiffrées) + agrégation top-pathologies **en Java** (`ReportService.topDiagnoses`) → épidémio intacte. Compat legacy via `decrypt` tolérant (pas de préfixe `gcm:`). +2 tests `ClinicalPhiEncryptionTest`. **224 verts, 0 skip.** |
 | 2026-06-30 | **D2b — build-info (git/version) + alerting Prometheus** | `/actuator/info` gagne `build` (goal `spring-boot:build-info`→`BuildProperties`) + `git` (plugin `git-commit-id:9.0.1`→`GitProperties`, mode full). `.git` à la racine → `dotGitDirectory=${project.basedir}/../.git`, `failOnNoGitDirectory=false`. Config `management.info.{build,git}.enabled` + `git.mode=full`. Alerting : `monitoring/alert.rules.yml` (3 règles : backend down / heap>90% / 5xx>5%) via `rule_files` dans `prometheus.yml`, monté dans le conteneur ; Alertmanager optionnel (commenté). +2 tests `ActuatorInfoTest`. NB : fichiers générés dans `target/classes` → présents aux tests ; `/actuator/info` mappé sous MockMvc (≠ gotcha prometheus D2a). **222 verts, 0 skip.** |
 | 2026-06-30 | **D2a — Grafana provisionné + métriques métier** | Pkg `metrics`/`BusinessMetrics` : compteurs Micrometer tagués **`clinic_id`** (via `TenantContext`) — `clinicapp.consultations.completed` (`ConsultationService.complete`) + `clinicapp.payments.{recorded,amount}` (tag `method`, `BillingService.recordPayment`), enregistrés à la volée (dédup nom+tags). Grafana auto-provisionné : `monitoring/grafana/provisioning/{datasources,dashboards}` + dashboard `clinicapp-business.json` (var `$clinic`, stats + débits + camembert mode + HTTP). `docker-compose` monte provisioning+dashboards dans `grafana`. NB : `baseUnit("XOF")` retiré (sinon nom `..._XOF_total`). NB test : `PrometheusMeterRegistry`/endpoint non câblés en profil test (gotcha P4.3) → assert sur le registre Micrometer, format vérifié en dev. +3 tests `BusinessMetricsTest`. **220 verts, 0 skip.** |

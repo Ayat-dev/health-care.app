@@ -25,9 +25,17 @@ public class FileStorageService {
             Set.of("image/jpeg", "image/png", "image/webp");
 
     private final Path root;
+    private final FileEncryptionService fileEncryptionService;
 
-    public FileStorageService(@Value("${app.storage.upload-dir:uploads}") String uploadDir) {
+    public FileStorageService(@Value("${app.storage.upload-dir:uploads}") String uploadDir,
+                              FileEncryptionService fileEncryptionService) {
         this.root = Paths.get(uploadDir).toAbsolutePath().normalize();
+        this.fileEncryptionService = fileEncryptionService;
+    }
+
+    /** Racine de stockage absolue — exposée pour la rotation de chiffrement (D3b). */
+    public Path getRoot() {
+        return root;
     }
 
     /**
@@ -59,8 +67,9 @@ public class FileStorageService {
             }
             Files.createDirectories(dir);
             Path target = dir.resolve(filename);
-            file.transferTo(target);
-            log.info("Fichier stocké : {}", target);
+            // D3b — chiffré au repos : on écrit le contenu chiffré (pas de transferTo direct).
+            Files.write(target, fileEncryptionService.encrypt(file.getBytes()));
+            log.info("Fichier stocké (chiffré) : {}", target);
             return "/uploads/" + subdir + "/" + filename;
         } catch (IOException e) {
             throw new UncheckedIOException("Échec de l'enregistrement du fichier.", e);
@@ -90,7 +99,9 @@ public class FileStorageService {
             return null;
         }
         try {
-            return new StoredFile(Files.readAllBytes(file), contentTypeFor(file));
+            // D3b — déchiffré à la lecture (tolère les fichiers legacy en clair).
+            byte[] content = fileEncryptionService.decrypt(Files.readAllBytes(file));
+            return new StoredFile(content, contentTypeFor(file));
         } catch (IOException e) {
             throw new UncheckedIOException("Échec de lecture du fichier.", e);
         }

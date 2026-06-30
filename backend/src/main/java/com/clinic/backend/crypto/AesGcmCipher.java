@@ -30,6 +30,10 @@ public final class AesGcmCipher {
     /** Marqueur de chiffré — permet de tolérer d'anciennes valeurs en clair au déchiffrement. */
     static final String PREFIX = "gcm:";
 
+    /** Marqueur binaire (4 octets « GCM1 ») en tête des fichiers chiffrés (D3b). Ne
+     *  collisionne pas avec les en-têtes JPEG/PNG/WebP → distingue clair vs chiffré. */
+    static final byte[] FILE_MAGIC = {'G', 'C', 'M', '1'};
+
     private static final String TRANSFORMATION = "AES/GCM/NoPadding";
     private static final int IV_LENGTH = 12;       // 96 bits, recommandé pour GCM
     private static final int TAG_LENGTH_BITS = 128;
@@ -89,6 +93,69 @@ public final class AesGcmCipher {
             return new String(plaintext, StandardCharsets.UTF_8);
         } catch (Exception e) {
             throw new IllegalStateException("Échec du déchiffrement PHI (clé incorrecte ou donnée altérée ?).", e);
+        }
+    }
+
+    // ── Variante binaire pour les fichiers au repos (D3b) ────────────────────
+    // Format : MAGIC(4) ‖ IV(12) ‖ ciphertext+tag. IV aléatoire par fichier.
+
+    /** {@code true} si {@code data} porte le marqueur {@link #FILE_MAGIC} (donc chiffré). */
+    public static boolean isEncryptedBytes(byte[] data) {
+        if (data == null || data.length < FILE_MAGIC.length) return false;
+        for (int i = 0; i < FILE_MAGIC.length; i++) {
+            if (data[i] != FILE_MAGIC[i]) return false;
+        }
+        return true;
+    }
+
+    /** Chiffre des octets bruts. {@code null} → {@code null}. */
+    public byte[] encryptBytes(byte[] plaintext) {
+        if (plaintext == null) {
+            return null;
+        }
+        try {
+            byte[] iv = new byte[IV_LENGTH];
+            random.nextBytes(iv);
+
+            Cipher cipher = Cipher.getInstance(TRANSFORMATION);
+            cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(TAG_LENGTH_BITS, iv));
+            byte[] ciphertext = cipher.doFinal(plaintext);
+
+            byte[] out = new byte[FILE_MAGIC.length + iv.length + ciphertext.length];
+            System.arraycopy(FILE_MAGIC, 0, out, 0, FILE_MAGIC.length);
+            System.arraycopy(iv, 0, out, FILE_MAGIC.length, iv.length);
+            System.arraycopy(ciphertext, 0, out, FILE_MAGIC.length + iv.length, ciphertext.length);
+            return out;
+        } catch (Exception e) {
+            throw new IllegalStateException("Échec du chiffrement de fichier PHI.", e);
+        }
+    }
+
+    /**
+     * Déchiffre des octets produits par {@link #encryptBytes}. Une donnée sans le
+     * marqueur {@link #FILE_MAGIC} est considérée déjà en clair (fichier legacy) et
+     * renvoyée telle quelle. Une donnée chiffrée avec une autre clé lève
+     * {@link IllegalStateException} (tag GCM invalide) — exploité pour le repli de
+     * clé lors de la rotation (D3b).
+     */
+    public byte[] decryptBytes(byte[] data) {
+        if (data == null) {
+            return null;
+        }
+        if (!isEncryptedBytes(data)) {
+            return data;
+        }
+        try {
+            byte[] iv = new byte[IV_LENGTH];
+            System.arraycopy(data, FILE_MAGIC.length, iv, 0, IV_LENGTH);
+
+            Cipher cipher = Cipher.getInstance(TRANSFORMATION);
+            cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(TAG_LENGTH_BITS, iv));
+            int offset = FILE_MAGIC.length + IV_LENGTH;
+            byte[] plaintext = cipher.doFinal(data, offset, data.length - offset);
+            return plaintext;
+        } catch (Exception e) {
+            throw new IllegalStateException("Échec du déchiffrement de fichier PHI (clé incorrecte ou donnée altérée ?).", e);
         }
     }
 

@@ -2,7 +2,6 @@ package com.clinic.backend.config;
 
 import com.clinic.backend.setup.SetupGuardInterceptor;
 import com.clinic.backend.setup.SetupService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -10,13 +9,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
@@ -30,9 +26,6 @@ import java.util.Locale;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Value("${app.storage.upload-dir:uploads}")
-    private String uploadDir;
-
     private final SetupService setupService;
 
     public WebConfig(SetupService setupService) {
@@ -40,12 +33,8 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     // ─── Fichiers uploadés (photos patients, images radiology) ───────────────
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
-        registry.addResourceHandler("/uploads/**")
-                .addResourceLocations(uploadPath.toUri().toString());
-    }
+    // D3b : plus de handler de ressources statiques pour /uploads/** — les fichiers
+    // sont chiffrés au repos, donc servis (déchiffrés) par UploadedFileController.
 
     // ─── i18n : locale persistée en cookie, défaut français (P3.2) ───────────
     // La locale survit à la déconnexion et au redémarrage navigateur (cookie 1 an).
