@@ -45,7 +45,7 @@
 | A | Multi-tenant — finitions | 4 | 4 | ✅ terminé |
 | B | PWA — finitions | 4 | 4 | ✅ terminé |
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
-| D | Divers (durcissement/polish) | 8 | 0 | 🔲 à démarrer |
+| D | Divers (durcissement/polish) | 8 | 1 | 🔄 en cours |
 | Z | (Tier 2) Grosses features parquées | — | — | 📦 listées, hors périmètre finitions |
 
 **Ordre conseillé** : A (clôt le multi-tenant, petites slices à forte valeur) → D4a (sécu) →
@@ -254,10 +254,19 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 ## D — DIVERS (durcissement / polish — finitions de prod)
 
 ### D1 — Sécurité / auth (priorité haute)
-- [ ] **D1a — Refresh token en cookie HttpOnly (front web).** Aujourd'hui le refresh est en JSON
-  (OK pour API/desktop). Pour le **web**, le poser en cookie `HttpOnly`/`Secure`/`SameSite` et
-  adapter `/refresh`/`/logout`. Garder le JSON pour les clients API/desktop. *Acc.* : session web
-  survit au refresh via cookie ; pas de token en JS web.
+- [x] **D1a — Refresh token en cookie HttpOnly (front web). ✅ FAIT 2026-06-30.**
+  Mode **opt-in** : `POST /api/auth/login` avec `"cookie":"true"` pose le refresh token en cookie
+  `HttpOnly`/`Secure`/`SameSite=Strict`, **path `/api/auth`** (envoyé seulement à refresh+logout),
+  et **ne le renvoie jamais en JSON** (seul l'access token court reste en JSON, en mémoire JS).
+  Sans le flag → JSON inchangé (API/desktop). Helper `security/RefreshCookieManager` (build/clear/read,
+  `ResponseCookie` → en-tête `Set-Cookie`). `/refresh` et `/logout` : **cookie prioritaire** sur le
+  corps JSON ; en mode cookie la rotation repose le nouveau jeton en cookie (hors JSON) et tout échec
+  (jeton mort/volé/logout) **efface** le cookie (`Max-Age 0`). Flag `app.jwt.refresh-cookie-secure`
+  (défaut `true`, surchargé `false` en dev/test HTTP ; `JWT_REFRESH_COOKIE_SECURE` dans `.env.example`).
+  +3 tests `RefreshCookieTest` (login → cookie HttpOnly + 0 refresh JSON ; refresh via cookie rotate+repose
+  + rejeu ancien cookie → 401+effacé ; logout via cookie révoque+efface). *Vérifié* : `mvnd test` →
+  **211 verts, 3 skip**. *NB* : `/refresh` et `/logout` passent `@RequestBody(required=false)` +
+  `HttpServletRequest` (le client cookie n'envoie pas forcément de corps JSON).
 - [ ] **D1b — Nettoyage périodique des refresh tokens expirés (`@Scheduled`).** Job tenant-agnostique
   (les refresh ne sont pas `@TenantId`) qui purge `refresh_tokens` expirés/révoqués anciens. *Acc.* : cron + test unitaire de purge.
 - [ ] **D1c — Vue admin « sessions actives » + révocation ciblée par appareil.** Lister les refresh
@@ -348,6 +357,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-06-30 | **D1a — refresh token en cookie HttpOnly (front web)** | Mode opt-in `login {"cookie":"true"}` → refresh en cookie `HttpOnly`/`Secure`/`SameSite=Strict` path `/api/auth`, **jamais en JSON** (access court reste JSON). Sans flag = JSON inchangé (API/desktop). Helper `security/RefreshCookieManager` (`ResponseCookie`→`Set-Cookie`). `/refresh`+`/logout` : cookie prioritaire, rotation repose le cookie, échec/logout efface (`Max-Age 0`) ; `@RequestBody(required=false)`+`HttpServletRequest`. Flag `app.jwt.refresh-cookie-secure` (true par défaut, false dev/test ; `JWT_REFRESH_COOKIE_SECURE` `.env.example`). +3 tests `RefreshCookieTest`. **211 verts, 3 skip.** |
 | 2026-06-30 | **B4 — file de synchro hors-ligne → chantier B TERMINÉ** | Décisions verrouillées : RDV seul · file IndexedDB **chiffrée** AES-GCM (clé non-extractible) · conflit → échec+notif+conservé. `js/offline-sync.js` (global, no-op sans IDB/WebCrypto) intercepte le form RDV *hors-ligne*, chiffre+enfile (UUID+statut en clair), rejoue au `online`/`DOMContentLoaded` **en contexte page** (CSRF meta + session). Endpoint `POST /appointments/offline` → `createIdempotent` ; dédup `Idempotency-Key`/`findByRequestKey` → 0 doublon ; col `appointments.request_key VARCHAR(36) UNIQUE` (**V31**, nullable, UNIQUE portable H2+PG). Conflit → 409 → item ÉCHEC conservé. Bannière `#offline-queue-status` (compteurs sans déchiffrer). 6 clés `offline.*` ×3. Background Sync différé (clé/CSRF page + support). +2 tests `OfflineSyncTest`. JS pur non testé MockMvc (contrat serveur couvert). **208 verts, 3 skip.** |
 | 2026-06-30 | **B3 — app shell précaché renforcé** | `sw.js` : `SHELL_ASSETS` explicite & complet (5→11 entrées : ajoute `js/{ui,search,worklist-live}.js` + 3 PNG B1) ; cache versionné `v1`→`v2` (purge `activate` déjà en place). Zéro page/PHI/auth en cache (navigations réseau-d'abord → `offline.html`). +2 tests `PwaShellTest` (extrait `SHELL_ASSETS` du `/sw.js` → chaque ressource 200 [garde l'échec atomique de `addAll`] + aucune entrée sensible). **206 verts, 3 skip.** |
 | 2026-06-30 | **B2 — invite d'installation PWA** | `js/pwa.js` capture `beforeinstallprompt` (preventDefault) → affiche `#pwa-install-btn` (masqué dans le chrome `base.html` + `portal/layout.html`) ; clic → `prompt()` + `userChoice.finally` purge/remasque ; garde standalone (jamais si installé) + `appinstalled` → remasque. No-op sur login (pas de bouton) et navigateurs sans support. 3 clés `pwa.{install,install_title,installed}` ×3 langues. +1 test `PageRenderSmokeTest`. NB : Thymeleaf échappe l'apostrophe → assert sur le titre. **204 verts, 3 skip.** |

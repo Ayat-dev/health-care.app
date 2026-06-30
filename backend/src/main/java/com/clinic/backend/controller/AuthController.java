@@ -3,8 +3,10 @@ package com.clinic.backend.controller;
 import com.clinic.backend.model.User;
 import com.clinic.backend.repository.UserRepository;
 import com.clinic.backend.security.JwtService;
+import com.clinic.backend.security.RefreshCookieManager;
 import com.clinic.backend.security.RefreshTokenService;
 import com.clinic.backend.service.LoginAttemptService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,17 +30,20 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
+    private final RefreshCookieManager refreshCookieManager;
 
     public AuthController(AuthenticationManager authenticationManager,
                           UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
                           JwtService jwtService,
-                          RefreshTokenService refreshTokenService) {
+                          RefreshTokenService refreshTokenService,
+                          RefreshCookieManager refreshCookieManager) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.refreshTokenService = refreshTokenService;
+        this.refreshCookieManager = refreshCookieManager;
     }
 
     @PostMapping("/register")
@@ -80,13 +85,27 @@ public class AuthController {
         Map<String, String> body = new HashMap<>();
         body.put("accessToken", accessToken);
         body.put("token", accessToken); // rétro-compat : ancien nom du champ
-        body.put("refreshToken", refreshToken);
         body.put("tokenType", "Bearer");
         body.put("userId", String.valueOf(user.getId()));
         body.put("username", user.getUsername());
         body.put("role", user.getRole());
         body.put("fullName", user.getFullName() != null ? user.getFullName() : "");
+
+        // D1a — front web (cookie=true) : refresh token en cookie HttpOnly, jamais en JSON
+        // (donc jamais exposé au JS). API/desktop : refresh token en JSON, inchangé.
+        if (wantsCookie(data)) {
+            return ResponseEntity.ok()
+                    .header(refreshCookieManager.headerName(),
+                            refreshCookieManager.buildSetCookie(refreshToken))
+                    .body(body);
+        }
+        body.put("refreshToken", refreshToken);
         return ResponseEntity.ok(body);
+    }
+
+    /** Le client demande le mode cookie (front web) via {@code "cookie":"true"} dans le corps. */
+    private boolean wantsCookie(Map<String, String> data) {
+        return "true".equalsIgnoreCase(data.get("cookie"));
     }
 
     /**
@@ -94,8 +113,16 @@ public class AuthController {
      * Appelable sans access token valide (il peut être expiré) → endpoint public.
      */
     @PostMapping("/refresh")
-    public ResponseEntity<Map<String, String>> refresh(@RequestBody Map<String, String> data) {
-        String refreshToken = data.get("refreshToken");
+    public ResponseEntity<Map<String, String>> refresh(
+            @RequestBody(required = false) Map<String, String> data,
+            HttpServletRequest request) {
+        // D1a — front web : le refresh token vient du cookie HttpOnly (prioritaire) ; sinon
+        // du corps JSON (API/desktop). Le mode de réponse suit la provenance du jeton.
+        var fromCookie = refreshCookieManager.readFromRequest(request);
+        Map<String, String> payload = data != null ? data : Map.of();
+        String refreshToken = fromCookie.orElseGet(() -> payload.get("refreshToken"));
+        boolean cookieMode = fromCookie.isPresent();
+
         if (refreshToken == null || refreshToken.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("error", "refreshToken manquant."));
         }
@@ -108,20 +135,45 @@ public class AuthController {
             Map<String, String> body = new HashMap<>();
             body.put("accessToken", accessToken);
             body.put("token", accessToken);
-            body.put("refreshToken", result.newRefreshToken());
             body.put("tokenType", "Bearer");
+
+            if (cookieMode) {
+                // Refresh rotaté reposé en cookie ; jamais renvoyé au JS.
+                return ResponseEntity.ok()
+                        .header(refreshCookieManager.headerName(),
+                                refreshCookieManager.buildSetCookie(result.newRefreshToken()))
+                        .body(body);
+            }
+            body.put("refreshToken", result.newRefreshToken());
             return ResponseEntity.ok(body);
         } catch (IllegalArgumentException e) {
+            // Échec de rotation en mode cookie → on efface le cookie (jeton mort/volé).
+            if (cookieMode) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .header(refreshCookieManager.headerName(),
+                                refreshCookieManager.buildClearCookie())
+                        .body(Map.of("error", e.getMessage()));
+            }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
         }
     }
 
     /** Déconnexion : révoque le refresh token fourni (idempotent). Endpoint public. */
     @PostMapping("/logout")
-    public ResponseEntity<Map<String, String>> logout(@RequestBody Map<String, String> data) {
-        String refreshToken = data.get("refreshToken");
+    public ResponseEntity<Map<String, String>> logout(
+            @RequestBody(required = false) Map<String, String> data,
+            HttpServletRequest request) {
+        var fromCookie = refreshCookieManager.readFromRequest(request);
+        Map<String, String> payload = data != null ? data : Map.of();
+        String refreshToken = fromCookie.orElseGet(() -> payload.get("refreshToken"));
         if (refreshToken != null && !refreshToken.isBlank()) {
             refreshTokenService.revoke(refreshToken);
+        }
+        // D1a — efface le cookie web s'il était présent (no-op pour API/desktop).
+        if (fromCookie.isPresent()) {
+            return ResponseEntity.ok()
+                    .header(refreshCookieManager.headerName(), refreshCookieManager.buildClearCookie())
+                    .body(Map.of("message", "Déconnecté."));
         }
         return ResponseEntity.ok(Map.of("message", "Déconnecté."));
     }
