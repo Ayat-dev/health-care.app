@@ -43,7 +43,7 @@
 | # | Chantier | Slices | Faits | Statut |
 |---|---|---|---|---|
 | A | Multi-tenant — finitions | 4 | 4 | ✅ terminé |
-| B | PWA — finitions | 4 | 1 | 🚧 en cours |
+| B | PWA — finitions | 4 | 2 | 🚧 en cours |
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
 | D | Divers (durcissement/polish) | 8 | 0 | 🔲 à démarrer |
 | Z | (Tier 2) Grosses features parquées | — | — | 📦 listées, hors périmètre finitions |
@@ -123,11 +123,18 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
   (`pip install Pillow`) qui redessine la géométrie de l'`icon.svg` (rects arrondis) en supersampling ×4
   + downscale LANCZOS. *Vérifié* : `mvnd test` → **203 verts, 3 skip** (Testcontainers sans Docker, attendu).
 
-- [ ] **B2 — Invite d'installation personnalisée (`beforeinstallprompt`).**
-  Capturer l'événement dans `js/pwa.js`, afficher un bouton/discret « Installer l'app » (i18n),
-  déclencher `prompt()` au clic, masquer si déjà installé. Dégradation gracieuse (navigateurs
-  sans support). 3 clés i18n.
-  *Acceptation* : sur navigateur compatible, bouton d'install apparaît et fonctionne ; invisible sinon.
+- [x] **B2 — Invite d'installation personnalisée (`beforeinstallprompt`). ✅ FAIT 2026-06-30.**
+  `js/pwa.js` capture `beforeinstallprompt` (`preventDefault` → on pilote notre UI), stocke
+  l'événement différé, et **affiche** un bouton discret `#pwa-install-btn` (présent masqué dans le
+  chrome de `base.html` **et** `portal/layout.html`, topbar/header). Clic → `deferredPrompt.prompt()`
+  + `userChoice.finally` qui purge l'événement (rejouable une seule fois) et remasque. Garde
+  `display-mode: standalone` / `navigator.standalone` → jamais proposé si déjà installé ; `appinstalled`
+  → remasque + log la clé `pwa.installed`. Dégradation gracieuse : pas de bouton sur les pages sans
+  chrome (login) → no-op ; navigateurs sans l'événement → bouton reste masqué. 3 clés i18n
+  `pwa.{install,install_title,installed}` ×3 langues (label via `th:text`, message succès en
+  `data-installed`). +1 test `PageRenderSmokeTest` (bouton présent + masqué + titre i18n).
+  **NB** : Thymeleaf échappe l'apostrophe (`l'app` → `l&#39;app`) → le test assert sur le titre
+  sans apostrophe. *Vérifié* : `mvnd test` → **204 verts, 3 skip**.
 
 - [ ] **B3 — Précache des ressources-clés (app shell renforcé).**
   Étendre `sw.js` : précacher au `install` la liste explicite de l'app shell (css/js/images/manifest/
@@ -317,6 +324,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-06-30 | **B2 — invite d'installation PWA** | `js/pwa.js` capture `beforeinstallprompt` (preventDefault) → affiche `#pwa-install-btn` (masqué dans le chrome `base.html` + `portal/layout.html`) ; clic → `prompt()` + `userChoice.finally` purge/remasque ; garde standalone (jamais si installé) + `appinstalled` → remasque. No-op sur login (pas de bouton) et navigateurs sans support. 3 clés `pwa.{install,install_title,installed}` ×3 langues. +1 test `PageRenderSmokeTest`. NB : Thymeleaf échappe l'apostrophe → assert sur le titre. **204 verts, 3 skip.** |
 | 2026-06-30 | **B1 — icônes PNG PWA** | Généré `icon-{192,512}.png` (`any`) + `icon-maskable-512.png` (`maskable`, croix à 78 % pour la safe-zone) ; `manifest.webmanifest` déclare les 3 PNG + le SVG (repassé `any`). Pas d'ImageMagick ici (`convert`=NTFS Windows) → script **Pillow** jetable redessinant la géométrie de l'`icon.svg` (supersampling ×4 + LANCZOS). Rendu vérifié à l'œil. Pas de migration/PHI/CDN. **203 verts, 3 skip.** |
 | 2026-06-30 | **C3 — tests a11y axe-core → chantier C TERMINÉ** | Nouveau `A11yAxeTest` : axe-core réel (WCAG A/AA) sur 15 vues authentifiées (login + médecin/caisse/admin/owner) → **0 violation critique/sérieuse**. Stack 100% Java sans réseau : HTML authentifié via `mvc.perform` (`@WithUserDetails`) → audité dans **HtmlUnit nu** ; `/axe.min.js` lu du JAR `com.deque.html.axe-core:selenium` (aucun CDN). Deps test : `org.htmlunit:htmlunit` + JAR deque. 4 pièges tranchés : Promise non sérialisable (→ callback + `JSON.stringify`) ; `@WithUserDetails` non propagé au pont HtmlUnit→MockMvc (→ `mvc.perform`) ; JS appli qui fait planter HtmlUnit (→ `WebConnection` stub, sous-ressources vides) ; `loadHtmlCodeIntoCurrentWindow` reste `readyState=loading` (→ vraie nav `getPage`). CI-safe (skip si moteur JS HS). **203 verts, 0 skip.** |
 | 2026-06-29 | **C2 — audit a11y lot 2 (le reste)** | `for`/`id` sur tous les champs des formulaires pharmacie/labo/imagerie/hospitalisation/maternité/rapports/admin(×8 forms + config)/portail (`th:field`→`for` seul ; `name=`→`for`+`id`). `<th scope="col">` sur **toutes** les tables restantes + `<th scope="row">` (saisie labo, grille semaine déjà en C1), `sr-only` colonnes Actions, `aria-label` cases à cocher labo/imagerie (nom analyse) + filtres non étiquetés + actions inline détail hospi. Chrome **portail** mis à parité C1 (skip-link/`#portal-main`/`nav[aria-label]`). +1 clé `common.selection` ×3. setup déjà conforme. Print-only exclus. +2 tests `A11yTest`. **196 verts, 0 skip.** |

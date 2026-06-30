@@ -30,6 +30,13 @@
                th:classappend="${#strings.startsWith(currentUri, '/portal/record')} ? 'active'">Mon dossier</a>
         </nav>
         <div class="portal-user">
+            <!-- Invite d'installation PWA (B2) — masquée par défaut ; js/pwa.js l'affiche
+                 quand le navigateur émet beforeinstallprompt (app non installée). -->
+            <button type="button" class="btn btn-ghost btn-sm" id="pwa-install-btn" hidden
+                    th:title="#{pwa.install_title}" th:data-installed="#{pwa.installed}">
+                <span aria-hidden="true">⬇</span>
+                <span th:text="#{pwa.install}">Installer l'app</span>
+            </button>
             <details class="lang-dropdown">
                 <summary th:title="#{lang.label}">
                     <svg class="nav-icon" aria-hidden="true"><use href="#ic-globe"></use></svg>

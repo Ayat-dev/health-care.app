@@ -124,6 +124,13 @@
             </button>
             <h1 class="topbar-title" th:text="${title}">Page</h1>
             <div class="topbar-actions">
+                <!-- Invite d'installation PWA (B2) — masquée par défaut ; js/pwa.js l'affiche
+                     uniquement quand le navigateur émet beforeinstallprompt (app non installée). -->
+                <button type="button" class="btn btn-ghost btn-sm" id="pwa-install-btn" hidden
+                        th:title="#{pwa.install_title}" th:data-installed="#{pwa.installed}">
+                    <span aria-hidden="true">⬇</span>
+                    <span th:text="#{pwa.install}">Installer l'app</span>
+                </button>
                 <!-- Recherche globale (P3.5) — ouvre la palette (clic ou Ctrl/⌘+K) -->
                 <button type="button" class="topbar-search" id="global-search-trigger"
                         th:aria-label="#{search.aria_label}" aria-haspopup="dialog">

@@ -66,6 +66,17 @@ class PageRenderSmokeTest {
         mvc.perform(get("/appointments")).andExpect(status().isOk());
     }
 
+    /** B2 : l'invite d'installation PWA est présente dans le chrome, masquée par défaut
+     *  (js/pwa.js l'affiche sur beforeinstallprompt) et étiquetée via i18n. */
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void invite_installation_pwa_presente_et_masquee() throws Exception {
+        mvc.perform(get("/patients"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("id=\"pwa-install-btn\"")))
+                .andExpect(content().string(containsString("Installer ClinicApp sur cet appareil")));
+    }
+
     /** i18n slice 2 (docs/I18N-PLAN.md) : agenda jour/semaine porte des clés #{} (dont les
      *  statuts dynamiques #{${'status.' + …}} de la colonne + légende) et bascule en anglais
      *  via ?lang=en. */
