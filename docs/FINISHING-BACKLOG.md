@@ -43,7 +43,7 @@
 | # | Chantier | Slices | Faits | Statut |
 |---|---|---|---|---|
 | A | Multi-tenant — finitions | 4 | 4 | ✅ terminé |
-| B | PWA — finitions | 4 | 0 | 🔲 à démarrer |
+| B | PWA — finitions | 4 | 1 | 🚧 en cours |
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
 | D | Divers (durcissement/polish) | 8 | 0 | 🔲 à démarrer |
 | Z | (Tier 2) Grosses features parquées | — | — | 📦 listées, hors périmètre finitions |
@@ -112,11 +112,16 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 > État : fondation faite (manifest + SW réseau-d'abord + `offline.html`, **zéro cache PHI/auth**).
 
-- [ ] **B1 — Icônes PNG (installabilité large).**
-  Aujourd'hui seule une icône **SVG** (`images/icon.svg`). Certains OS/navigateurs exigent des
-  PNG pour l'install/splash. Générer 192×192 + 512×512 (+ maskable) PNG, les déclarer dans
-  `manifest.webmanifest` (garder le SVG en complément). Pas de migration, pas de PHI.
-  *Acceptation* : `manifest` valide avec icônes PNG ; pas de régression test.
+- [x] **B1 — Icônes PNG (installabilité large). ✅ FAIT 2026-06-30.**
+  Générées `images/icon-{192,512}.png` (`purpose: any`) + `icon-maskable-512.png`
+  (`purpose: maskable`, croix réduite à 78 % pour rester dans la zone de sécurité, fond plein
+  perdu). Le `manifest.webmanifest` déclare désormais les 3 PNG **en plus** du SVG (SVG repassé en
+  `purpose: any` seul, le maskable étant fourni par le PNG dédié). Rendu vérifié visuellement (croix
+  médicale bleue centrée). Pas de CDN (servies depuis `/images/` static, CSP `default-src 'self'` OK),
+  pas de migration, pas de PHI. **NB outillage** : pas d'ImageMagick ici (`convert` = `convert.exe`
+  NTFS de Windows, pas IM ; `magick` absent) → généré via un script **Pillow** jetable
+  (`pip install Pillow`) qui redessine la géométrie de l'`icon.svg` (rects arrondis) en supersampling ×4
+  + downscale LANCZOS. *Vérifié* : `mvnd test` → **203 verts, 3 skip** (Testcontainers sans Docker, attendu).
 
 - [ ] **B2 — Invite d'installation personnalisée (`beforeinstallprompt`).**
   Capturer l'événement dans `js/pwa.js`, afficher un bouton/discret « Installer l'app » (i18n),
@@ -312,6 +317,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-06-30 | **B1 — icônes PNG PWA** | Généré `icon-{192,512}.png` (`any`) + `icon-maskable-512.png` (`maskable`, croix à 78 % pour la safe-zone) ; `manifest.webmanifest` déclare les 3 PNG + le SVG (repassé `any`). Pas d'ImageMagick ici (`convert`=NTFS Windows) → script **Pillow** jetable redessinant la géométrie de l'`icon.svg` (supersampling ×4 + LANCZOS). Rendu vérifié à l'œil. Pas de migration/PHI/CDN. **203 verts, 3 skip.** |
 | 2026-06-30 | **C3 — tests a11y axe-core → chantier C TERMINÉ** | Nouveau `A11yAxeTest` : axe-core réel (WCAG A/AA) sur 15 vues authentifiées (login + médecin/caisse/admin/owner) → **0 violation critique/sérieuse**. Stack 100% Java sans réseau : HTML authentifié via `mvc.perform` (`@WithUserDetails`) → audité dans **HtmlUnit nu** ; `/axe.min.js` lu du JAR `com.deque.html.axe-core:selenium` (aucun CDN). Deps test : `org.htmlunit:htmlunit` + JAR deque. 4 pièges tranchés : Promise non sérialisable (→ callback + `JSON.stringify`) ; `@WithUserDetails` non propagé au pont HtmlUnit→MockMvc (→ `mvc.perform`) ; JS appli qui fait planter HtmlUnit (→ `WebConnection` stub, sous-ressources vides) ; `loadHtmlCodeIntoCurrentWindow` reste `readyState=loading` (→ vraie nav `getPage`). CI-safe (skip si moteur JS HS). **203 verts, 0 skip.** |
 | 2026-06-29 | **C2 — audit a11y lot 2 (le reste)** | `for`/`id` sur tous les champs des formulaires pharmacie/labo/imagerie/hospitalisation/maternité/rapports/admin(×8 forms + config)/portail (`th:field`→`for` seul ; `name=`→`for`+`id`). `<th scope="col">` sur **toutes** les tables restantes + `<th scope="row">` (saisie labo, grille semaine déjà en C1), `sr-only` colonnes Actions, `aria-label` cases à cocher labo/imagerie (nom analyse) + filtres non étiquetés + actions inline détail hospi. Chrome **portail** mis à parité C1 (skip-link/`#portal-main`/`nav[aria-label]`). +1 clé `common.selection` ×3. setup déjà conforme. Print-only exclus. +2 tests `A11yTest`. **196 verts, 0 skip.** |
 | 2026-06-29 | **C1 — audit a11y lot 1 (labels/scope/aria)** | `for`/`id` sur tous les champs des 5 formulaires (patients/appointments/consultations/billing form+pay) ; `aria-label` par colonne sur lignes de facturation dynamiques (Thymeleaf + JS) ; `<th scope="col">` sur toutes les tables (+ `sr-only` pour colonne Actions vide, `<th scope="row">` heure grille semaine) ; `aria-label` sur les filtres non étiquetés. 2 clés i18n `common.date_from/to` ×3. +2 tests `A11yTest`. Contraste badges OK (déjà ≥4.5:1). **196 verts, 0 skip.** |
