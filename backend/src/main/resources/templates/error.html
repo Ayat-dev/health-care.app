@@ -1,4 +1,4 @@
-<html th:replace="~{layouts/base :: layout('Erreur', ~{::content})}">
+<html th:replace="~{layouts/base :: layout(#{error.title}, ~{::content})}">
 <body><th:block th:fragment="content">
 
 <div class="empty-state" style="padding: 64px 0;">
@@ -13,7 +13,7 @@
     <p style="color: #64748b; max-width: 400px; margin: 0 auto 24px;" th:text="${message}">
         Une erreur s'est produite.
     </p>
-    <a th:href="@{__${homeUrl ?: '/'}__}" class="btn btn-primary">Retour à l'accueil</a>
+    <a th:href="@{__${homeUrl ?: '/'}__}" class="btn btn-primary" th:text="#{error.home}">Retour à l'accueil</a>
 </div>
 
 </th:block></body>

@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:lang="${#locale.language}"
+      th:dir="${#locale.language == 'ar'} ? 'rtl' : 'ltr'">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Installation — ClinicApp</title>
+    <title th:text="#{setup.page_title}">Installation — ClinicApp</title>
     <link rel="stylesheet" th:href="@{/css/app.css}"/>
     <meta name="theme-color" content="#0f172a"/>
     <style>
@@ -63,8 +65,8 @@
 <body>
 <div class="setup-wrapper">
     <div class="setup-logo">
-        <h1>Bienvenue dans ClinicApp</h1>
-        <p>Configuration initiale — cet écran n'apparaît qu'à la première installation.</p>
+        <h1 th:text="#{setup.welcome}">Bienvenue dans ClinicApp</h1>
+        <p th:text="#{setup.subtitle}">Configuration initiale — cet écran n'apparaît qu'à la première installation.</p>
     </div>
 
     <div class="setup-card">
@@ -74,27 +76,27 @@
 
             <!-- 1. Compte administrateur -->
             <div class="setup-section">
-                <h2><span aria-hidden="true">👤</span> 1. Compte administrateur</h2>
-                <p class="hint">Le compte qui gérera la clinique, les utilisateurs et la configuration.</p>
+                <h2><span aria-hidden="true">👤</span> <span th:text="#{setup.section_admin}">1. Compte administrateur</span></h2>
+                <p class="hint" th:text="#{setup.section_admin_hint}">Le compte qui gérera la clinique, les utilisateurs et la configuration.</p>
                 <div class="setup-grid">
                     <div class="form-group">
-                        <label class="form-label" for="adminUsername">Nom d'utilisateur <span class="req">*</span></label>
+                        <label class="form-label" for="adminUsername"><span th:text="#{setup.username}">Nom d'utilisateur</span> <span class="req">*</span></label>
                         <input class="form-control" id="adminUsername" type="text"
                                th:field="*{adminUsername}" autocomplete="username" required autofocus/>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="adminFullName">Nom complet</label>
+                        <label class="form-label" for="adminFullName" th:text="#{setup.full_name}">Nom complet</label>
                         <input class="form-control" id="adminFullName" type="text"
                                th:field="*{adminFullName}" placeholder="Dr. ..."/>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="adminPassword">Mot de passe <span class="req">*</span></label>
+                        <label class="form-label" for="adminPassword"><span th:text="#{setup.password}">Mot de passe</span> <span class="req">*</span></label>
                         <input class="form-control" id="adminPassword" type="password"
                                th:field="*{adminPassword}" autocomplete="new-password"
                                minlength="8" required/>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="adminPasswordConfirm">Confirmer le mot de passe <span class="req">*</span></label>
+                        <label class="form-label" for="adminPasswordConfirm"><span th:text="#{setup.password_confirm}">Confirmer le mot de passe</span> <span class="req">*</span></label>
                         <input class="form-control" id="adminPasswordConfirm" type="password"
                                th:field="*{adminPasswordConfirm}" autocomplete="new-password"
                                minlength="8" required/>
@@ -106,28 +108,28 @@
 
             <!-- 2. Identité de la clinique -->
             <div class="setup-section">
-                <h2><span aria-hidden="true">🏥</span> 2. Identité de la clinique</h2>
-                <p class="hint">Ces informations apparaissent sur les ordonnances, factures et bulletins.</p>
+                <h2><span aria-hidden="true">🏥</span> <span th:text="#{setup.section_clinic}">2. Identité de la clinique</span></h2>
+                <p class="hint" th:text="#{setup.section_clinic_hint}">Ces informations apparaissent sur les ordonnances, factures et bulletins.</p>
                 <div class="setup-grid">
                     <div class="form-group full">
-                        <label class="form-label" for="clinicName">Nom de la clinique <span class="req">*</span></label>
+                        <label class="form-label" for="clinicName"><span th:text="#{setup.clinic_name}">Nom de la clinique</span> <span class="req">*</span></label>
                         <input class="form-control" id="clinicName" type="text"
                                th:field="*{clinicName}" required/>
                     </div>
                     <div class="form-group full">
-                        <label class="form-label" for="clinicAddress">Adresse</label>
+                        <label class="form-label" for="clinicAddress" th:text="#{setup.address}">Adresse</label>
                         <input class="form-control" id="clinicAddress" type="text" th:field="*{clinicAddress}"/>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="clinicPhone">Téléphone</label>
+                        <label class="form-label" for="clinicPhone" th:text="#{setup.phone}">Téléphone</label>
                         <input class="form-control" id="clinicPhone" type="text" th:field="*{clinicPhone}"/>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="clinicEmail">E-mail</label>
+                        <label class="form-label" for="clinicEmail" th:text="#{setup.email}">E-mail</label>
                         <input class="form-control" id="clinicEmail" type="email" th:field="*{clinicEmail}"/>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="currency">Devise</label>
+                        <label class="form-label" for="currency" th:text="#{setup.currency}">Devise</label>
                         <select class="form-control" id="currency" th:field="*{currency}">
                             <option value="XOF">Franc CFA (XOF)</option>
                             <option value="XAF">Franc CFA (XAF)</option>
@@ -137,7 +139,7 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="defaultLanguage">Langue par défaut</label>
+                        <label class="form-label" for="defaultLanguage" th:text="#{setup.default_language}">Langue par défaut</label>
                         <select class="form-control" id="defaultLanguage" th:field="*{defaultLanguage}">
                             <option value="fr">Français</option>
                             <option value="en">English</option>
@@ -151,19 +153,19 @@
 
             <!-- 3. Modules -->
             <div class="setup-section">
-                <h2><span aria-hidden="true">🧩</span> 3. Modules à activer</h2>
-                <p class="hint">Activez seulement ce dont la clinique a besoin. Modifiable à tout moment ensuite.</p>
+                <h2><span aria-hidden="true">🧩</span> <span th:text="#{setup.section_modules}">3. Modules à activer</span></h2>
+                <p class="hint" th:text="#{setup.section_modules_hint}">Activez seulement ce dont la clinique a besoin. Modifiable à tout moment ensuite.</p>
                 <div class="modules">
-                    <label class="module-check"><input type="checkbox" th:field="*{modulePharmacy}"/> Pharmacie &amp; Stock</label>
-                    <label class="module-check"><input type="checkbox" th:field="*{moduleLab}"/> Laboratoire</label>
-                    <label class="module-check"><input type="checkbox" th:field="*{moduleRadiology}"/> Imagerie médicale</label>
-                    <label class="module-check"><input type="checkbox" th:field="*{moduleHospitalization}"/> Hospitalisation</label>
-                    <label class="module-check"><input type="checkbox" th:field="*{moduleMaternity}"/> Maternité</label>
-                    <label class="module-check"><input type="checkbox" th:field="*{moduleDental}"/> Dentaire</label>
+                    <label class="module-check"><input type="checkbox" th:field="*{modulePharmacy}"/> <span th:text="#{setup.module_pharmacy}">Pharmacie &amp; Stock</span></label>
+                    <label class="module-check"><input type="checkbox" th:field="*{moduleLab}"/> <span th:text="#{setup.module_lab}">Laboratoire</span></label>
+                    <label class="module-check"><input type="checkbox" th:field="*{moduleRadiology}"/> <span th:text="#{setup.module_radiology}">Imagerie médicale</span></label>
+                    <label class="module-check"><input type="checkbox" th:field="*{moduleHospitalization}"/> <span th:text="#{setup.module_hospitalization}">Hospitalisation</span></label>
+                    <label class="module-check"><input type="checkbox" th:field="*{moduleMaternity}"/> <span th:text="#{setup.module_maternity}">Maternité</span></label>
+                    <label class="module-check"><input type="checkbox" th:field="*{moduleDental}"/> <span th:text="#{setup.module_dental}">Dentaire</span></label>
                 </div>
             </div>
 
-            <button type="submit" class="btn-setup">Terminer l'installation</button>
+            <button type="submit" class="btn-setup" th:text="#{setup.submit}">Terminer l'installation</button>
         </form>
     </div>
 </div>

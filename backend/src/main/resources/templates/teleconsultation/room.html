@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Téléconsultation — ClinicApp</title>
+    <title th:text="#{teleconsultation.page_title}">Téléconsultation — ClinicApp</title>
     <link rel="stylesheet" th:href="@{/css/app.css}"/>
     <style>
         body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
@@ -28,41 +28,42 @@
 <div class="tc-wrap">
     <div class="tc-card">
         <div class="tc-icon" aria-hidden="true">📹</div>
-        <h1>Téléconsultation</h1>
+        <h1 th:text="#{teleconsultation.heading}">Téléconsultation</h1>
 
         <div class="tc-meta">
             <div class="tc-row">
-                <span class="lbl">Patient</span>
+                <span class="lbl" th:text="#{common.patient}">Patient</span>
                 <span class="val" th:text="${appointment.patientName ?: '—'}">Patient</span>
             </div>
             <div class="tc-row">
-                <span class="lbl">Médecin</span>
+                <span class="lbl" th:text="#{common.doctor}">Médecin</span>
                 <span class="val" th:text="${appointment.doctorName ?: '—'}">Médecin</span>
             </div>
             <div class="tc-row">
-                <span class="lbl">Date</span>
+                <span class="lbl" th:text="#{common.date}">Date</span>
                 <span class="val"
                       th:text="${appointment.startTime != null ? #temporals.format(appointment.startTime,'dd/MM/yyyy HH:mm') : '—'}">—</span>
             </div>
             <div class="tc-row" th:if="${appointment.reason != null}">
-                <span class="lbl">Motif</span>
+                <span class="lbl" th:text="#{common.reason}">Motif</span>
                 <span class="val" th:text="${appointment.reason}">Motif</span>
             </div>
         </div>
 
         <a th:if="${appointment.teleconsultationUrl != null}"
            th:href="${appointment.teleconsultationUrl}" target="_blank" rel="noopener"
-           class="btn btn-primary btn-lg btn-full">Rejoindre la salle vidéo</a>
+           class="btn btn-primary btn-lg btn-full" th:text="#{teleconsultation.join}">Rejoindre la salle vidéo</a>
 
-        <div th:if="${appointment.teleconsultationUrl == null}" class="alert alert-error" role="alert">
+        <div th:if="${appointment.teleconsultationUrl == null}" class="alert alert-error" role="alert"
+             th:text="#{teleconsultation.no_link}">
             Aucun lien de téléconsultation n'est associé à ce rendez-vous.
         </div>
 
-        <p class="tc-hint">
+        <p class="tc-hint" th:text="#{teleconsultation.hint}">
             Autorisez l'accès à votre caméra et à votre micro lorsque le navigateur le demande.
             Le lien s'ouvre dans un nouvel onglet.
         </p>
-        <a href="#" onclick="history.back();return false;" class="btn btn-ghost btn-sm">← Retour</a>
+        <a href="#" onclick="history.back();return false;" class="btn btn-ghost btn-sm" th:text="'← ' + #{common.back}">← Retour</a>
     </div>
 </div>
 </body>

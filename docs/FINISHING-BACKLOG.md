@@ -45,7 +45,7 @@
 | A | Multi-tenant — finitions | 4 | 4 | ✅ terminé |
 | B | PWA — finitions | 4 | 4 | ✅ terminé |
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
-| D | Divers (durcissement/polish) | 12 | 11 | 🔄 en cours |
+| D | Divers (durcissement/polish) | 12 | 12 | ✅ terminé |
 | Z | (Tier 2) Grosses features parquées | — | — | 📦 listées, hors périmètre finitions |
 
 **Ordre conseillé** : A (clôt le multi-tenant, petites slices à forte valeur) → D4a (sécu) →
@@ -447,9 +447,28 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
   +2 `GlobalSearchTest` (consultation par code K29 ; médicament Paracétamol) +1 `Icd10CatalogTest`
   (résolution ordre/uppercase/inconnu→null). **NB** : `findByCodeInUpper` compare en `UPPER()` ↔
   `splitCodes` normalise déjà uppercase. *Vérifié* : `mvnd test` → **248 verts, 0 skip** (Docker présent).
-- [ ] **D4d — i18n des onglets/écrans encore FR en dur (balayage de complétude).** Vérifier les
-  reliquats post-I18N-PLAN (ex. onglet **Aperçu** patient signalé FR en dur, écrans desktop hors
-  périmètre web). Compléter les `#{}` manquants. *Acc.* : grep des chaînes FR en dur sur les vues web = vide (hors contenu dynamique).
+- [x] **D4d — i18n des reliquats FR en dur (balayage de complétude). ✅ FAIT 2026-06-30.**
+  Balayage outillé : (a) liste des templates **sans aucun `#{`** + (b) sweep des caractères accentués
+  français **non liés** à un `th:*`/`#{` (hors commentaires/CSS/JS). L'onglet **Aperçu** patient
+  signalé dans le backlog était **déjà traduit** (note périmée). Reliquats réels = **6 vues**
+  totalement/majoritairement FR en dur, désormais traduites (FR/EN/AR) : `notifications/list.html`
+  (boîte de réception entière), `dashboard-doctor.html` (titres KPI/panneaux + en-têtes + états vides
+  + badges `status.*`/`priority.*` qui affichaient l'enum brut), `error.html` (titre + retour accueil),
+  `fragments/ui.html` (bouton **← Retour** partagé → `common.back`), `setup/wizard.html` (assistant
+  d'installation entier, + page rendue `th:lang`/`th:dir` pour RTL), `teleconsultation/room.html`
+  (salle vidéo autonome, idem RTL). **Tous les autres « hits » du sweep étaient des faux positifs** :
+  valeurs par défaut de `th:text` multi-lignes (non rendues), commentaires, emojis, et libellés de
+  langue intentionnels (Français/English/العربية dans les sélecteurs, montrés dans leur propre langue).
+  **~60 clés** neuves ×3 langues (namespaces `error.*`, `notifications.*`, `dashboard.doctor.*`,
+  `setup.*`, `teleconsultation.*` + `common.{patient,doctor,reason,diagnosis,number,priority}`
+  réutilisables) ; **bundles ré-alignés à 1401 clés** sur FR/EN/AR (diff vide). +2 tests
+  `PageRenderSmokeTest` (`notifications` + dashboard médecin EN). **NB** : badges enum désormais via
+  `#{${'status.'+x}}`/`#{${'priority.'+x}}` (cf. [[thymeleaf-sec-authorize-attribute-form]] dyn-key) ;
+  back partagé via `th:text="'← ' + #{common.back}"`. *Vérifié* : `mvnd test` → **250 verts, 0 skip**.
+
+> **✅ Bloc D4 (fonctionnel/UX) TERMINÉ** — D4a→D4d faits. **➡️ Chantier D entier terminé (12/12)** —
+> et avec lui **tous les chantiers A→D du tracker de finitions**. Reste hors périmètre : C2-reliquat
+> (ARIA tablist), parqués A/B/C, et le **Tier 2** (Z1→Z6, grosses features) — à promouvoir explicitement.
 
 ---
 
@@ -504,6 +523,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-06-30 | **D4d — i18n des reliquats FR en dur → bloc D4 + chantier D TERMINÉS** | Balayage outillé (templates sans `#{` + sweep accents non liés à `th:*`/`#{`). Onglet Aperçu déjà traduit (note backlog périmée). 6 vues FR en dur traduites FR/EN/AR : `notifications/list.html`, `dashboard-doctor.html` (titres/colonnes/états + badges enum→`#{status.*}`/`#{priority.*}`), `error.html`, `fragments/ui.html` (← Retour partagé→`common.back`), `setup/wizard.html` (+`th:lang`/`th:dir` RTL), `teleconsultation/room.html` (+RTL). Faux positifs écartés : défauts `th:text` multi-lignes, commentaires, emojis, noms de langue (Français/English/العربية). ~60 clés ×3 (`error/notifications/dashboard.doctor/setup/teleconsultation.*` + `common.{patient,doctor,reason,diagnosis,number,priority}`). **Bundles ré-alignés 1401 clés** (diff vide). +2 tests `PageRenderSmokeTest`. **250 verts, 0 skip.** |
 | 2026-06-30 | **D4c — recherche globale étendue + libellés CIM-10 + top pathologies sur codes** | **(1)** `GlobalSearchService` +3 catégories gatées par module : Consultations (`searchForPalette` nom patient OU code CIM-10, non chiffré), Rendez-vous (`searchForPalette` → `/appointments/{id}/edit`), Médicaments (`DrugRepository.search` → `/pharmacy/drugs/{id}/edit`). 3 clés `search.section.{consultations,appointments,drugs}` ×3. **(2)** `Icd10Service.{splitCodes,titlesByCode,resolveCodes,displayLabel}` + repo `findByCodeInUpper` ; `ConsultationDto.icd10Resolved` rempli seulement dans `getDtoById` ; `detail.html` liste « CODE — Titre ». **(3)** `ReportService.topDiagnoses` agrège `findCompletedIcd10Codes` (découpe multi-codes, compte/code, résout libellés en lot) → remplace `findCompletedDiagnoses` (supprimé). Test D3a `top_pathologies_*` réécrit sur codes (B54=2/J45=2, preuve découpage) ; +2 `GlobalSearchTest` (consult K29 / drug Paracétamol) +1 `Icd10CatalogTest` (résolution). **248 verts, 0 skip.** |
 | 2026-06-30 | **D4b — portail patient : annulation RDV + PDF + profil/mot de passe** | 3 actions sous `hasRole('PATIENT')`, cloisonnées au dossier (`PortalService.currentPatient()`). Annulation : `POST /portal/appointments/{id}/cancel` (ownership→403, PLANIFIE/CONFIRME seulement). PDF : `PortalDocumentService` (ownership + validé pour labo/imagerie, réutilise `PdfExportService`+`getBulletinDto` images base64 D4a) → endpoints `/portal/{lab,radiology,prescriptions,invoices}/…/pdf` ; `BillingWebController.pdfInline` passé **public** ; liens ⬇ PDF + section Ordonnances dans `record.html`. Profil : `/portal/profile` + `POST /profile/password` → `UserService.changeOwnPassword` (vérifie l'actuel, politique ≥8+chiffre, bump token-version + revokeAll). `portal/profile.html` + lien nav. 22 clés i18n ×3. +9 tests `PortalTest` (dont doc/RDV d'autrui→403). NB : `AccessDeniedException` contrôleur/service → 403 via `ExceptionTranslationFilter`. **245 verts, 0 skip.** |
 | 2026-06-30 | **D4a — export pdf/excel API rapports + images radio base64 en PDF** | Nouveau `export/ReportExportService` centralise rapport→PDF(template `reports/pdf-report`)/Excel pour les 6 rapports tabulaires. `ReportApiController` : `?format=pdf|excel` (défaut JSON, binaire en pièce jointe) sur daily-cash/monthly-financial/activity/epidemiology/outstanding/stock ; dashboards JSON-only. `ReportWebController` **refactoré** pour déléguer (suppression helpers dupliqués `reportPdf`/`kpi`/`section`/… → controller raccourci, `/reports/*/pdf`+`/outstanding/excel` intacts). Images radio en PDF : `RadiologyImageDto.dataUri` + `RadiologyService.getBulletinDto` (relit/déchiffre via `FileStorageService`→base64) + `bulletin.html` affiche en mode PDF + `bulletinPdf` embarque. +6 tests `ReportApiExportTest`. NB : `ResponseEntity<?>` (DTO→JSON par défaut, byte[] sinon). **236 verts, 0 skip.** |

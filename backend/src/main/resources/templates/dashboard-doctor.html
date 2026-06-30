@@ -4,7 +4,7 @@
 <!-- En-tête de journée : repère le médecin et la date du jour. -->
 <div class="content-header">
     <div>
-        <h2 th:text="'Bonjour, ' + ${dashboard.doctorName}">Bonjour, Dr Martin</h2>
+        <h2 th:text="#{dashboard.doctor.greeting} + ', ' + ${dashboard.doctorName}">Bonjour, Dr Martin</h2>
         <div class="page-subtitle"
              th:text="${#temporals.format(#temporals.createToday(), 'EEEE d MMMM yyyy')}">jeudi 25 juin 2026</div>
     </div>
@@ -14,21 +14,21 @@
 <div class="stats-grid">
     <div class="stat-card">
         <div class="stat-card-header">
-            <span class="stat-card-label">Consultations du jour</span>
+            <span class="stat-card-label" th:text="#{dashboard.doctor.consultations_today}">Consultations du jour</span>
             <span class="stat-card-icon stat-icon-blue" aria-hidden="true">🩺</span>
         </div>
         <div class="stat-card-value" th:text="${#lists.size(dashboard.todayConsultations)}">—</div>
     </div>
     <div class="stat-card">
         <div class="stat-card-header">
-            <span class="stat-card-label">Rendez-vous (7 jours)</span>
+            <span class="stat-card-label" th:text="#{dashboard.doctor.appointments_7d}">Rendez-vous (7 jours)</span>
             <span class="stat-card-icon stat-icon-green" aria-hidden="true">📅</span>
         </div>
         <div class="stat-card-value" th:text="${#lists.size(dashboard.weekAppointments)}">—</div>
     </div>
     <div class="stat-card" th:classappend="${dashboard.labPendingValidationCount > 0} ? 'stat-card--amber'">
         <div class="stat-card-header">
-            <span class="stat-card-label">Résultats labo à valider</span>
+            <span class="stat-card-label" th:text="#{dashboard.doctor.lab_to_validate}">Résultats labo à valider</span>
             <span class="stat-card-icon stat-icon-purple" aria-hidden="true">🔬</span>
         </div>
         <div class="stat-card-value" th:text="${dashboard.labPendingValidationCount}">—</div>
@@ -38,12 +38,12 @@
 <!-- Mes consultations du jour -->
 <div class="panel">
     <div class="panel-header">
-        <h2 class="panel-title">Mes consultations du jour</h2>
+        <h2 class="panel-title" th:text="#{dashboard.doctor.my_consultations}">Mes consultations du jour</h2>
     </div>
     <div class="table-wrap">
         <table class="table">
             <thead>
-                <tr><th>Heure</th><th>Patient</th><th>Motif</th><th>Diagnostic</th><th>Statut</th></tr>
+                <tr><th scope="col" th:text="#{dashboard.doctor.col_time}">Heure</th><th scope="col" th:text="#{common.patient}">Patient</th><th scope="col" th:text="#{common.reason}">Motif</th><th scope="col" th:text="#{common.diagnosis}">Diagnostic</th><th scope="col" th:text="#{common.status}">Statut</th></tr>
             </thead>
             <tbody>
                 <tr th:each="c : ${dashboard.todayConsultations}"
@@ -53,10 +53,10 @@
                     <td th:text="${c.patientName}">—</td>
                     <td th:text="${c.chiefComplaint}">—</td>
                     <td th:text="${c.diagnosis}">—</td>
-                    <td><span class="badge" th:classappend="'badge-' + ${c.status}" th:text="${c.status}">—</span></td>
+                    <td><span class="badge" th:classappend="'badge-' + ${c.status}" th:text="#{${'status.' + c.status}}">—</span></td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(dashboard.todayConsultations)}">
-                    <td colspan="5" class="empty-state" style="padding:24px;">Aucune consultation aujourd'hui.</td>
+                    <td colspan="5" class="empty-state" style="padding:24px;" th:text="#{dashboard.doctor.no_consultations}">Aucune consultation aujourd'hui.</td>
                 </tr>
             </tbody>
         </table>
@@ -66,12 +66,12 @@
 <!-- Résultats labo à valider -->
 <div class="panel">
     <div class="panel-header">
-        <h2 class="panel-title">Résultats de laboratoire à valider</h2>
+        <h2 class="panel-title" th:text="#{dashboard.doctor.lab_panel}">Résultats de laboratoire à valider</h2>
     </div>
     <div class="table-wrap">
         <table class="table">
             <thead>
-                <tr><th>N°</th><th>Patient</th><th>Priorité</th><th>Statut</th></tr>
+                <tr><th scope="col" th:text="#{common.number}">N°</th><th scope="col" th:text="#{common.patient}">Patient</th><th scope="col" th:text="#{common.priority}">Priorité</th><th scope="col" th:text="#{common.status}">Statut</th></tr>
             </thead>
             <tbody>
                 <tr th:each="l : ${dashboard.labPendingValidation}"
@@ -79,11 +79,11 @@
                     th:onclick="|window.location.href='@{/lab/requests/{id}(id=${l.id})}'|">
                     <td th:text="${l.requestNumber}">—</td>
                     <td th:text="${l.patientName}">—</td>
-                    <td><span class="badge" th:classappend="${l.priority == 'URGENT'} ? 'badge-red' : 'badge-yellow'" th:text="${l.priority}">—</span></td>
-                    <td><span class="badge" th:classappend="'badge-' + ${l.status}" th:text="${l.status}">—</span></td>
+                    <td><span class="badge" th:classappend="${l.priority == 'URGENT'} ? 'badge-red' : 'badge-yellow'" th:text="#{${'priority.' + l.priority}}">—</span></td>
+                    <td><span class="badge" th:classappend="'badge-' + ${l.status}" th:text="#{${'status.' + l.status}}">—</span></td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(dashboard.labPendingValidation)}">
-                    <td colspan="4" class="empty-state" style="padding:24px;">Aucun résultat en attente de validation.</td>
+                    <td colspan="4" class="empty-state" style="padding:24px;" th:text="#{dashboard.doctor.no_lab}">Aucun résultat en attente de validation.</td>
                 </tr>
             </tbody>
         </table>
@@ -93,23 +93,23 @@
 <!-- Mes rendez-vous de la semaine -->
 <div class="panel">
     <div class="panel-header">
-        <h2 class="panel-title">Mes rendez-vous (7 jours)</h2>
-        <a th:href="@{/appointments/week}" class="btn btn-ghost btn-sm">Voir l'agenda</a>
+        <h2 class="panel-title" th:text="#{dashboard.doctor.my_appointments}">Mes rendez-vous (7 jours)</h2>
+        <a th:href="@{/appointments/week}" class="btn btn-ghost btn-sm" th:text="#{dashboard.doctor.view_agenda}">Voir l'agenda</a>
     </div>
     <div class="table-wrap">
         <table class="table">
             <thead>
-                <tr><th>Date</th><th>Patient</th><th>Motif</th><th>Statut</th></tr>
+                <tr><th scope="col" th:text="#{common.date}">Date</th><th scope="col" th:text="#{common.patient}">Patient</th><th scope="col" th:text="#{common.reason}">Motif</th><th scope="col" th:text="#{common.status}">Statut</th></tr>
             </thead>
             <tbody>
                 <tr th:each="a : ${dashboard.weekAppointments}">
                     <td th:text="${a.startTime != null} ? ${#temporals.format(a.startTime, 'dd/MM HH:mm')} : '—'">—</td>
                     <td th:text="${a.patientName}">—</td>
                     <td th:text="${a.reason}">—</td>
-                    <td><span class="badge" th:classappend="'badge-' + ${a.status}" th:text="${a.status}">—</span></td>
+                    <td><span class="badge" th:classappend="'badge-' + ${a.status}" th:text="#{${'status.' + a.status}}">—</span></td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(dashboard.weekAppointments)}">
-                    <td colspan="4" class="empty-state" style="padding:24px;">Aucun rendez-vous cette semaine.</td>
+                    <td colspan="4" class="empty-state" style="padding:24px;" th:text="#{dashboard.doctor.no_appointments}">Aucun rendez-vous cette semaine.</td>
                 </tr>
             </tbody>
         </table>

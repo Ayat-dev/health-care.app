@@ -13,9 +13,9 @@
         (revient à la page précédente du navigateur).
         <a th:replace="~{fragments/ui :: backHistory}"></a>
 */-->
-<a th:fragment="back(href)" th:href="${href}" class="btn btn-ghost btn-sm">← Retour</a>
+<a th:fragment="back(href)" th:href="${href}" class="btn btn-ghost btn-sm" th:text="'← ' + #{common.back}">← Retour</a>
 
-<a th:fragment="backHistory" href="javascript:history.back()" class="btn btn-back">← Retour</a>
+<a th:fragment="backHistory" href="javascript:history.back()" class="btn btn-back" th:text="'← ' + #{common.back}">← Retour</a>
 
 </body>
 </html>

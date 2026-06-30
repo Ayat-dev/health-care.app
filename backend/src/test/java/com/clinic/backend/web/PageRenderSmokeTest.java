@@ -109,6 +109,27 @@ class PageRenderSmokeTest {
                 .andExpect(content().string(containsString("Patient list")));
     }
 
+    /** D4d : reliquats i18n — la boîte de notifications est traduite (était FR en dur). */
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void notifications_i18n_fr_puis_en() throws Exception {
+        mvc.perform(get("/notifications"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Boîte de réception")));
+        mvc.perform(get("/notifications").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Inbox")));
+    }
+
+    /** D4d : reliquats i18n — le tableau de bord médecin est traduit (titres/colonnes en dur). */
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void dashboard_medecin_i18n_en() throws Exception {
+        mvc.perform(get("/dashboard").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("My consultations today")));
+    }
+
     /** Dossier patient : exerce l'agrégat coup d'œil + timeline (P3.6). */
     @Test
     @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
