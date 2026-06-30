@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +16,10 @@ public interface Icd10CodeRepository extends JpaRepository<Icd10Code, Long> {
     Optional<Icd10Code> findByCodeIgnoreCase(String code);
 
     boolean existsByCodeIgnoreCase(String code);
+
+    /** Résolution en lot de codes (normalisés uppercase) → entités, pour afficher les libellés (D4c). */
+    @Query("SELECT i FROM Icd10Code i WHERE UPPER(i.code) IN :codes")
+    List<Icd10Code> findByCodeInUpper(@Param("codes") Collection<String> codes);
 
     /**
      * Auto-complétion : codes actifs dont le code ou le libellé contient {@code q}.

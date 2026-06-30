@@ -7,7 +7,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +37,65 @@ public class Icd10Service {
         }
         return icd10CodeRepository.search(q.trim(), PageRequest.of(0, SEARCH_LIMIT))
                 .stream().map(this::toDto).toList();
+    }
+
+    /**
+     * Découpe une chaîne de codes « J06.9, R50.9 » en codes normalisés (uppercase, sans
+     * blanc), <b>distincts</b> et dans l'ordre de saisie. Utilisé pour résoudre les
+     * libellés (fiche consultation) et agréger les « top pathologies » (épidémiologie, D4c).
+     */
+    public static List<String> splitCodes(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return List.of();
+        }
+        LinkedHashSet<String> out = new LinkedHashSet<>();
+        for (String part : raw.split(",")) {
+            String c = part.trim().toUpperCase();
+            if (!c.isEmpty()) {
+                out.add(c);
+            }
+        }
+        return new ArrayList<>(out);
+    }
+
+    /** Libellé d'affichage « CODE — Titre » (ou le code seul si inconnu au catalogue). */
+    public static String displayLabel(String code, String title) {
+        return (title == null || title.isBlank()) ? code : code + " — " + title;
+    }
+
+    /** Résout un lot de codes (normalisés uppercase) en map code→titre ; codes inconnus absents. */
+    @Transactional(readOnly = true)
+    public Map<String, String> titlesByCode(Collection<String> codes) {
+        if (codes == null || codes.isEmpty()) {
+            return Map.of();
+        }
+        Map<String, String> map = new HashMap<>();
+        for (Icd10Code c : icd10CodeRepository.findByCodeInUpper(codes)) {
+            map.put(c.getCode().toUpperCase(), c.getTitle());
+        }
+        return map;
+    }
+
+    /**
+     * Résout une chaîne de codes CIM-10 (séparés par virgule) en libellés ordonnés pour la
+     * fiche consultation (D4c). Chaque entrée porte le code et, si présent au catalogue, son
+     * titre (sinon {@code title} null → affiché code seul).
+     */
+    @Transactional(readOnly = true)
+    public List<Icd10CodeDto> resolveCodes(String raw) {
+        List<String> codes = splitCodes(raw);
+        if (codes.isEmpty()) {
+            return List.of();
+        }
+        Map<String, String> titles = titlesByCode(codes);
+        List<Icd10CodeDto> out = new ArrayList<>();
+        for (String code : codes) {
+            Icd10CodeDto dto = new Icd10CodeDto();
+            dto.setCode(code);
+            dto.setTitle(titles.get(code));
+            out.add(dto);
+        }
+        return out;
     }
 
     @Transactional(readOnly = true)

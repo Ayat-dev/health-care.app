@@ -1,10 +1,13 @@
 package com.clinic.backend.search;
 
+import com.clinic.backend.appointment.AppointmentRepository;
 import com.clinic.backend.billing.InvoiceRepository;
 import com.clinic.backend.config.Module;
 import com.clinic.backend.config.RoleProfile;
+import com.clinic.backend.consultation.ConsultationRepository;
 import com.clinic.backend.dto.SearchResultDto;
 import com.clinic.backend.patient.PatientRepository;
+import com.clinic.backend.pharmacy.DrugRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -25,7 +28,10 @@ import java.util.Locale;
  * <ul>
  *   <li><b>Navigation</b> — modules du rôle dont le libellé contient la requête (0 DB)</li>
  *   <li><b>Patients</b> — si le rôle a accès au module PATIENTS</li>
+ *   <li><b>Consultations</b> — si le rôle a accès au module CONSULTATIONS (par patient / code CIM-10)</li>
+ *   <li><b>Rendez-vous</b> — si le rôle a accès au module APPOINTMENTS (par patient)</li>
  *   <li><b>Factures</b> — si le rôle a accès au module BILLING</li>
+ *   <li><b>Médicaments</b> — si le rôle a accès au module PHARMACY</li>
  * </ul>
  * Mapping entité→DTO <b>dans la transaction</b> (OSIV off) : les libellés
  * de catégorie sont résolus via {@link MessageSource} dans la locale courante.
@@ -41,6 +47,9 @@ public class GlobalSearchService {
 
     private final PatientRepository patientRepository;
     private final InvoiceRepository invoiceRepository;
+    private final ConsultationRepository consultationRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final DrugRepository drugRepository;
     private final MessageSource messages;
 
     public List<SearchResultDto> search(String rawQuery, String role) {
@@ -76,7 +85,37 @@ public class GlobalSearchService {
                             "👤")));
         }
 
-        // ── 3. Factures ──────────────────────────────────────────────────────
+        // ── 3. Consultations ─────────────────────────────────────────────────
+        if (profile.modules.contains(Module.CONSULTATIONS)) {
+            String cat = msg("search.section.consultations", locale);
+            consultationRepository.searchForPalette(q, PageRequest.of(0, PER_CATEGORY))
+                    .forEach(c -> out.add(new SearchResultDto(
+                            "CONSULTATION", cat,
+                            c.getPatient() != null
+                                    ? c.getPatient().getLastName() + " " + c.getPatient().getFirstName()
+                                    : "#" + c.getId(),
+                            c.getConsultationDate() != null
+                                    ? c.getConsultationDate().toLocalDate().toString() : null,
+                            "/consultations/" + c.getId(),
+                            "🩺")));
+        }
+
+        // ── 4. Rendez-vous ───────────────────────────────────────────────────
+        if (profile.modules.contains(Module.APPOINTMENTS)) {
+            String cat = msg("search.section.appointments", locale);
+            appointmentRepository.searchForPalette(q, PageRequest.of(0, PER_CATEGORY))
+                    .forEach(a -> out.add(new SearchResultDto(
+                            "APPOINTMENT", cat,
+                            a.getPatient() != null
+                                    ? a.getPatient().getLastName() + " " + a.getPatient().getFirstName()
+                                    : "#" + a.getId(),
+                            a.getStartTime() != null
+                                    ? a.getStartTime().toString().replace('T', ' ') : null,
+                            "/appointments/" + a.getId() + "/edit",
+                            "📅")));
+        }
+
+        // ── 5. Factures ──────────────────────────────────────────────────────
         if (profile.modules.contains(Module.BILLING)) {
             String cat = msg("search.section.invoices", locale);
             invoiceRepository.searchByNumber(q, PageRequest.of(0, PER_CATEGORY))
@@ -88,6 +127,18 @@ public class GlobalSearchService {
                                     : null,
                             "/billing/invoices/" + inv.getId(),
                             "💳")));
+        }
+
+        // ── 6. Médicaments ───────────────────────────────────────────────────
+        if (profile.modules.contains(Module.PHARMACY)) {
+            String cat = msg("search.section.drugs", locale);
+            drugRepository.search(q, null).stream().limit(PER_CATEGORY)
+                    .forEach(d -> out.add(new SearchResultDto(
+                            "DRUG", cat,
+                            d.getName(),
+                            d.getDosageStrength() != null ? d.getDosageStrength() : d.getForm(),
+                            "/pharmacy/drugs/" + d.getId() + "/edit",
+                            "💊")));
         }
 
         return out;

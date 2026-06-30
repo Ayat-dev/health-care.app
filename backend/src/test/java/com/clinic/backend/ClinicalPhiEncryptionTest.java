@@ -31,8 +31,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <ol>
  *   <li>la colonne {@code diagnosis} est chiffrée en base (lecture JDBC brute = {@code gcm:…})
  *       mais restituée en clair via l'entité ;</li>
- *   <li>l'agrégation « top pathologies » (épidémiologie) reste correcte malgré le chiffrement
- *       — le {@code GROUP BY} se fait en Java après déchiffrement (recherche intacte).</li>
+ *   <li>l'agrégation « top pathologies » (épidémiologie) repose sur les codes CIM-10
+ *       structurés <b>non chiffrés</b> (D4c) — comptage par code après découpage des chaînes
+ *       multi-codes, et résolution du libellé « CODE — Titre ».</li>
  * </ol>
  */
 @SpringBootTest
@@ -91,34 +92,41 @@ class ClinicalPhiEncryptionTest {
     }
 
     @Test
-    void top_pathologies_correct_malgre_le_chiffrement() {
+    void top_pathologies_agregees_sur_les_codes_cim10() {
         Patient p = patientRepository.findAll().get(0);
-        // 2× "Paludisme simple", 1× "Grippe" → l'agrégat doit compter 2 et 1 distinctement,
-        // alors que chaque diagnostic chiffré a un IV différent en base.
-        seed(p, "Paludisme simple");
-        seed(p, "Paludisme simple");
-        seed(p, "Grippe");
+        // Codes CIM-10 (champ structuré non chiffré). B54 dans 2 consultations (dont 1 chaîne
+        // multi-codes « B54, J45 »), J45 dans 2 consultations → l'agrégat doit compter B54=2 et
+        // J45=2 : preuve que la chaîne multi-codes est bien découpée (sinon « B54, J45 » formerait
+        // son propre groupe à 1 et B54 seul vaudrait 1).
+        seed(p, "B54");
+        seed(p, "B54, J45");
+        seed(p, "J45");
         consultationRepository.flush();
         entityManager.clear();
 
         LocalDate today = LocalDate.now();
         EpidemiologyReportDto report = reportService.epidemiology(today.getMonthValue(), today.getYear());
 
-        var palu = report.getTopPathologies().stream()
-                .filter(lv -> "Paludisme simple".equals(lv.getLabel())).findFirst().orElseThrow();
-        assertThat(palu.getCount()).isEqualTo(2L);
-        var grippe = report.getTopPathologies().stream()
-                .filter(lv -> "Grippe".equals(lv.getLabel())).findFirst().orElseThrow();
-        assertThat(grippe.getCount()).isEqualTo(1L);
+        // Le libellé est « CODE — Titre » (titre résolu depuis le catalogue CIM-10).
+        var b54 = report.getTopPathologies().stream()
+                .filter(lv -> lv.getLabel() != null && lv.getLabel().startsWith("B54"))
+                .findFirst().orElseThrow();
+        assertThat(b54.getLabel()).contains("Paludisme");
+        assertThat(b54.getCount()).isEqualTo(2L);
+        var j45 = report.getTopPathologies().stream()
+                .filter(lv -> lv.getLabel() != null && lv.getLabel().startsWith("J45"))
+                .findFirst().orElseThrow();
+        assertThat(j45.getCount()).isEqualTo(2L);
     }
 
-    private void seed(Patient p, String diagnosis) {
+    private void seed(Patient p, String icd10Codes) {
         Consultation c = new Consultation();
         c.setPatient(p);
         c.setDoctor(doctor());
         c.setConsultationDate(LocalDateTime.now());
         c.setStatus("TERMINE");
-        c.setDiagnosis(diagnosis);
+        c.setDiagnosis("Diagnostic narratif"); // texte libre toujours présent (et chiffré)
+        c.setIcd10Codes(icd10Codes);
         consultationRepository.save(c);
     }
 }

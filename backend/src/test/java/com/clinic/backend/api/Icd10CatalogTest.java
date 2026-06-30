@@ -9,6 +9,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -25,6 +26,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class Icd10CatalogTest {
 
     @Autowired MockMvc mvc;
+    @Autowired com.clinic.backend.catalog.Icd10Service icd10Service;
+
+    @Test
+    void resolution_des_codes_en_libelles() {
+        // D4c : « J06.9, k29, ZZZ » → ordre conservé, normalisé uppercase, titres résolus
+        // depuis le catalogue (codes inconnus → title null = affiché code seul).
+        var resolved = icd10Service.resolveCodes("J06.9, k29, ZZZ");
+        assertThat(resolved).extracting("code").containsExactly("J06.9", "K29", "ZZZ");
+        assertThat(resolved.get(0).getTitle()).contains("Infection");
+        assertThat(resolved.get(1).getTitle()).contains("Gastrite");
+        assertThat(resolved.get(2).getTitle()).isNull();
+        assertThat(com.clinic.backend.catalog.Icd10Service.displayLabel("J06.9", "Infection"))
+                .isEqualTo("J06.9 — Infection");
+        assertThat(com.clinic.backend.catalog.Icd10Service.displayLabel("ZZZ", null)).isEqualTo("ZZZ");
+    }
 
     @Test
     @WithMockUser(username = "doc", roles = "MEDECIN")

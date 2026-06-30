@@ -61,4 +61,24 @@ class GlobalSearchTest {
         mvc.perform(get("/search").param("q", "Diallo"))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    // D4c : la palette trouve une consultation par code CIM-10 (la consultation seed porte K29.1).
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void medecin_trouve_une_consultation_par_code_cim10() throws Exception {
+        mvc.perform(get("/search/suggest").param("q", "K29"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("CONSULTATION")))
+                .andExpect(content().string(containsString("/consultations/")));
+    }
+
+    @Test
+    // D4c : la palette trouve un médicament pour le pharmacien (Paracétamol seed).
+    @WithUserDetails(value = "pharmacien", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void pharmacien_trouve_un_medicament() throws Exception {
+        mvc.perform(get("/search/suggest").param("q", "Parac"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("DRUG")))
+                .andExpect(content().string(containsString("Paracétamol")));
+    }
 }

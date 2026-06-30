@@ -45,7 +45,7 @@
 | A | Multi-tenant — finitions | 4 | 4 | ✅ terminé |
 | B | PWA — finitions | 4 | 4 | ✅ terminé |
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
-| D | Divers (durcissement/polish) | 12 | 10 | 🔄 en cours |
+| D | Divers (durcissement/polish) | 12 | 11 | 🔄 en cours |
 | Z | (Tier 2) Grosses features parquées | — | — | 📦 listées, hors périmètre finitions |
 
 **Ordre conseillé** : A (clôt le multi-tenant, petites slices à forte valeur) → D4a (sécu) →
@@ -427,10 +427,26 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
   reçu, **doc d'autrui→403**, annulation RDV, **RDV d'autrui→403**). **NB** : `AccessDeniedException` levée
   en contrôleur/service → 403 par `ExceptionTranslationFilter` (le `@ExceptionHandler` portail ne gère que
   `ResourceNotFoundException` → page no-record). *Vérifié* : `mvnd test` → **245 verts, 0 skip**.
-- [ ] **D4c — Recherche globale étendue + libellés CIM-10 + « top pathologies » sur codes.** Étendre
-  la palette ⌘K (consultations/RDV/médicaments) ; afficher le **libellé** des codes CIM-10 sur la
-  fiche consultation ; brancher le « top pathologies » des rapports sur `icd10_codes` (pas le texte
-  libre). *Acc.* : palette trouve une consultation ; fiche montre « J06.9 — Infection… » ; rapport épidémio basé sur codes.
+- [x] **D4c — Recherche globale étendue + libellés CIM-10 + « top pathologies » sur codes. ✅ FAIT 2026-06-30.**
+  **(1) Palette ⌘K étendue** : `GlobalSearchService` gagne 3 catégories gatées par module (mêmes
+  règles que la sidebar) — Consultations (`CONSULTATIONS`, recherche par nom patient OU code CIM-10
+  via `ConsultationRepository.searchForPalette` — `icd10_codes` est non chiffré), Rendez-vous
+  (`APPOINTMENTS`, par nom patient, `AppointmentRepository.searchForPalette` → `/appointments/{id}/edit`),
+  Médicaments (`PHARMACY`, réutilise `DrugRepository.search` → `/pharmacy/drugs/{id}/edit`). 3 clés
+  i18n `search.section.{consultations,appointments,drugs}` ×3 langues. `search.js`/`results.html`
+  inchangés (rendu générique label/sublabel/icône emoji). **(2) Libellés CIM-10 sur la fiche** :
+  `Icd10Service` gagne `splitCodes`/`titlesByCode`/`resolveCodes`/`displayLabel` (+ repo
+  `findByCodeInUpper` résolution en lot) ; `ConsultationDto.icd10Resolved` rempli **seulement** dans
+  `getDtoById` (fiche détail, pas dans `toDto` réutilisé partout) ; `consultations/detail.html` liste
+  « CODE — Titre » (code seul si hors catalogue). **(3) Top pathologies sur codes** :
+  `ReportService.topDiagnoses` agrège désormais `ConsultationRepository.findCompletedIcd10Codes`
+  (TERMINE, codes non vides) — découpe chaque chaîne multi-codes, compte par code, top N, puis
+  résout les libellés en un lot (« B54 — Paludisme… »). Remplace l'ancien `findCompletedDiagnoses`
+  (texte libre déchiffré) — **supprimé** (plus de couplage au chiffrement D3a pour l'épidémio).
+  Test D3a `top_pathologies_*` réécrit sur les codes (preuve du découpage multi-codes B54=2/J45=2) ;
+  +2 `GlobalSearchTest` (consultation par code K29 ; médicament Paracétamol) +1 `Icd10CatalogTest`
+  (résolution ordre/uppercase/inconnu→null). **NB** : `findByCodeInUpper` compare en `UPPER()` ↔
+  `splitCodes` normalise déjà uppercase. *Vérifié* : `mvnd test` → **248 verts, 0 skip** (Docker présent).
 - [ ] **D4d — i18n des onglets/écrans encore FR en dur (balayage de complétude).** Vérifier les
   reliquats post-I18N-PLAN (ex. onglet **Aperçu** patient signalé FR en dur, écrans desktop hors
   périmètre web). Compléter les `#{}` manquants. *Acc.* : grep des chaînes FR en dur sur les vues web = vide (hors contenu dynamique).
@@ -488,6 +504,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-06-30 | **D4c — recherche globale étendue + libellés CIM-10 + top pathologies sur codes** | **(1)** `GlobalSearchService` +3 catégories gatées par module : Consultations (`searchForPalette` nom patient OU code CIM-10, non chiffré), Rendez-vous (`searchForPalette` → `/appointments/{id}/edit`), Médicaments (`DrugRepository.search` → `/pharmacy/drugs/{id}/edit`). 3 clés `search.section.{consultations,appointments,drugs}` ×3. **(2)** `Icd10Service.{splitCodes,titlesByCode,resolveCodes,displayLabel}` + repo `findByCodeInUpper` ; `ConsultationDto.icd10Resolved` rempli seulement dans `getDtoById` ; `detail.html` liste « CODE — Titre ». **(3)** `ReportService.topDiagnoses` agrège `findCompletedIcd10Codes` (découpe multi-codes, compte/code, résout libellés en lot) → remplace `findCompletedDiagnoses` (supprimé). Test D3a `top_pathologies_*` réécrit sur codes (B54=2/J45=2, preuve découpage) ; +2 `GlobalSearchTest` (consult K29 / drug Paracétamol) +1 `Icd10CatalogTest` (résolution). **248 verts, 0 skip.** |
 | 2026-06-30 | **D4b — portail patient : annulation RDV + PDF + profil/mot de passe** | 3 actions sous `hasRole('PATIENT')`, cloisonnées au dossier (`PortalService.currentPatient()`). Annulation : `POST /portal/appointments/{id}/cancel` (ownership→403, PLANIFIE/CONFIRME seulement). PDF : `PortalDocumentService` (ownership + validé pour labo/imagerie, réutilise `PdfExportService`+`getBulletinDto` images base64 D4a) → endpoints `/portal/{lab,radiology,prescriptions,invoices}/…/pdf` ; `BillingWebController.pdfInline` passé **public** ; liens ⬇ PDF + section Ordonnances dans `record.html`. Profil : `/portal/profile` + `POST /profile/password` → `UserService.changeOwnPassword` (vérifie l'actuel, politique ≥8+chiffre, bump token-version + revokeAll). `portal/profile.html` + lien nav. 22 clés i18n ×3. +9 tests `PortalTest` (dont doc/RDV d'autrui→403). NB : `AccessDeniedException` contrôleur/service → 403 via `ExceptionTranslationFilter`. **245 verts, 0 skip.** |
 | 2026-06-30 | **D4a — export pdf/excel API rapports + images radio base64 en PDF** | Nouveau `export/ReportExportService` centralise rapport→PDF(template `reports/pdf-report`)/Excel pour les 6 rapports tabulaires. `ReportApiController` : `?format=pdf|excel` (défaut JSON, binaire en pièce jointe) sur daily-cash/monthly-financial/activity/epidemiology/outstanding/stock ; dashboards JSON-only. `ReportWebController` **refactoré** pour déléguer (suppression helpers dupliqués `reportPdf`/`kpi`/`section`/… → controller raccourci, `/reports/*/pdf`+`/outstanding/excel` intacts). Images radio en PDF : `RadiologyImageDto.dataUri` + `RadiologyService.getBulletinDto` (relit/déchiffre via `FileStorageService`→base64) + `bulletin.html` affiche en mode PDF + `bulletinPdf` embarque. +6 tests `ReportApiExportTest`. NB : `ResponseEntity<?>` (DTO→JSON par défaut, byte[] sinon). **236 verts, 0 skip.** |
 | 2026-06-30 | **D3b — chiffrement fichiers au repos + rotation → bloc D3 TERMINÉ** | `AesGcmCipher` variante binaire (`encryptBytes`/`decryptBytes`/`isEncryptedBytes`, format `GCM1‖IV‖ct+tag`, marqueur ≠ JPEG/PNG). `FileEncryptionService` (clé courante + précédente en repli, tolère clair legacy) + `rotateAll(root)`. `FileStorageService.storeImage` écrit chiffré, `load` déchiffre. Handler statique `/uploads/**` **remplacé** par `UploadedFileController` (déchiffre, `Cache-Control: no-store`). Route `POST /api/admin/maintenance/rotate-file-encryption` (ADMIN/SUPER_ADMIN). Clé **dédiée** `app.storage.encryption.key` (défaut = clé maître) + `…previous-key` → découple la rotation fichiers de la base PHI. `.env.example`+`application.properties`. +6 tests `FileEncryptionTest`. **230 verts, 0 skip.** |

@@ -1,5 +1,6 @@
 package com.clinic.backend.appointment;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,6 +23,20 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     /** Dédoublonnage du rejeu hors-ligne (B4) : retrouve un RDV déjà créé pour cette clé. */
     Optional<Appointment> findByRequestKey(String requestKey);
+
+    /**
+     * Recherche pour la palette de commandes (D4c) : par nom de patient. Patient/médecin
+     * chargés pour le libellé (OSIV off), le plus récent d'abord.
+     */
+    @Query("""
+        SELECT a FROM Appointment a
+        LEFT JOIN FETCH a.patient p
+        LEFT JOIN FETCH a.doctor
+        WHERE LOWER(p.lastName) LIKE LOWER(CONCAT('%', :q, '%'))
+           OR LOWER(p.firstName) LIKE LOWER(CONCAT('%', :q, '%'))
+        ORDER BY a.startTime DESC
+        """)
+    List<Appointment> searchForPalette(@Param("q") String q, Pageable pageable);
 
     /**
      * Filtered list. Any param may be null to skip that filter. The date window

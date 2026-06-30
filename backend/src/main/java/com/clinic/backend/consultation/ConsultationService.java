@@ -33,6 +33,7 @@ public class ConsultationService {
     private final DepartmentRepository departmentRepository;
     private final com.clinic.backend.billing.BillingService billingService;
     private final com.clinic.backend.metrics.BusinessMetrics businessMetrics;
+    private final com.clinic.backend.catalog.Icd10Service icd10Service;
 
     // ── Listes / recherche ────────────────────────────────────────────────
     @Transactional(readOnly = true)
@@ -60,7 +61,10 @@ public class ConsultationService {
     public ConsultationDto getDtoById(Long id) {
         Consultation c = consultationRepository.findWithRefsById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Consultation introuvable : " + id));
-        return toDto(c);
+        ConsultationDto dto = toDto(c);
+        // D4c : résout les codes CIM-10 en libellés pour la fiche (« J06.9 — Infection… »).
+        dto.setIcd10Resolved(icd10Service.resolveCodes(c.getIcd10Codes()));
+        return dto;
     }
 
     /** Prefill a new consultation from an appointment (patient/doctor/department + emergency flag). */

@@ -1,5 +1,6 @@
 package com.clinic.backend.consultation;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -55,6 +56,20 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Long
 
     boolean existsByAppointmentId(Long appointmentId);
 
+    /**
+     * Recherche pour la palette de commandes (D4c) : par nom de patient ou code CIM-10
+     * (champ structuré non chiffré). Patient chargé pour le libellé (OSIV off), récent d'abord.
+     */
+    @Query("""
+        SELECT c FROM Consultation c
+        LEFT JOIN FETCH c.patient p
+        WHERE LOWER(p.lastName) LIKE LOWER(CONCAT('%', :q, '%'))
+           OR LOWER(p.firstName) LIKE LOWER(CONCAT('%', :q, '%'))
+           OR UPPER(c.icd10Codes) LIKE UPPER(CONCAT('%', :q, '%'))
+        ORDER BY c.consultationDate DESC
+        """)
+    List<Consultation> searchForPalette(@Param("q") String q, Pageable pageable);
+
     // ── Agrégats reporting (module 14) ─────────────────────────────────────────
 
     /** Nombre de consultations non annulées sur une période [from, to). */
@@ -63,18 +78,19 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Long
     long countBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
     /**
-     * Diagnostics (déchiffrés) des consultations clôturées sur la période. Le diagnostic
-     * étant chiffré au repos (D3a, IV aléatoire), on ne peut PLUS faire de {@code GROUP BY}
-     * en SQL ; on récupère les valeurs (déchiffrées par le convertisseur sur la projection)
-     * et l'agrégation « top pathologies » se fait en Java côté service (recherche intacte).
+     * Codes CIM-10 (chaînes brutes « J06.9, R50.9 ») des consultations clôturées sur la
+     * période. Contrairement au diagnostic en texte libre — chiffré au repos (D3a) et donc
+     * non agrégeable en SQL —, {@code icd10_codes} est un champ structuré <b>non chiffré</b> :
+     * l'agrégation « top pathologies » (D4c) repose désormais dessus. Le découpage par code
+     * et le comptage se font côté service.
      */
     @Query("""
-        SELECT c.diagnosis FROM Consultation c
+        SELECT c.icd10Codes FROM Consultation c
         WHERE c.status = 'TERMINE'
-          AND c.diagnosis IS NOT NULL
+          AND c.icd10Codes IS NOT NULL AND c.icd10Codes <> ''
           AND c.consultationDate >= :from AND c.consultationDate < :to
         """)
-    List<String> findCompletedDiagnoses(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+    List<String> findCompletedIcd10Codes(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
     /** Consultations par département sur la période — [departmentName, count]. */
     @Query("""

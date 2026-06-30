@@ -61,7 +61,15 @@
         <div style="margin-bottom:10px;"><div class="detail-label" th:text="#{consultations.clinical.history}">Anamnèse</div><p th:text="${consultation.history ?: '—'}">—</p></div>
         <div style="margin-bottom:10px;"><div class="detail-label" th:text="#{consultations.clinical.physical}">Examen physique</div><p th:text="${consultation.physicalExam ?: '—'}">—</p></div>
         <div style="margin-bottom:10px;"><div class="detail-label" th:text="#{consultations.clinical.diagnosis}">Diagnostic</div><p th:text="${consultation.diagnosis ?: '—'}">—</p></div>
-        <div style="margin-bottom:10px;"><div class="detail-label" th:text="#{consultations.clinical.icd10}">Codes CIM-10</div><p th:text="${consultation.icd10Codes ?: '—'}">—</p></div>
+        <div style="margin-bottom:10px;">
+            <div class="detail-label" th:text="#{consultations.clinical.icd10}">Codes CIM-10</div>
+            <p th:if="${#lists.isEmpty(consultation.icd10Resolved)}">—</p>
+            <ul th:unless="${#lists.isEmpty(consultation.icd10Resolved)}" style="margin:0;padding-left:1.1rem;">
+                <li th:each="c : ${consultation.icd10Resolved}">
+                    <strong th:text="${c.code}">J06.9</strong><th:block th:if="${c.title}" th:text="${' — ' + c.title}"></th:block>
+                </li>
+            </ul>
+        </div>
         <div><div class="detail-label" th:text="#{consultations.clinical.treatment}">Plan de traitement</div><p th:text="${consultation.treatmentPlan ?: '—'}">—</p></div>
     </div>
 </div>

@@ -7,6 +7,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter @Setter
 public class ConsultationDto {
@@ -35,6 +36,8 @@ public class ConsultationDto {
     private String physicalExam;
     private String diagnosis;
     private String icd10Codes;
+    /** Codes CIM-10 résolus en libellés (rempli sur la fiche détail seulement — D4c). */
+    private List<Icd10CodeDto> icd10Resolved;
     private String treatmentPlan;
 
     @JsonFormat(pattern = "yyyy-MM-dd")

@@ -34,7 +34,6 @@ import java.time.Period;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Read-only reporting layer (module 14). Owns no tables — it aggregates across the
@@ -64,6 +63,7 @@ public class ReportService {
     private final ConsultationService consultationService;
     private final LabService labService;
     private final AppointmentService appointmentService;
+    private final com.clinic.backend.catalog.Icd10Service icd10Service;
 
     // Libellés démographiques (sexe / tranches d'âge) localisés via le bundle ; la locale
     // courante est celle de la requête (cookie clinicLang). Cf. docs/I18N-PLAN.md slice 10.
@@ -255,16 +255,29 @@ public class ReportService {
     // ════════════════════════════════ HELPERS ══════════════════════════════════
 
     private List<LabelValueDto> topDiagnoses(LocalDateTime from, LocalDateTime to, int limit) {
-        // Diagnostic chiffré au repos (D3a) → agrégation en Java après déchiffrement
-        // (impossible de GROUP BY sur du chiffré à IV aléatoire). Tx readOnly ouverte ici.
-        Map<String, Long> counts = consultationRepository.findCompletedDiagnoses(from, to).stream()
-                .filter(d -> d != null && !d.isBlank())
-                .map(String::trim)
-                .collect(Collectors.groupingBy(d -> d, LinkedHashMap::new, Collectors.counting()));
-        return counts.entrySet().stream()
+        // D4c : « top pathologies » agrégées sur les codes CIM-10 (structurés, non chiffrés)
+        // et non plus sur le diagnostic en texte libre. Une consultation peut porter plusieurs
+        // codes (séparés par virgule) → chaque code est compté séparément.
+        Map<String, Long> counts = new LinkedHashMap<>();
+        for (String raw : consultationRepository.findCompletedIcd10Codes(from, to)) {
+            for (String code : com.clinic.backend.catalog.Icd10Service.splitCodes(raw)) {
+                counts.merge(code, 1L, Long::sum);
+            }
+        }
+        if (counts.isEmpty()) {
+            return List.of();
+        }
+        // Top N codes, puis résolution des libellés en un seul lot (« J06.9 — Infection… »).
+        List<Map.Entry<String, Long>> top = counts.entrySet().stream()
                 .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
                 .limit(limit)
-                .map(e -> new LabelValueDto(e.getKey(), e.getValue()))
+                .toList();
+        Map<String, String> titles = icd10Service.titlesByCode(
+                top.stream().map(Map.Entry::getKey).toList());
+        return top.stream()
+                .map(e -> new LabelValueDto(
+                        com.clinic.backend.catalog.Icd10Service.displayLabel(e.getKey(), titles.get(e.getKey())),
+                        e.getValue()))
                 .toList();
     }
 
