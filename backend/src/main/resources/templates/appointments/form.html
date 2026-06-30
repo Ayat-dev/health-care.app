@@ -6,7 +6,9 @@
 
 <div class="form-card">
     <form th:action="${appointment.id == null ? '/appointments/new' : '/appointments/' + appointment.id + '/edit'}"
-          method="post">
+          method="post"
+          th:attr="data-offline-form=${appointment.id == null} ? 'appointment' : null"
+          th:data-offline-redirect="@{/appointments}">
 
         <div class="form-section">
             <h3 class="form-section-title" th:text="#{appointments.form.section}">Rendez-vous</h3>

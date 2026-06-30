@@ -20,6 +20,9 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
         """)
     Optional<Appointment> findWithRefsById(@Param("id") Long id);
 
+    /** Dédoublonnage du rejeu hors-ligne (B4) : retrouve un RDV déjà créé pour cette clé. */
+    Optional<Appointment> findByRequestKey(String requestKey);
+
     /**
      * Filtered list. Any param may be null to skip that filter. The date window
      * (from/to) bounds start_time; statuses ANNULE/ABSENT are still returned so

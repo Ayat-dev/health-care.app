@@ -685,6 +685,22 @@ select.form-control { cursor: pointer; appearance: none;
 .alert-info    { background: var(--blue-mid);     border-color: #93c5fd; color: #1d4ed8; }
 .alert-warning { background: var(--amber-light);  border-color: #fcd34d; color: #92400e; }
 
+/* Bannière de synchro hors-ligne (B4) — affichée par js/offline-sync.js */
+.offline-banner {
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  background: var(--blue-mid);
+  border: 1px solid #93c5fd;
+  color: #1d4ed8;
+}
+.offline-banner.offline-banner-warn {
+  background: var(--amber-light);
+  border-color: #fcd34d;
+  color: #92400e;
+}
+
 /* ── Carte détail patient ─────────────────────────────────── */
 .detail-layout {
   display: grid;

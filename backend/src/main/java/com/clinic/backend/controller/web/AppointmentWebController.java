@@ -9,6 +9,7 @@ import com.clinic.backend.patient.PatientService;
 import com.clinic.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -116,6 +117,32 @@ public class AppointmentWebController {
             model.addAttribute("error", e.getMessage());
             populateFormOptions(model);
             return "appointments/form";
+        }
+    }
+
+    // ── Rejeu d'un RDV créé hors-ligne (B4, PWA) ──────────────────────────
+    // Appelé par js/offline-sync.js au retour réseau, depuis le contexte page (cookie de
+    // session + jeton CSRF en en-tête). Idempotent via l'en-tête Idempotency-Key : un rejeu
+    // de la même clé retombe sur le RDV déjà créé (pas de doublon). Reste sur la chaîne web
+    // (session) — surface minimale, pas de JWT à gérer côté navigateur.
+    @PostMapping(value = "/offline", consumes = "application/json", produces = "application/json")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> syncOffline(
+            @RequestBody AppointmentDto dto,
+            @RequestHeader("Idempotency-Key") String idempotencyKey) {
+        try {
+            Appointment a = appointmentService.createIdempotent(dto, idempotencyKey);
+            return ResponseEntity.ok(Map.of(
+                    "status", "ok",
+                    "id", a.getId(),
+                    "requestKey", idempotencyKey));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            // Conflit métier (créneau pris, données invalides…) : 409 → le client marque
+            // l'item en ÉCHEC et le conserve pour révision (décision B4), sans rejeu en boucle.
+            return ResponseEntity.status(409).body(Map.of(
+                    "status", "error",
+                    "message", e.getMessage() != null ? e.getMessage() : "Conflit",
+                    "requestKey", idempotencyKey));
         }
     }
 

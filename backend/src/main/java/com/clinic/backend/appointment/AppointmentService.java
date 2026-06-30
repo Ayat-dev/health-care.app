@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -82,11 +83,26 @@ public class AppointmentService {
 
     // ── Création ──────────────────────────────────────────────────────────
     public Appointment create(AppointmentDto dto) {
+        return createIdempotent(dto, null);
+    }
+
+    /**
+     * Création idempotente pour le rejeu des RDV créés hors-ligne (B4). Si {@code requestKey}
+     * est déjà connu (un rejeu précédent a abouti), on renvoie le RDV existant SANS en recréer
+     * un — pas de doublon. La contrainte UNIQUE(request_key) en base est l'ultime garde-fou en cas
+     * de course. {@code requestKey == null} ⇒ comportement de création en ligne classique.
+     */
+    public Appointment createIdempotent(AppointmentDto dto, String requestKey) {
+        if (requestKey != null && !requestKey.isBlank()) {
+            Optional<Appointment> existing = appointmentRepository.findByRequestKey(requestKey);
+            if (existing.isPresent()) return existing.get();
+        }
         Appointment a = new Appointment();
         applyDto(dto, a, null);
         a.setStatus(dto.getStatus() != null && !dto.getStatus().isBlank()
                 ? dto.getStatus() : "PLANIFIE");
         a.setCreatedBy(currentUser());
+        if (requestKey != null && !requestKey.isBlank()) a.setRequestKey(requestKey);
         Appointment saved = appointmentRepository.save(a);
         notificationService.notifyAppointmentCreated(saved); // SMS de confirmation au patient
         return saved;

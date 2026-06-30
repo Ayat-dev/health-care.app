@@ -160,6 +160,13 @@
             </div>
         </div>
         <div class="page-content">
+            <!-- Statut de la file de synchro hors-ligne (B4) — masqué par défaut ; js/offline-sync.js
+                 l'affiche quand des RDV créés hors-ligne sont en attente / en échec de rejeu. -->
+            <div id="offline-queue-status" class="offline-banner" role="status" aria-live="polite" hidden
+                 th:data-sync-url="@{/appointments/offline}"
+                 th:data-msg-pending="#{offline.pending}"
+                 th:data-msg-failed="#{offline.failed}"
+                 th:data-msg-queued="#{offline.queued}"></div>
             <!-- Fil d'Ariane (P6 WS5) — auto-dérivé : Accueil / Module / Page courante.
                  Masqué sur la page d'accueil du rôle (on y est déjà). -->
             <nav class="breadcrumb" th:if="${currentUri != homeUrl}" th:aria-label="#{a11y.breadcrumb}">
@@ -210,5 +217,7 @@
 <script th:src="@{/js/worklist-live.js}" defer></script>
 <!-- Helpers UI partagés (onglets deep-linkables + ARIA) — no-op si la page n'a pas de .tab[data-tab] -->
 <script th:src="@{/js/ui.js}" defer></script>
+<!-- File de synchro des écritures hors-ligne (B4, PWA) — no-op sans IndexedDB/WebCrypto -->
+<script th:src="@{/js/offline-sync.js}" defer></script>
 </body>
 </html>

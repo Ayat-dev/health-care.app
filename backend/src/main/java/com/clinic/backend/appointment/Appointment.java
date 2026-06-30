@@ -62,6 +62,10 @@ public class Appointment {
     @Column(name = "reminder_sent", nullable = false)
     private boolean reminderSent = false;
 
+    /** Clé d'idempotence (UUID) des RDV créés hors-ligne puis rejoués (B4). NULL si créé en ligne. */
+    @Column(name = "request_key", length = 36, updatable = false)
+    private String requestKey;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;

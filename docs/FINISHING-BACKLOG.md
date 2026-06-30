@@ -43,7 +43,7 @@
 | # | Chantier | Slices | Faits | Statut |
 |---|---|---|---|---|
 | A | Multi-tenant — finitions | 4 | 4 | ✅ terminé |
-| B | PWA — finitions | 4 | 3 | 🚧 en cours |
+| B | PWA — finitions | 4 | 4 | ✅ terminé |
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
 | D | Divers (durcissement/polish) | 8 | 0 | 🔲 à démarrer |
 | Z | (Tier 2) Grosses features parquées | — | — | 📦 listées, hors périmètre finitions |
@@ -148,13 +148,31 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
   (1 entrée 404 = install SW cassée), (2) vérifie qu'aucune entrée n'est sensible (préfixes API/FHIR/
   uploads/auth interdits, extensions statiques seulement). *Vérifié* : `mvnd test` → **206 verts, 3 skip**.
 
-- [ ] **B4 — File de synchro des écritures hors-ligne (LE gros morceau).**
-  Permettre quelques **écritures** hors-ligne (ex. prise de constantes / création RDV) mises en
-  file (**IndexedDB**) + **Background Sync API** + rejeu serveur **idempotent** (clé de requête
-  / dédup). **Décisions à verrouiller au démarrage de la slice** : quelles écritures (périmètre
-  minimal d'abord), gestion des conflits, et **interdiction de mettre de la PHI en clair durable**
-  côté client (chiffrer la file ? ou limiter aux non-PHI ?). Slice **lourde** — la découper si besoin.
-  *Acceptation* : créer un RDV hors-ligne → mis en file → rejoué et persisté au retour réseau, sans doublon.
+- [x] **B4 — File de synchro des écritures hors-ligne. ✅ FAIT 2026-06-30.**
+  **Décisions verrouillées** (utilisateur) : périmètre = **création de RDV uniquement** ; PHI = **file
+  IndexedDB chiffrée** (AES-GCM) ; conflits = **marquer en échec + notifier, garder en file**.
+  **Client** `js/offline-sync.js` (chargé globalement par `base.html`, no-op sans IndexedDB/WebCrypto) :
+  intercepte la soumission du formulaire RDV *uniquement hors-ligne* (`navigator.onLine === false`) →
+  chiffre la charge utile (clé AES-GCM 256 **non-extractible**, persistée comme `CryptoKey` dans
+  IndexedDB, jamais exportable) et l'enfile ; seuls l'UUID de requête (`crypto.randomUUID`, sans PHI) et
+  le statut restent en clair. Rejeu **dans le contexte page** (pas le SW : besoin du jeton CSRF `<meta>`
+  + cookie de session + la clé) au `DOMContentLoaded` et sur l'événement `online`. **Serveur** :
+  endpoint `POST /appointments/offline` (chaîne web session+CSRF, `@ResponseBody` JSON) →
+  `AppointmentService.createIdempotent(dto, key)` ; dédoublonnage via **`Idempotency-Key`** : un rejeu
+  de la même clé retombe sur le RDV existant (`findByRequestKey`) → **aucun doublon**. Colonne
+  `appointments.request_key VARCHAR(36) UNIQUE` (migration **V31**, NULLABLE — NULL pour les créations
+  en ligne ; UNIQUE portable H2+PG car plusieurs NULL autorisés) = ultime garde-fou anti-course.
+  Conflit métier (créneau pris, RDV passé…) → **409** → le client marque l'item **ÉCHEC** et le conserve
+  (pas de rejeu en boucle). Bannière `#offline-queue-status` (`role=status aria-live`, style
+  `.offline-banner` dans app.css) affiche les compteurs en attente/échec **sans déchiffrer** (donc sans
+  exposer de PHI). 6 clés i18n `offline.*` ×3 langues. **Background Sync API** (rejeu SW fenêtre fermée)
+  laissée en évolution future (incompatible avec clé/CSRF côté page + support navigateur). +2 tests
+  `OfflineSyncTest` (rejeu même clé → 1 seul RDV ; conflit → 409). **NB** : la couche chiffrement/IndexedDB
+  est JS pur (non testée par MockMvc, comme worklist-live/search) — le **contrat serveur** d'idempotence
+  est couvert de bout en bout. *Vérifié* : `mvnd test` → **208 verts, 3 skip**.
+
+> **✅ Chantier B (PWA) TERMINÉ** — B1→B4 faits. Reste optionnel/parqué : Background Sync API (rejeu
+> hors fenêtre), périmètre d'écritures hors-ligne élargi (constantes, etc.).
 
 ---
 
@@ -330,6 +348,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-06-30 | **B4 — file de synchro hors-ligne → chantier B TERMINÉ** | Décisions verrouillées : RDV seul · file IndexedDB **chiffrée** AES-GCM (clé non-extractible) · conflit → échec+notif+conservé. `js/offline-sync.js` (global, no-op sans IDB/WebCrypto) intercepte le form RDV *hors-ligne*, chiffre+enfile (UUID+statut en clair), rejoue au `online`/`DOMContentLoaded` **en contexte page** (CSRF meta + session). Endpoint `POST /appointments/offline` → `createIdempotent` ; dédup `Idempotency-Key`/`findByRequestKey` → 0 doublon ; col `appointments.request_key VARCHAR(36) UNIQUE` (**V31**, nullable, UNIQUE portable H2+PG). Conflit → 409 → item ÉCHEC conservé. Bannière `#offline-queue-status` (compteurs sans déchiffrer). 6 clés `offline.*` ×3. Background Sync différé (clé/CSRF page + support). +2 tests `OfflineSyncTest`. JS pur non testé MockMvc (contrat serveur couvert). **208 verts, 3 skip.** |
 | 2026-06-30 | **B3 — app shell précaché renforcé** | `sw.js` : `SHELL_ASSETS` explicite & complet (5→11 entrées : ajoute `js/{ui,search,worklist-live}.js` + 3 PNG B1) ; cache versionné `v1`→`v2` (purge `activate` déjà en place). Zéro page/PHI/auth en cache (navigations réseau-d'abord → `offline.html`). +2 tests `PwaShellTest` (extrait `SHELL_ASSETS` du `/sw.js` → chaque ressource 200 [garde l'échec atomique de `addAll`] + aucune entrée sensible). **206 verts, 3 skip.** |
 | 2026-06-30 | **B2 — invite d'installation PWA** | `js/pwa.js` capture `beforeinstallprompt` (preventDefault) → affiche `#pwa-install-btn` (masqué dans le chrome `base.html` + `portal/layout.html`) ; clic → `prompt()` + `userChoice.finally` purge/remasque ; garde standalone (jamais si installé) + `appinstalled` → remasque. No-op sur login (pas de bouton) et navigateurs sans support. 3 clés `pwa.{install,install_title,installed}` ×3 langues. +1 test `PageRenderSmokeTest`. NB : Thymeleaf échappe l'apostrophe → assert sur le titre. **204 verts, 3 skip.** |
 | 2026-06-30 | **B1 — icônes PNG PWA** | Généré `icon-{192,512}.png` (`any`) + `icon-maskable-512.png` (`maskable`, croix à 78 % pour la safe-zone) ; `manifest.webmanifest` déclare les 3 PNG + le SVG (repassé `any`). Pas d'ImageMagick ici (`convert`=NTFS Windows) → script **Pillow** jetable redessinant la géométrie de l'`icon.svg` (supersampling ×4 + LANCZOS). Rendu vérifié à l'œil. Pas de migration/PHI/CDN. **203 verts, 3 skip.** |
