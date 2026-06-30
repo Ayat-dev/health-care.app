@@ -67,6 +67,14 @@
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
 
+        <!-- Rate-limiting IP du login (D1d) : token-bucket en mémoire, complète le
+             lockout par compte (P1.3) contre le brute-force/DoS distribué. -->
+        <dependency>
+            <groupId>com.bucket4j</groupId>
+            <artifactId>bucket4j-core</artifactId>
+            <version>8.7.0</version>
+        </dependency>
+
         <!-- Temps réel (P5.1 Lot D) : WebSocket + STOMP pour pousser les mises à jour
              des worklists (labo/radio/pharmacie/caisse). spring-security-messaging
              apporte @EnableWebSocketSecurity + l'autorisation d'abonnement par rôle. -->

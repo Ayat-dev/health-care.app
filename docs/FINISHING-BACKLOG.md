@@ -45,7 +45,7 @@
 | A | Multi-tenant — finitions | 4 | 4 | ✅ terminé |
 | B | PWA — finitions | 4 | 4 | ✅ terminé |
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
-| D | Divers (durcissement/polish) | 8 | 3 | 🔄 en cours |
+| D | Divers (durcissement/polish) | 8 | 4 | 🔄 en cours |
 | Z | (Tier 2) Grosses features parquées | — | — | 📦 listées, hors périmètre finitions |
 
 **Ordre conseillé** : A (clôt le multi-tenant, petites slices à forte valeur) → D4a (sécu) →
@@ -295,8 +295,24 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
   *NB* : pas de blocklist par jeton → l'access token courant de l'appareil révoqué expire dans son TTL
   court (15 min) ; révocation **immédiate** de TOUT le user = logout-all/bump de version (existant).
   *Vérifié* : `mvnd test` → **215 verts, 3 skip**.
-- [ ] **D1d — Rate-limit IP sur le login (Bucket4j).** Complète le lockout par compte (P1.3) contre
-  le DoS distribué. *Acc.* : N tentatives/IP/fenêtre → 429.
+- [x] **D1d — Rate-limit IP sur le login (Bucket4j). ✅ FAIT 2026-06-30.**
+  Dépendance `com.bucket4j:bucket4j-core:8.7.0`. `LoginRateLimiter` (`@Component`, token-bucket en
+  mémoire par IP via `ConcurrentHashMap`, `Bandwidth.classic` + `Refill.greedy`) + `LoginRateLimitFilter`
+  (`OncePerRequestFilter`, **classe simple** instanciée dans `SecurityConfig` — PAS un bean, sinon
+  Boot l'auto-enregistrerait et il compterait double) inséré `addFilterBefore(UsernamePasswordAuthenticationFilter)`
+  sur **les 2 chaînes** (web `/login` + API `/api/auth/login`). Au-delà de la limite → **429** +
+  `Retry-After`, **avant l'auth** (aucune charge DB). IP `X-Forwarded-For`-aware. Plafond/fenêtre
+  configurables `app.security.login-rate-limit.{max-attempts,window-minutes}` (défaut **20/15 min** ;
+  `LOGIN_RATE_LIMIT_MAX`/`LOGIN_RATE_LIMIT_WINDOW_MINUTES`). Plus permissif que le lockout compte (P1.3)
+  car une clinique derrière un NAT partage une IP. +2 tests `LoginRateLimitTest` (limite=3 via
+  `@TestPropertySource` : 4ᵉ tentative même IP → 429 ; autre IP garde son quota). **NB test** : limite
+  relâchée (1e6) dans `application-test.properties` car la suite enchaîne >20 logins depuis 127.0.0.1
+  dans le contexte partagé ; le test dédié la rabaisse via `@TestPropertySource` (contexte séparé).
+  *Vérifié* : `mvnd test` → **217 verts, 3 skip**.
+
+> **✅ Bloc D1 (sécurité/auth) TERMINÉ** — D1a→D1d faits. Reste optionnel/parqué : backend de bucket
+> partagé (Redis/Hazelcast) pour un déploiement multi-instances ; blocklist par access token pour un
+> kill immédiat par appareil (aujourd'hui : TTL court 15 min ou logout-all pour le kill total).
 
 ### D2 — Monitoring / ops
 - [ ] **D2a — Dashboards Grafana provisionnés + métriques métier.** Provisionner datasource + JSON
@@ -381,6 +397,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-06-30 | **D1d — rate-limit IP du login (Bucket4j) → bloc D1 TERMINÉ** | Dép. `bucket4j-core:8.7.0`. `LoginRateLimiter` (`@Component`, token-bucket/IP en mémoire) + `LoginRateLimitFilter` (classe simple, PAS un bean → pas d'auto-enregistrement Boot/double comptage) inséré sur les 2 chaînes avant l'auth → 429 + `Retry-After` au-delà de la limite (X-Forwarded-For-aware). Config `app.security.login-rate-limit.{max-attempts,window-minutes}` (20/15min). Complète le lockout compte (P1.3) contre le DoS distribué. +2 tests `LoginRateLimitTest` (limite=3 via `@TestPropertySource`). NB : limite relâchée (1e6) en profil test (suite enchaîne >20 logins 127.0.0.1 contexte partagé). **217 verts, 3 skip.** |
 | 2026-06-30 | **D1c — vue admin « sessions actives » + révocation par appareil** | Page `/admin/users/{id}/sessions` (ADMIN) liste les refresh actifs + bouton Révoquer → `RefreshTokenService.revokeSession(tokenId, userId)` (garde-fou owner, idempotent). Métadonnées appareil (`user_agent`/`ip_address`/`last_used_at`/`created_at` reporté) estampillées au login + **reportées à la rotation** → migration **V32** (3 cols nullables) + `RefreshToken` enrichi ; `AuthController` capture UA+IP (X-Forwarded-For). DTO `RefreshSessionDto` (jamais le jeton). Lien dans `users/list.html` + template `sessions.html` + 15 clés `admin.sessions.*` ×3. **Affinage** : replay révoqué-par-rotation (`replacedById != null`) = vol → coupe la lignée ; révoqué-sans-remplacement (admin/logout) → 401 sans escalade. +3 tests `AdminSessionsTest`. NB : pas de blocklist par jeton → access courant expire en 15 min ; kill immédiat total = logout-all. **215 verts, 3 skip.** |
 | 2026-06-30 | **D1b — purge planifiée des refresh tokens** | `RefreshTokenCleanupScheduler` (cron `0 30 3 * * *`) → `RefreshTokenService.purgeStaleTokens()` → repo `deleteExpiredOrRevokedBefore(cutoff)` (`@Modifying` JPQL `expiresAt < cutoff OR revokedAt < cutoff`). Tenant-agnostique (pas `@TenantId`) → **pas de `runAs`**. Rétention `app.jwt.refresh-cleanup-retention-days` (défaut 7 j ; `.env.example`) garde les jetons révoqués pour la détection de vol. +1 test `RefreshTokenCleanupTest` (FK user_id → seed sur id admin). **212 verts, 3 skip.** |
 | 2026-06-30 | **D1a — refresh token en cookie HttpOnly (front web)** | Mode opt-in `login {"cookie":"true"}` → refresh en cookie `HttpOnly`/`Secure`/`SameSite=Strict` path `/api/auth`, **jamais en JSON** (access court reste JSON). Sans flag = JSON inchangé (API/desktop). Helper `security/RefreshCookieManager` (`ResponseCookie`→`Set-Cookie`). `/refresh`+`/logout` : cookie prioritaire, rotation repose le cookie, échec/logout efface (`Max-Age 0`) ; `@RequestBody(required=false)`+`HttpServletRequest`. Flag `app.jwt.refresh-cookie-secure` (true par défaut, false dev/test ; `JWT_REFRESH_COOKIE_SECURE` `.env.example`). +3 tests `RefreshCookieTest`. **211 verts, 3 skip.** |

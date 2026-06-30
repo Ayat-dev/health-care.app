@@ -35,13 +35,16 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
     private final RoleAuthenticationSuccessHandler successHandler;
     private final LoginFailureHandler failureHandler;
+    private final LoginRateLimiter loginRateLimiter;
 
     public SecurityConfig(JwtFilter jwtFilter,
                           RoleAuthenticationSuccessHandler successHandler,
-                          LoginFailureHandler failureHandler) {
+                          LoginFailureHandler failureHandler,
+                          LoginRateLimiter loginRateLimiter) {
         this.jwtFilter      = jwtFilter;
         this.successHandler = successHandler;
         this.failureHandler = failureHandler;
+        this.loginRateLimiter = loginRateLimiter;
     }
 
     // ─── Chaîne 0 : Actuator — monitoring (P4.3) ────────────────────────────
@@ -107,6 +110,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/payments/webhook/**").permitAll()
                 .anyRequest().authenticated()
             )
+            // D1d — rate-limit IP avant l'auth sur /api/auth/login.
+            .addFilterBefore(new LoginRateLimitFilter(loginRateLimiter), UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -156,6 +161,8 @@ public class SecurityConfig {
                 ).permitAll()
                 .anyRequest().authenticated()
             )
+            // D1d — rate-limit IP avant l'auth sur /login (web).
+            .addFilterBefore(new LoginRateLimitFilter(loginRateLimiter), UsernamePasswordAuthenticationFilter.class)
             .formLogin(form -> form
                 .loginPage("/login")
                 .successHandler(successHandler)
