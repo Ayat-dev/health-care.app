@@ -172,7 +172,7 @@ public class RadiologyWebController {
     // ── Compte-rendu imprimable (HTML) ─────────────────────────────────────────────────────
     @GetMapping("/requests/{id}/bulletin")
     public String bulletin(@PathVariable Long id, Model model) {
-        model.addAllAttributes(bulletinModel(id));
+        model.addAllAttributes(bulletinModel(id, false));
         model.addAttribute("pdf", false);
         return "radiology/bulletin";
     }
@@ -180,13 +180,17 @@ public class RadiologyWebController {
     // ── Compte-rendu téléchargeable (PDF) ────────────────────────────────────────────────
     @GetMapping("/requests/{id}/bulletin/pdf")
     public org.springframework.http.ResponseEntity<byte[]> bulletinPdf(@PathVariable Long id) {
-        RadiologyRequestDto request = radiologyService.getDtoById(id);
-        byte[] pdf = pdfExportService.renderTemplate("radiology/bulletin", bulletinModel(id));
+        // D4a : images embarquées en base64 (getBulletinDto) pour qu'elles apparaissent dans le PDF.
+        java.util.Map<String, Object> model = bulletinModel(id, true);
+        RadiologyRequestDto request = (RadiologyRequestDto) model.get("request");
+        byte[] pdf = pdfExportService.renderTemplate("radiology/bulletin", model);
         return BillingWebController.pdfInline(pdf, "compte-rendu-" + request.getRequestNumber() + ".pdf");
     }
 
-    private java.util.Map<String, Object> bulletinModel(Long id) {
-        RadiologyRequestDto request = radiologyService.getDtoById(id);
+    private java.util.Map<String, Object> bulletinModel(Long id, boolean embedImages) {
+        RadiologyRequestDto request = embedImages
+                ? radiologyService.getBulletinDto(id)
+                : radiologyService.getDtoById(id);
         java.util.Map<String, Object> model = new java.util.HashMap<>();
         model.put("request", request);
         model.put("config", clinicConfigService.getConfig());

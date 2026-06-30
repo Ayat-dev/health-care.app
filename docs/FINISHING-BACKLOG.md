@@ -45,7 +45,7 @@
 | A | Multi-tenant — finitions | 4 | 4 | ✅ terminé |
 | B | PWA — finitions | 4 | 4 | ✅ terminé |
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
-| D | Divers (durcissement/polish) | 12 | 8 | 🔄 en cours |
+| D | Divers (durcissement/polish) | 12 | 9 | 🔄 en cours |
 | Z | (Tier 2) Grosses features parquées | — | — | 📦 listées, hors périmètre finitions |
 
 **Ordre conseillé** : A (clôt le multi-tenant, petites slices à forte valeur) → D4a (sécu) →
@@ -393,9 +393,22 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 > rotation outillée) faits. Parqué : rotation de la **clé maître** des colonnes PHI (batch re-save).
 
 ### D4 — Fonctionnel / UX (polish)
-- [ ] **D4a — Export `format=pdf|excel` sur `/api/reports/*` + images radio base64 en PDF.** Pour les
-  clients API/desktop. Réutilise `PdfExportService`/`ExcelExportService`. + embarquer les images
-  imagerie en base64 dans le bulletin PDF (aujourd'hui masquées). *Acc.* : `GET /api/reports/x?format=pdf` → `%PDF` ; bulletin radio PDF contient l'image.
+- [x] **D4a — Export `format=pdf|excel` sur `/api/reports/*` + images radio base64 en PDF. ✅ FAIT 2026-06-30.**
+  Nouveau `export/ReportExportService` : **centralise** le mapping rapport→document (KPI/sections)
+  pour les 6 rapports tabulaires (financier, activité, épidémio, impayés, caisse, stock) — PDF via le
+  template print générique `reports/pdf-report`, Excel via `ExcelExportService`. `ReportApiController`
+  gagne `?format=pdf|excel` (défaut **JSON** inchangé ; binaire en **pièce jointe** pour API/desktop) sur
+  `daily-cash`/`monthly-financial`/`activity`/`epidemiology`/`outstanding`/`stock` ; les 3 dashboards
+  composites restent JSON-only. `ReportWebController` **refactoré** pour déléguer au service (suppression
+  des helpers dupliqués `reportPdf`/`kpi`/`row`/`section`/`rowsOf`/`period`/`money` → controller bien plus
+  court, aucune régression sur `/reports/*/pdf` + `/outstanding/excel`). **Images radio en PDF** :
+  `RadiologyImageDto.dataUri` + `RadiologyService.getBulletinDto` relit chaque image via `FileStorageService`
+  (déchiffrée, D3b), l'encode en `data:image/...;base64,…` ; `bulletin.html` affiche les images en mode PDF
+  (avant : masquées car openhtmltopdf ne suit pas les URL `/uploads/**` chiffrées+auth) ; `bulletinPdf` les
+  embarque. +6 tests `ReportApiExportTest` (API pdf/excel/JSON-défaut + `getBulletinDto` produit le data-URI
+  + bulletin radio PDF valide après upload). **NB** : `ResponseEntity<?>` sur les endpoints API (DTO→JSON par
+  défaut, byte[] sinon) ; nom de fichier en pièce jointe (`bilan-financier-YYYY-MM.pdf`, `impayes.xlsx`, …).
+  *Vérifié* : `mvnd test` → **236 verts, 0 skip**.
 - [ ] **D4b — Portail patient : annulation RDV + téléchargement PDF + profil/mot de passe.** Permettre
   au patient d'annuler son RDV, télécharger ses bulletins/ordonnances en PDF, changer son mot de
   passe. *Acc.* : ces 3 actions fonctionnent sous `hasRole('PATIENT')`, cloisonnées au propre dossier.
@@ -460,6 +473,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-06-30 | **D4a — export pdf/excel API rapports + images radio base64 en PDF** | Nouveau `export/ReportExportService` centralise rapport→PDF(template `reports/pdf-report`)/Excel pour les 6 rapports tabulaires. `ReportApiController` : `?format=pdf|excel` (défaut JSON, binaire en pièce jointe) sur daily-cash/monthly-financial/activity/epidemiology/outstanding/stock ; dashboards JSON-only. `ReportWebController` **refactoré** pour déléguer (suppression helpers dupliqués `reportPdf`/`kpi`/`section`/… → controller raccourci, `/reports/*/pdf`+`/outstanding/excel` intacts). Images radio en PDF : `RadiologyImageDto.dataUri` + `RadiologyService.getBulletinDto` (relit/déchiffre via `FileStorageService`→base64) + `bulletin.html` affiche en mode PDF + `bulletinPdf` embarque. +6 tests `ReportApiExportTest`. NB : `ResponseEntity<?>` (DTO→JSON par défaut, byte[] sinon). **236 verts, 0 skip.** |
 | 2026-06-30 | **D3b — chiffrement fichiers au repos + rotation → bloc D3 TERMINÉ** | `AesGcmCipher` variante binaire (`encryptBytes`/`decryptBytes`/`isEncryptedBytes`, format `GCM1‖IV‖ct+tag`, marqueur ≠ JPEG/PNG). `FileEncryptionService` (clé courante + précédente en repli, tolère clair legacy) + `rotateAll(root)`. `FileStorageService.storeImage` écrit chiffré, `load` déchiffre. Handler statique `/uploads/**` **remplacé** par `UploadedFileController` (déchiffre, `Cache-Control: no-store`). Route `POST /api/admin/maintenance/rotate-file-encryption` (ADMIN/SUPER_ADMIN). Clé **dédiée** `app.storage.encryption.key` (défaut = clé maître) + `…previous-key` → découple la rotation fichiers de la base PHI. `.env.example`+`application.properties`. +6 tests `FileEncryptionTest`. **230 verts, 0 skip.** |
 | 2026-06-30 | **D3a — chiffrement PHI clinique (consultation + labo)** | `@Convert(PhiStringConverter)` (AES-GCM P2.5) sur Consultation `chief_complaint`/`history`/`physical_exam`/`diagnosis`/`treatment_plan` + LabResult `result_value`/`reference_range`/`notes`. PAS `icd10_codes` (recherché, D4c) / `unit` / constantes numériques. **Aucune migration** (colonnes déjà TEXT). Point dur : `diagnosis` chiffré casse `GROUP BY` SQL (IV aléatoire) → repo `findCompletedDiagnoses` (valeurs déchiffrées) + agrégation top-pathologies **en Java** (`ReportService.topDiagnoses`) → épidémio intacte. Compat legacy via `decrypt` tolérant (pas de préfixe `gcm:`). +2 tests `ClinicalPhiEncryptionTest`. **224 verts, 0 skip.** |
 | 2026-06-30 | **D2b — build-info (git/version) + alerting Prometheus** | `/actuator/info` gagne `build` (goal `spring-boot:build-info`→`BuildProperties`) + `git` (plugin `git-commit-id:9.0.1`→`GitProperties`, mode full). `.git` à la racine → `dotGitDirectory=${project.basedir}/../.git`, `failOnNoGitDirectory=false`. Config `management.info.{build,git}.enabled` + `git.mode=full`. Alerting : `monitoring/alert.rules.yml` (3 règles : backend down / heap>90% / 5xx>5%) via `rule_files` dans `prometheus.yml`, monté dans le conteneur ; Alertmanager optionnel (commenté). +2 tests `ActuatorInfoTest`. NB : fichiers générés dans `target/classes` → présents aux tests ; `/actuator/info` mappé sous MockMvc (≠ gotcha prometheus D2a). **222 verts, 0 skip.** |

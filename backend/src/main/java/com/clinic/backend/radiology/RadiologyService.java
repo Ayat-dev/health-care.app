@@ -31,6 +31,7 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@lombok.extern.slf4j.Slf4j
 public class RadiologyService {
 
     private static final String PREFIX = "RAD";
@@ -88,6 +89,31 @@ public class RadiologyService {
         RadiologyRequest r = requestRepository.findWithRefsById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Demande d'imagerie introuvable : " + id));
         return toDto(r);
+    }
+
+    /**
+     * Variante du {@link #getDtoById} pour le bulletin PDF (D4a) : chaque image est
+     * relue depuis le stockage (déchiffrée), encodée en base64 et exposée comme
+     * {@code dataUri} pour être embarquée dans le PDF (openhtmltopdf ne suit pas les
+     * URL {@code /uploads/**}). Une image illisible est simplement omise du PDF.
+     */
+    @Transactional(readOnly = true)
+    public RadiologyRequestDto getBulletinDto(Long id) {
+        RadiologyRequestDto dto = getDtoById(id);
+        for (RadiologyImageDto img : dto.getImages()) {
+            if (img.getUrl() == null) continue;
+            try {
+                FileStorageService.StoredFile f = fileStorageService.load(img.getUrl());
+                if (f != null) {
+                    img.setDataUri("data:" + f.contentType() + ";base64,"
+                            + java.util.Base64.getEncoder().encodeToString(f.content()));
+                }
+            } catch (RuntimeException e) {
+                log.warn("Image imagerie illisible pour le PDF (demande {}, {}) : {}",
+                        id, img.getUrl(), e.getMessage());
+            }
+        }
+        return dto;
     }
 
     /** Prefill a new request from a consultation (patient/doctor). */

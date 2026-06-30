@@ -98,11 +98,13 @@
     <div class="rad-title">Conclusion</div>
     <div class="rad-body" th:text="${request.conclusion ?: '—'}">Conclusion…</div>
 
-    <div th:if="${!pdf and !request.images.isEmpty()}">
+    <div th:if="${!request.images.isEmpty()}">
         <div class="rad-title">Images</div>
         <div class="images">
-            <figure th:each="img : ${request.images}">
-                <img th:src="${img.url}" alt="Image"/>
+            <!-- En PDF (D4a) on n'affiche que les images embarquées en base64 (dataUri) ;
+                 en HTML on sert l'URL /uploads. -->
+            <figure th:each="img : ${request.images}" th:if="${!pdf or img.dataUri != null}">
+                <img th:src="${pdf ? img.dataUri : img.url}" alt="Image"/>
                 <figcaption th:text="${img.caption ?: ''}"></figcaption>
             </figure>
         </div>
