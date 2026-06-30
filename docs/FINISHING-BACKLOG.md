@@ -45,7 +45,7 @@
 | A | Multi-tenant — finitions | 4 | 4 | ✅ terminé |
 | B | PWA — finitions | 4 | 4 | ✅ terminé |
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
-| D | Divers (durcissement/polish) | 8 | 1 | 🔄 en cours |
+| D | Divers (durcissement/polish) | 8 | 2 | 🔄 en cours |
 | Z | (Tier 2) Grosses features parquées | — | — | 📦 listées, hors périmètre finitions |
 
 **Ordre conseillé** : A (clôt le multi-tenant, petites slices à forte valeur) → D4a (sécu) →
@@ -267,8 +267,16 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
   + rejeu ancien cookie → 401+effacé ; logout via cookie révoque+efface). *Vérifié* : `mvnd test` →
   **211 verts, 3 skip**. *NB* : `/refresh` et `/logout` passent `@RequestBody(required=false)` +
   `HttpServletRequest` (le client cookie n'envoie pas forcément de corps JSON).
-- [ ] **D1b — Nettoyage périodique des refresh tokens expirés (`@Scheduled`).** Job tenant-agnostique
-  (les refresh ne sont pas `@TenantId`) qui purge `refresh_tokens` expirés/révoqués anciens. *Acc.* : cron + test unitaire de purge.
+- [x] **D1b — Nettoyage périodique des refresh tokens expirés (`@Scheduled`). ✅ FAIT 2026-06-30.**
+  `RefreshTokenCleanupScheduler` (`@Component`, cron `0 30 3 * * *`, 03:30 heure creuse) appelle
+  `RefreshTokenService.purgeStaleTokens()` → repo `deleteExpiredOrRevokedBefore(cutoff)`
+  (`@Modifying`, JPQL : `expiresAt < cutoff OR (revokedAt IS NOT NULL AND revokedAt < cutoff)`).
+  **Tenant-agnostique** (refresh tokens pas `@TenantId`) → **aucun `runAs`** (à la différence des
+  schedulers métier type `StockAlertService`). Fenêtre de **rétention** `app.jwt.refresh-cleanup-retention-days`
+  (défaut 7 j ; `JWT_REFRESH_CLEANUP_RETENTION_DAYS`) — on garde un jeton révoqué cette durée pour
+  préserver la détection de réutilisation/vol. +1 test `RefreshTokenCleanupTest` (purge expiré/révoqué
+  ancien, garde actif + expiré/révoqué récent). *NB* : FK `refresh_tokens.user_id`→`users` → le test
+  amorce les jetons sur l'id de `admin` (pas un id fictif). *Vérifié* : `mvnd test` → **212 verts, 3 skip**.
 - [ ] **D1c — Vue admin « sessions actives » + révocation ciblée par appareil.** Lister les refresh
   actifs d'un user, révoquer un appareil précis. *Acc.* : page admin liste + bouton révoquer → 401 sur cet appareil.
 - [ ] **D1d — Rate-limit IP sur le login (Bucket4j).** Complète le lockout par compte (P1.3) contre
@@ -357,6 +365,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-06-30 | **D1b — purge planifiée des refresh tokens** | `RefreshTokenCleanupScheduler` (cron `0 30 3 * * *`) → `RefreshTokenService.purgeStaleTokens()` → repo `deleteExpiredOrRevokedBefore(cutoff)` (`@Modifying` JPQL `expiresAt < cutoff OR revokedAt < cutoff`). Tenant-agnostique (pas `@TenantId`) → **pas de `runAs`**. Rétention `app.jwt.refresh-cleanup-retention-days` (défaut 7 j ; `.env.example`) garde les jetons révoqués pour la détection de vol. +1 test `RefreshTokenCleanupTest` (FK user_id → seed sur id admin). **212 verts, 3 skip.** |
 | 2026-06-30 | **D1a — refresh token en cookie HttpOnly (front web)** | Mode opt-in `login {"cookie":"true"}` → refresh en cookie `HttpOnly`/`Secure`/`SameSite=Strict` path `/api/auth`, **jamais en JSON** (access court reste JSON). Sans flag = JSON inchangé (API/desktop). Helper `security/RefreshCookieManager` (`ResponseCookie`→`Set-Cookie`). `/refresh`+`/logout` : cookie prioritaire, rotation repose le cookie, échec/logout efface (`Max-Age 0`) ; `@RequestBody(required=false)`+`HttpServletRequest`. Flag `app.jwt.refresh-cookie-secure` (true par défaut, false dev/test ; `JWT_REFRESH_COOKIE_SECURE` `.env.example`). +3 tests `RefreshCookieTest`. **211 verts, 3 skip.** |
 | 2026-06-30 | **B4 — file de synchro hors-ligne → chantier B TERMINÉ** | Décisions verrouillées : RDV seul · file IndexedDB **chiffrée** AES-GCM (clé non-extractible) · conflit → échec+notif+conservé. `js/offline-sync.js` (global, no-op sans IDB/WebCrypto) intercepte le form RDV *hors-ligne*, chiffre+enfile (UUID+statut en clair), rejoue au `online`/`DOMContentLoaded` **en contexte page** (CSRF meta + session). Endpoint `POST /appointments/offline` → `createIdempotent` ; dédup `Idempotency-Key`/`findByRequestKey` → 0 doublon ; col `appointments.request_key VARCHAR(36) UNIQUE` (**V31**, nullable, UNIQUE portable H2+PG). Conflit → 409 → item ÉCHEC conservé. Bannière `#offline-queue-status` (compteurs sans déchiffrer). 6 clés `offline.*` ×3. Background Sync différé (clé/CSRF page + support). +2 tests `OfflineSyncTest`. JS pur non testé MockMvc (contrat serveur couvert). **208 verts, 3 skip.** |
 | 2026-06-30 | **B3 — app shell précaché renforcé** | `sw.js` : `SHELL_ASSETS` explicite & complet (5→11 entrées : ajoute `js/{ui,search,worklist-live}.js` + 3 PNG B1) ; cache versionné `v1`→`v2` (purge `activate` déjà en place). Zéro page/PHI/auth en cache (navigations réseau-d'abord → `offline.html`). +2 tests `PwaShellTest` (extrait `SHELL_ASSETS` du `/sw.js` → chaque ressource 200 [garde l'échec atomique de `addAll`] + aucune entrée sensible). **206 verts, 3 skip.** |

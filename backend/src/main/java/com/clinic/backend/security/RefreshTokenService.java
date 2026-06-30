@@ -33,14 +33,17 @@ public class RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
     private final long refreshExpirationMs;
+    private final long cleanupRetentionDays;
     private final SecureRandom random = new SecureRandom();
 
     public RefreshTokenService(RefreshTokenRepository refreshTokenRepository,
                                UserRepository userRepository,
-                               @Value("${app.jwt.refresh-expiration-ms}") long refreshExpirationMs) {
+                               @Value("${app.jwt.refresh-expiration-ms}") long refreshExpirationMs,
+                               @Value("${app.jwt.refresh-cleanup-retention-days}") long cleanupRetentionDays) {
         this.refreshTokenRepository = refreshTokenRepository;
         this.userRepository = userRepository;
         this.refreshExpirationMs = refreshExpirationMs;
+        this.cleanupRetentionDays = cleanupRetentionDays;
     }
 
     /** Émet un nouveau refresh token et renvoie sa valeur BRUTE (non stockée). */
@@ -116,6 +119,24 @@ public class RefreshTokenService {
         userRepository.save(user);
         log.info("Révocation de toutes les sessions de {} ({} refresh tokens, tv={}).",
                 user.getUsername(), active.size(), user.getTokenVersion());
+    }
+
+    /**
+     * D1b — purge les refresh tokens expirés ou révoqués depuis plus de
+     * {@code app.jwt.refresh-cleanup-retention-days} jours. Tenant-agnostique
+     * (les refresh tokens ne sont pas {@code @TenantId}) → aucun {@code runAs}.
+     *
+     * @return nombre de jetons supprimés
+     */
+    @Transactional
+    public int purgeStaleTokens() {
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(cleanupRetentionDays);
+        int deleted = refreshTokenRepository.deleteExpiredOrRevokedBefore(cutoff);
+        if (deleted > 0) {
+            log.info("Purge des refresh tokens : {} jeton(s) expiré(s)/révoqué(s) avant {} supprimé(s).",
+                    deleted, cutoff);
+        }
+        return deleted;
     }
 
     private String generateRaw() {
