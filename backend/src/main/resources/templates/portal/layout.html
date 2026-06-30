@@ -28,6 +28,8 @@
                th:classappend="${#strings.startsWith(currentUri, '/portal/appointments')} ? 'active'">Mes rendez-vous</a>
             <a th:href="@{/portal/record}" th:text="#{portal.nav.record}"
                th:classappend="${#strings.startsWith(currentUri, '/portal/record')} ? 'active'">Mon dossier</a>
+            <a th:href="@{/portal/profile}" th:text="#{portal.nav.profile}"
+               th:classappend="${#strings.startsWith(currentUri, '/portal/profile')} ? 'active'">Mon profil</a>
         </nav>
         <div class="portal-user">
             <!-- Invite d'installation PWA (B2) — masquée par défaut ; js/pwa.js l'affiche

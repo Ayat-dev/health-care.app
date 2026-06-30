@@ -1,0 +1,46 @@
+<html th:replace="~{portal/layout :: layout(#{portal.profile.title}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+    <div th:if="${success}" class="alert alert-info" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <h1 style="margin-bottom:24px;" th:text="#{portal.profile.heading}">Mon profil</h1>
+
+    <!-- ── Identifiants ─────────────────────────────────────────────────────── -->
+    <div class="panel" style="margin-bottom:20px;">
+        <div class="panel-header"><h2 th:text="#{portal.profile.account}">Identifiants</h2></div>
+        <div style="padding:16px;">
+            <div class="form-group">
+                <span class="form-label" th:text="#{portal.profile.username}">Nom d'utilisateur</span>
+                <div th:text="${username}">patient</div>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <span class="form-label" th:text="#{portal.profile.fullname}">Nom complet</span>
+                <div th:text="${patient.fullName}">—</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Changer le mot de passe ──────────────────────────────────────────── -->
+    <div class="panel">
+        <div class="panel-header"><h2 th:text="#{portal.profile.change_password}">Changer le mot de passe</h2></div>
+        <form th:action="@{/portal/profile/password}" method="post" class="form-card">
+            <div class="form-group">
+                <label class="form-label" for="currentPassword" th:text="#{portal.profile.current}">Mot de passe actuel</label>
+                <input type="password" id="currentPassword" name="currentPassword" class="form-control" required autocomplete="current-password"/>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="newPassword" th:text="#{portal.profile.new}">Nouveau mot de passe</label>
+                <input type="password" id="newPassword" name="newPassword" class="form-control" required autocomplete="new-password"/>
+                <small class="text-muted" th:text="#{portal.profile.password_hint}">Au moins 8 caractères, dont un chiffre.</small>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="confirmPassword" th:text="#{portal.profile.confirm}">Confirmer le nouveau mot de passe</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required autocomplete="new-password"/>
+            </div>
+            <button type="submit" class="btn btn-primary" th:text="#{portal.profile.submit}">Mettre à jour</button>
+        </form>
+    </div>
+
+</th:block></body>
+</html>

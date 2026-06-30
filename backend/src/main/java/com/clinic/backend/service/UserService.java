@@ -125,6 +125,28 @@ public class UserService {
         return userRepository.save(u);
     }
 
+    // ── Changement de mot de passe en self-service (portail patient — D4b) ──────
+    /**
+     * Change le mot de passe de l'utilisateur courant après vérification du mot de
+     * passe actuel. Coupe les autres sessions (révocation JWT + bump de version de
+     * jeton). Utilisé par le portail patient ; réutilisable pour un futur /profile staff.
+     *
+     * @throws IllegalArgumentException si le mot de passe actuel est incorrect ou si
+     *         le nouveau ne respecte pas la politique (≥ 8 caractères, ≥ 1 chiffre)
+     */
+    public void changeOwnPassword(Long userId, String currentPassword, String newPassword) {
+        User u = getById(userId);
+        if (currentPassword == null || !passwordEncoder.matches(currentPassword, u.getPassword())) {
+            throw new IllegalArgumentException("Mot de passe actuel incorrect.");
+        }
+        validatePassword(newPassword);
+        u.setPassword(passwordEncoder.encode(newPassword));
+        u.bumpTokenVersion();
+        refreshTokenService.revokeAllForUser(u);
+        log.info("Mot de passe changé en self-service pour {}", u.getUsername());
+        userRepository.save(u);
+    }
+
     // ── Activer / désactiver ──────────────────────────────────────────────────
     public void toggleActive(Long id) {
         User u = getById(id);

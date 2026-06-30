@@ -28,16 +28,42 @@
         </div>
     </div>
 
+    <!-- ── Ordonnances ──────────────────────────────────────────────────────── -->
+    <div class="panel" style="margin-bottom:20px;">
+        <div class="panel-header"><h2 th:text="#{portal.record.prescriptions}">Ordonnances</h2></div>
+        <div th:if="${prescriptions.isEmpty()}" class="empty-state" th:text="#{portal.record.no_prescriptions}">Aucune ordonnance.</div>
+        <div th:unless="${prescriptions.isEmpty()}" class="table-wrap">
+            <table class="table">
+                <thead>
+                <tr><th scope="col" th:text="#{portal.col.number}">N°</th><th scope="col" th:text="#{common.date}">Date</th><th scope="col" th:text="#{portal.col.doctor}">Médecin</th><th scope="col"><span class="sr-only" th:text="#{common.actions}">Actions</span></th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${prescriptions}">
+                    <td th:text="${p.prescriptionNumber}">ORD-…</td>
+                    <td th:text="${p.issueDate != null ? #temporals.format(p.issueDate, 'dd/MM/yyyy') : '—'}">—</td>
+                    <td th:text="${p.doctorName != null ? p.doctorName : '—'}">—</td>
+                    <td><a th:href="@{/portal/prescriptions/{id}/pdf(id=${p.id})}" target="_blank"
+                           class="btn btn-ghost btn-sm" th:text="#{portal.download.pdf}">⬇ PDF</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <!-- ── Analyses de laboratoire (résultats validés) ─────────────────────── -->
     <div class="panel" style="margin-bottom:20px;">
         <div class="panel-header"><h2 th:text="#{portal.record.lab_results}">Résultats d'analyses</h2></div>
         <th:block th:with="validated=${labRequests.?[status == 'VALIDE' or status == 'LIVRE']}">
             <div th:if="${validated.isEmpty()}" class="empty-state" th:text="#{portal.record.no_lab}">Aucun résultat d'analyse disponible.</div>
             <div th:unless="${validated.isEmpty()}" th:each="lr : ${validated}" style="margin:0 16px 16px;">
-                <div style="font-weight:600; margin:12px 0 6px;">
-                    <span th:text="${lr.requestNumber}">LAB-…</span>
-                    <span class="text-muted" style="font-weight:400;"
-                          th:text="${lr.requestedAt != null ? ' — ' + #temporals.format(lr.requestedAt, 'dd/MM/yyyy') : ''}"></span>
+                <div style="font-weight:600; margin:12px 0 6px; display:flex; justify-content:space-between; align-items:center;">
+                    <span>
+                        <span th:text="${lr.requestNumber}">LAB-…</span>
+                        <span class="text-muted" style="font-weight:400;"
+                              th:text="${lr.requestedAt != null ? ' — ' + #temporals.format(lr.requestedAt, 'dd/MM/yyyy') : ''}"></span>
+                    </span>
+                    <a th:href="@{/portal/lab/{id}/pdf(id=${lr.id})}" target="_blank"
+                       class="btn btn-ghost btn-sm" th:text="#{portal.download.pdf}">⬇ PDF</a>
                 </div>
                 <div class="table-wrap">
                     <table class="table">
@@ -67,10 +93,14 @@
         <th:block th:with="validatedRad=${radiologyRequests.?[status == 'VALIDE' or status == 'LIVRE']}">
             <div th:if="${validatedRad.isEmpty()}" class="empty-state" th:text="#{portal.record.no_imaging}">Aucun compte-rendu d'imagerie disponible.</div>
             <div th:unless="${validatedRad.isEmpty()}" th:each="rr : ${validatedRad}" style="margin:0 16px 16px;">
-                <div style="font-weight:600; margin:12px 0 6px;">
-                    <span th:text="${rr.requestNumber}">RAD-…</span>
-                    <span class="text-muted" style="font-weight:400;"
-                          th:text="${rr.requestedAt != null ? ' — ' + #temporals.format(rr.requestedAt, 'dd/MM/yyyy') : ''}"></span>
+                <div style="font-weight:600; margin:12px 0 6px; display:flex; justify-content:space-between; align-items:center;">
+                    <span>
+                        <span th:text="${rr.requestNumber}">RAD-…</span>
+                        <span class="text-muted" style="font-weight:400;"
+                              th:text="${rr.requestedAt != null ? ' — ' + #temporals.format(rr.requestedAt, 'dd/MM/yyyy') : ''}"></span>
+                    </span>
+                    <a th:href="@{/portal/radiology/{id}/pdf(id=${rr.id})}" target="_blank"
+                       class="btn btn-ghost btn-sm" th:text="#{portal.download.pdf}">⬇ PDF</a>
                 </div>
                 <p th:if="${rr.conclusion}" style="margin-bottom:4px;">
                     <strong th:text="#{portal.record.conclusion}">Conclusion :</strong> <span th:text="${rr.conclusion}">—</span>
@@ -86,7 +116,7 @@
         <div th:unless="${invoices.isEmpty()}" class="table-wrap">
             <table class="table">
                 <thead>
-                <tr><th scope="col" th:text="#{portal.col.number}">N°</th><th scope="col" th:text="#{common.date}">Date</th><th scope="col" th:text="#{portal.col.patient_amount}">Montant patient</th><th scope="col" th:text="#{portal.col.paid}">Réglé</th><th scope="col" th:text="#{portal.col.balance}">Reste dû</th><th scope="col" th:text="#{common.status}">Statut</th></tr>
+                <tr><th scope="col" th:text="#{portal.col.number}">N°</th><th scope="col" th:text="#{common.date}">Date</th><th scope="col" th:text="#{portal.col.patient_amount}">Montant patient</th><th scope="col" th:text="#{portal.col.paid}">Réglé</th><th scope="col" th:text="#{portal.col.balance}">Reste dû</th><th scope="col" th:text="#{common.status}">Statut</th><th scope="col"><span class="sr-only" th:text="#{common.actions}">Actions</span></th></tr>
                 </thead>
                 <tbody>
                 <tr th:each="inv : ${invoices}">
@@ -96,6 +126,8 @@
                     <td th:text="${#numbers.formatDecimal(inv.paidAmount, 1, 'WHITESPACE', 2, 'POINT')} + ' XOF'">—</td>
                     <td th:text="${#numbers.formatDecimal(inv.balanceDue, 1, 'WHITESPACE', 2, 'POINT')} + ' XOF'">—</td>
                     <td><span class="badge" th:classappend="'badge-' + ${inv.status}" th:text="#{${'status.' + inv.status}}">—</span></td>
+                    <td><a th:href="@{/portal/invoices/{id}/receipt/pdf(id=${inv.id})}" target="_blank"
+                           class="btn btn-ghost btn-sm" th:text="#{portal.download.pdf}">⬇ PDF</a></td>
                 </tr>
                 </tbody>
             </table>

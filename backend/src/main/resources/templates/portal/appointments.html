@@ -2,6 +2,7 @@
 <body><th:block th:fragment="content">
 
     <div th:if="${success}" class="alert alert-info" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
 
     <div class="panel">
         <div class="panel-header">
@@ -30,6 +31,13 @@
                         <a th:if="${a.type == 'TELECONSULTATION' and a.status != 'ANNULE'}"
                            th:href="@{/teleconsultation/{id}(id=${a.id})}" target="_blank"
                            class="btn btn-success btn-sm" th:text="#{portal.appointments.join}">📹 Rejoindre</a>
+                        <form th:if="${a.status == 'PLANIFIE' or a.status == 'CONFIRME'}"
+                              th:action="@{/portal/appointments/{id}/cancel(id=${a.id})}" method="post"
+                              style="display:inline;"
+                              th:data-confirm="#{portal.appointments.cancel_confirm}"
+                              onsubmit="return confirm(this.dataset.confirm)">
+                            <button type="submit" class="btn btn-ghost btn-sm" th:text="#{portal.appointments.cancel}">Annuler</button>
+                        </form>
                     </td>
                 </tr>
                 </tbody>

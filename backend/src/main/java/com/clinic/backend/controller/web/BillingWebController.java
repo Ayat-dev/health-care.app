@@ -201,7 +201,7 @@ public class BillingWebController {
         return model;
     }
 
-    static ResponseEntity<byte[]> pdfInline(byte[] pdf, String filename) {
+    public static ResponseEntity<byte[]> pdfInline(byte[] pdf, String filename) {
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
