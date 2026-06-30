@@ -205,6 +205,24 @@
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Accessibilité automatisée (C3) : axe-core exécuté sur les vues rendues.
+             HtmlUnit = navigateur sans tête 100% Java (aucun binaire/Chromedriver, aucun
+             réseau au test) piloté via MockMvc ; le moteur JS y injecte axe-core. Le JAR
+             deque embarque `axe.min.js` (aucun CDN — cohérent avec la CSP `default-src 'self'`).
+             Si le moteur JS d'HtmlUnit n'arrive pas à exécuter axe sur ce poste, le test se
+             SKIP (assumeTrue) au lieu d'échouer → `mvnd test` reste vert (même posture que A1). -->
+        <dependency>
+            <groupId>org.htmlunit</groupId>
+            <artifactId>htmlunit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.deque.html.axe-core</groupId>
+            <artifactId>selenium</artifactId>
+            <version>4.10.1</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

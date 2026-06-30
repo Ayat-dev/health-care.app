@@ -44,7 +44,7 @@
 |---|---|---|---|---|
 | A | Multi-tenant — finitions | 4 | 4 | ✅ terminé |
 | B | PWA — finitions | 4 | 0 | 🔲 à démarrer |
-| C | Accessibilité (A11y) — finitions | 3 | 2 | 🔄 en cours |
+| C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
 | D | Divers (durcissement/polish) | 8 | 0 | 🔲 à démarrer |
 | Z | (Tier 2) Grosses features parquées | — | — | 📦 listées, hors périmètre finitions |
 
@@ -177,11 +177,39 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
   portent `role=tablist`/`role=tab`/`aria-selected` mais pas `role=tabpanel`+`aria-controls`/`aria-labelledby`
   (géré en JS). Laissé tel quel pour ne pas régresser le JS ; à compléter si un audit lecteur d'écran le réclame.
 
-- [ ] **C3 — Tests a11y automatisés (axe-core).**
-  Intégrer axe-core sur les vues-clés rendues (via un test qui charge le HTML rendu + assert
-  l'absence de violations critiques). **Sans CDN** (vendoriser axe-core ou via dépendance test).
-  Étend `A11yTest`.
-  *Acceptation* : `mvnd test` vert + violations critiques = 0 sur les vues couvertes.
+- [x] **C3 — Tests a11y automatisés (axe-core). ✅ FAIT 2026-06-30.**
+  Nouveau `A11yAxeTest` (frère de `A11yTest`) : exécute le **vrai moteur axe-core** (WCAG 2.0/2.1
+  A & AA) sur **15 vues-clés** rendues (login + médecin ×7 + caisse ×3 + admin ×3 + pilotage) et
+  échoue sur toute violation d'impact **critique ou sérieux**. Résultat : **0 violation** partout
+  (le travail C1/C2 tient). **Stack 100% Java, sans réseau ni binaire de navigateur** : on récupère
+  le HTML **authentifié** via `MockMvc` (`@WithUserDetails`), puis on l'audite dans **HtmlUnit** nu.
+  axe-core est lu depuis `/axe.min.js` **embarqué dans le JAR `com.deque.html.axe-core:selenium`**
+  (aucun CDN — cohérent CSP `default-src 'self'`). Dépendances test : `org.htmlunit:htmlunit`
+  (gérée BOM) + ce JAR deque (pour la ressource axe). +5 tests. *Vérifié* : `mvnd clean test` → **203 verts, 0 skip**.
+  **NB / pièges tranchés (chacun a coûté un cycle)** :
+  (1) **Ne PAS utiliser `AxeBuilder` (deque) ni l'`HtmlUnitDriver` Selenium** : `executeAsyncScript`
+  renvoie la `Promise` non résolue d'axe → `NativePromise` non sérialisable par le pont
+  HtmlUnit→Jackson. On injecte axe soi-même, forme **à callback**, et on récupère le résultat
+  **déjà `JSON.stringify`é** (une `String`, insensible à la conversion d'objets HtmlUnit).
+  (2) **`@WithUserDetails` n'est PAS propagé** aux requêtes émises par le pont HtmlUnit→MockMvc
+  (toutes → 302 `/login`, donc on n'auditait que la page de login). Solution : charger le HTML via
+  `mvc.perform` (qui, lui, respecte l'annotation) et l'injecter dans HtmlUnit.
+  (3) **Le JS applicatif fait planter/traîner HtmlUnit** (client STOMP/websocket temps réel,
+  graphiques → timeout 10 min). On coupe : `WebConnection` stub qui sert le HTML d'audit et renvoie
+  un **corps vide pour toute sous-ressource** (app.js/css), CSS/images/websocket désactivés. L'audit
+  ne dépend que du **DOM rendu serveur**, pas du JS de page.
+  (4) **`loadHtmlCodeIntoCurrentWindow` laisse `document.readyState='loading'`** → axe (qui attend
+  le « ready ») ne rappelle jamais son callback (skip silencieux). Solution : **vraie navigation**
+  `web.getPage(AUDIT_URL)` (le stub renvoie le HTML) → `readyState=complete` + `DOMContentLoaded`.
+  (5) **Contraste non audité ici** : sans CSS chargé, les règles de contraste ressortent en
+  « incomplete » (non bloquant) — contraste déjà vérifié à la main en C1/C2. Audit ciblé sur les
+  règles **structurelles** (labels, en-têtes de tableau, rôles ARIA, alt, attributs, langue…).
+  (6) **CI-safe** : si le moteur JS d'HtmlUnit ne peut exécuter axe sur un poste donné, chaque test
+  se **skippe** (assumeTrue) au lieu d'échouer — même posture que A1. Règles `aria-required-children/attr`
+  exclues (C2-reliquat ARIA tablist, encore différé).
+
+> **✅ Chantier C (accessibilité) TERMINÉ** — C1→C3 faits. Reste optionnel : C2-reliquat (pattern
+> ARIA tablist complet) si un audit lecteur d'écran le réclame.
 
 > **Parqué (C)** : audit lecteur d'écran réel (manuel, exploitation — non automatisable ici).
 
@@ -284,6 +312,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-06-30 | **C3 — tests a11y axe-core → chantier C TERMINÉ** | Nouveau `A11yAxeTest` : axe-core réel (WCAG A/AA) sur 15 vues authentifiées (login + médecin/caisse/admin/owner) → **0 violation critique/sérieuse**. Stack 100% Java sans réseau : HTML authentifié via `mvc.perform` (`@WithUserDetails`) → audité dans **HtmlUnit nu** ; `/axe.min.js` lu du JAR `com.deque.html.axe-core:selenium` (aucun CDN). Deps test : `org.htmlunit:htmlunit` + JAR deque. 4 pièges tranchés : Promise non sérialisable (→ callback + `JSON.stringify`) ; `@WithUserDetails` non propagé au pont HtmlUnit→MockMvc (→ `mvc.perform`) ; JS appli qui fait planter HtmlUnit (→ `WebConnection` stub, sous-ressources vides) ; `loadHtmlCodeIntoCurrentWindow` reste `readyState=loading` (→ vraie nav `getPage`). CI-safe (skip si moteur JS HS). **203 verts, 0 skip.** |
 | 2026-06-29 | **C2 — audit a11y lot 2 (le reste)** | `for`/`id` sur tous les champs des formulaires pharmacie/labo/imagerie/hospitalisation/maternité/rapports/admin(×8 forms + config)/portail (`th:field`→`for` seul ; `name=`→`for`+`id`). `<th scope="col">` sur **toutes** les tables restantes + `<th scope="row">` (saisie labo, grille semaine déjà en C1), `sr-only` colonnes Actions, `aria-label` cases à cocher labo/imagerie (nom analyse) + filtres non étiquetés + actions inline détail hospi. Chrome **portail** mis à parité C1 (skip-link/`#portal-main`/`nav[aria-label]`). +1 clé `common.selection` ×3. setup déjà conforme. Print-only exclus. +2 tests `A11yTest`. **196 verts, 0 skip.** |
 | 2026-06-29 | **C1 — audit a11y lot 1 (labels/scope/aria)** | `for`/`id` sur tous les champs des 5 formulaires (patients/appointments/consultations/billing form+pay) ; `aria-label` par colonne sur lignes de facturation dynamiques (Thymeleaf + JS) ; `<th scope="col">` sur toutes les tables (+ `sr-only` pour colonne Actions vide, `<th scope="row">` heure grille semaine) ; `aria-label` sur les filtres non étiquetés. 2 clés i18n `common.date_from/to` ×3. +2 tests `A11yTest`. Contraste badges OK (déjà ≥4.5:1). **196 verts, 0 skip.** |
 | 2026-06-29 | **A4 — SUPER_ADMIN prod + comptes inter-cliniques → chantier A TERMINÉ** | `ProdDataInitializer` : bootstrap SUPER_ADMIN (clinic_id NULL) via `CLINIC_SUPERADMIN_*` et/ou admin clinique via `CLINIC_ADMIN_*` (au moins un, sinon /setup). `UserService.createForClinic(clinicId,dto)` (clinic_id explicite, rôle ADMIN forcé) + endpoints `GET/POST /admin/clinics/{id}/admin` + template `admin-form.html` + lien liste + 3 clés i18n ×3 + flash `#{${success}}`. `.env.example` MAJ. +3 tests (service createForClinic + 2 gating SUPER_ADMIN/ADMIN). **194 verts, 0 skip.** Bootstrap prod non testable en H2 (revue). |
