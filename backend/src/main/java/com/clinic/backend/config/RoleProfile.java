@@ -34,7 +34,7 @@ public enum RoleProfile {
      */
     SUPER_ADMIN(
         "/admin/clinics",
-        EnumSet.of(ADMIN_CLINICS),
+        EnumSet.of(ADMIN_CLINICS, ADMIN_WEBHOOKS),
         Set.of()
     ),
 

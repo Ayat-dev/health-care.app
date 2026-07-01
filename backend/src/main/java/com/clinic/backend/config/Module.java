@@ -33,6 +33,9 @@ public enum Module {
     // ── ADMIN ─────────────────────────────────────────────────────────────────────
     // Transverse (SUPER_ADMIN uniquement) — registre des cliniques / tenants (P4.2).
     ADMIN_CLINICS   ("/admin/clinics",    "Cliniques",       "landmark",    "nav.admin_clinics",    Section.ADMIN),
+    // Transverse (SUPER_ADMIN) — journal des webhooks Mobile Money (Z4a) : table globale
+    // (le webhook arrive sans contexte de tenant), donc réservée au rôle transverse.
+    ADMIN_WEBHOOKS  ("/admin/payment-webhooks", "Journal Mobile Money", "credit-card", "nav.admin_webhooks", Section.ADMIN),
     ADMIN_USERS     ("/admin/users",      "Utilisateurs",    "users",       "nav.admin_users",      Section.ADMIN),
     ADMIN_DEPTS     ("/admin/departments","Départements",    "building",    "nav.admin_depts",      Section.ADMIN),
     ADMIN_INSURANCE ("/admin/insurance",  "Assureurs",       "shield",      "nav.admin_insurance",  Section.ADMIN),

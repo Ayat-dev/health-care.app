@@ -46,7 +46,7 @@
 | B | PWA — finitions | 4 | 4 | ✅ terminé |
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
 | D | Divers (durcissement/polish) | 12 | 12 | ✅ terminé |
-| Z | (Tier 2) Grosses features parquées | 6 | 2 | 🔓 Z5+Z6 promus+faits ; Z1-Z4 parqués |
+| Z | (Tier 2) Grosses features parquées | 6 | 2 | 🔓 Z5+Z6 faits ; Z4 re-scopé Niger (Z4a fait, Z4b à venir) ; Z1-Z3 parqués |
 
 **Ordre conseillé** : A (clôt le multi-tenant, petites slices à forte valeur) → D4a (sécu) →
 C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prendre la plus utile.
@@ -498,9 +498,33 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
   posture PHI définitive (BAA/ZDR vs LLM auto-hébergé).
 - **Z3 — Télémédecine avancée** [ex-P3.7] : notif du lien au patient (SMS/email), **Jitsi
   auto-hébergé + JWT de salle**, fenêtre temporelle d'ouverture, salle d'attente/présence, enregistrement.
-- **Z4 — Mobile Money actif** [ex-P3.3] : initiation de paiement (push USSD/STK), vue admin du
-  journal des webhooks, SDK réels par agrégateur (signatures propres), réconciliation/relance,
-  montants partiels multiples. (Le récepteur webhook P3.3 existe mais dort — marché Niger = QR manuel.)
+- **Z4 — Mobile Money : RE-SCOPÉ Niger (2026-07-01).** L'ancien Z4 (« Mobile Money actif » :
+  initiation USSD/STK, SDK réels Orange/Wave/MTN, signatures par agrégateur, import CSV) a été
+  **jugé obsolète** : il datait d'avant la correction marché → **Niger**, où les modes réels
+  **AmanaTa/MyNITA sont des paiements par QR marchand SANS API/webhook public** (flux manuel par
+  conception) et où Orange/Wave/MTN ont été **retirés du menu d'encaissement**. Le récepteur webhook
+  P3.3 reste **dormant** (hook futur si Orange Money — qui a une API au Niger — est un jour
+  ré-introduit, décision produit séparée). Re-scopé vers **ce qui a du sens au Niger**, en 2 slices :
+  - [x] **Z4a — Journal admin des webhooks. ✅ FAIT 2026-07-01.** Vue **SUPER_ADMIN**
+    `/admin/payment-webhooks` (read-only) sur `payment_webhook_events` : filtres fournisseur/statut/
+    plage de dates, badges d'issue (Encaissé/Rejeté/Doublon/Reçu), montant, facture, détail d'erreur ;
+    cap 200 lignes (patron `AdminAuditWebController`). **Gate SUPER_ADMIN** délibéré : la table est
+    **globale** (le webhook arrive sans contexte de tenant, pas de `@TenantId`/`clinic_id`) → un ADMIN
+    de clinique y verrait les factures d'autres cliniques ; le rôle transverse est le bon propriétaire
+    d'un journal d'intégration plateforme. Nav auto-câblée via le registre : module `ADMIN_WEBHOOKS`
+    (`Module` enum, Section.ADMIN) ajouté à `RoleProfile.SUPER_ADMIN` (pas de `sec:authorize` manuel).
+    Repo `PaymentWebhookEventRepository.search(...)` (filtres optionnels null-safe, `Pageable`) +
+    `distinctProviders()`. Template `admin/payment-webhooks/list.html`. 21 clés i18n
+    (`nav.admin_webhooks` + `admin.webhooks.*`, dont `st_{RECEIVED,PROCESSED,REJECTED,DUPLICATE}`) ×3.
+    +3 tests `AdminPaymentWebhooksTest` (SUPER_ADMIN 200 + évènement affiché ; ADMIN → 403 ; filtre
+    statut exclut les autres ; `@Transactional` → seed visible même-tx puis rollback). *Vérifié* :
+    `mvnd test` → **254 verts, 0 skip**.
+  - [ ] **Z4b — Rapprochement des paiements QR manuels (AmanaTa/MyNITA).** Décision utilisateur :
+    **marquage manuel** (pas d'import CSV — format non documenté). Ajouter `payments.reconciled_at`/
+    `reconciled_by` (**migration V33**, 2 colonnes nullables) + vue `/billing/reconciliation`
+    (CAISSIER/ADMIN) : paiements méthode `AMANATA/MYNITA` par jour, action « Rapprocher » (estampille
+    `reconciled_at`/`by`), filtre non-rapprochés, alerte QR **sans `reference`**. Tenant-scopé
+    (contrairement à Z4a : les paiements sont `@TenantId`/liés à une facture de la clinique).
 - ~~**Z5 — Patient overview avancé** [ex-P3.6]~~ — **✅ PROMU + FAIT 2026-07-01.** Les 4 volets sur
   l'onglet **Aperçu** du dossier (`patients/detail.html`), tous dérivés en mémoire par
   `PatientOverviewService` (toujours **zéro requête**, pur sur les listes déjà chargées) :
@@ -563,6 +587,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-07-01 | **Z4 re-scopé Niger + Z4a — journal admin des webhooks** | **Décision** : ancien Z4 (SDK Orange/Wave/MTN, USSD/STK, CSV) jugé **obsolète** (marché Niger = AmanaTa/MyNITA QR **sans API**, aggrégateurs retirés du menu ; webhook P3.3 dormant). Re-scopé en Z4a (journal admin) + Z4b (rapprochement QR manuel, à venir). **Z4a fait** : vue **SUPER_ADMIN** `/admin/payment-webhooks` (read-only) sur `payment_webhook_events` — filtres fournisseur/statut/dates, badges d'issue, cap 200. Gate SUPER_ADMIN car table **globale** (webhook sans tenant → un ADMIN clinique verrait d'autres cliniques). Nav auto : module `ADMIN_WEBHOOKS` (`Module`/Section.ADMIN) ajouté à `RoleProfile.SUPER_ADMIN`. Repo `search(...)`+`distinctProviders()`. Template `admin/payment-webhooks/list.html`. 21 clés i18n ×3. +3 tests `AdminPaymentWebhooksTest` (SUPER_ADMIN 200/ADMIN 403/filtre statut, `@Transactional`). **254 verts, 0 skip.** |
 | 2026-07-01 | **Z5 (promu) — Patient overview avancé (Aperçu dossier)** | 4 volets sur `patients/detail.html`, tous dérivés **en mémoire** par `PatientOverviewService` (zéro requête). **(1) CPN + accouchement** dans la timeline (catégorie `maternity`, `PrenatalVisitDto`→`atStartOfDay`, 🤰/👶, lien `/maternity/{id}`). **(2) Sparklines** `VitalsSparklineDto` (poids/tension/pouls/temp, ≥2 pts) — `<polyline>` SVG normalisé service (viewBox 120×32) format **`Locale.US`** (virgule FR casserait `points`), rendu `<svg role=img aria-label>`. **(3) Filtres** : `TimelineEventDto.categoryKey` stable + puces `.tl-filter[data-cat]` depuis `timelineFilters` (compteurs, si >1 cat.). **(4) Pagination** `ul.timeline[data-paged=15]` + `#tl-more` ; `js/ui.js initTimeline()` combine filtre+révélation progressive (100 % serveur, offline-safe, 0 PHI en JS). 15 clés `patients.overview.*` ×3. CSS `.spark*`/`.tl-filter*`. +1 test `PatientOverviewServiceTest` (CPN+filtres+4 sparklines, coords Locale.US par regex) ; `A11yAxeTest`/smoke `/patients/1` re-verts. **251 verts, 0 skip.** |
 | 2026-07-01 | **Z6 (promu) — Let's Encrypt automatisé (TLS prod)** | Calque opt-in `docker-compose.letsencrypt.yml` : nginx → `nginx.letsencrypt.conf` (challenge ACME http-01 webroot + certifs certbot au chemin fixe `live/clinic/` via `--cert-name clinic`, sans templating) + compagnon `certbot` (renew loop 12 h) ; nginx reload loop 6 h → pas de reload inter-conteneurs. Bootstrap `init-letsencrypt.sh` (factice→up→certonly webroot→reload, gère chicken-and-egg + STAGING). `.env.example` (DOMAIN/EMAIL/STAGING), `nginx/README.md`+`DEPLOYMENT.md`, `.gitattributes` LF sur `*.sh`. Auto-signé LAN reste le défaut. Vérif : `docker compose -f … -f docker-compose.letsencrypt.yml config` OK + merge inspecté ; émission ACME réelle non exerçable ici (domaine public requis). **Infra only — suite backend inchangée (baseline 250).** |
 | 2026-07-01 | **C2-reliquat — pattern ARIA tablist complet** | Sémantique « Tabs » WAI-ARIA portée **en statique** par `patients/detail.html` (9 onglets) + `maternity/record.html` (4) : onglets `id`/`aria-controls`/`tabindex` roving, panneaux `role=tabpanel`/`aria-labelledby`/`tabindex=0`. `js/ui.js initTabs` gère l'état dynamique + **clavier** ←/→/↑/↓/Origine/Fin (activation auto+focus) ; liaison ARIA en filet « si absent ». Comme `A11yAxeTest` audite le HTML **pré-JS**, le statique permet de **lever l'exclusion** `aria-required-children`/`aria-required-attr` (`DEFERRED_RULES` vide) + ajout `/maternity/1` aux vues. Axe **réellement exécuté** (5 tests, 0 skip) → 0 violation tablist. **250 verts, 0 skip.** |

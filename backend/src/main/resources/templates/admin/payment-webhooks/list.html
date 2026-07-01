@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(#{admin.webhooks.title}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div class="panel">
+    <div class="panel-header">
+        <span th:text="#{admin.webhooks.title}">Journal Mobile Money</span>
+        <span class="badge badge-blue" th:text="#{admin.webhooks.max_rows(${maxRows})}">≤ 200 lignes</span>
+    </div>
+
+    <div class="alert alert-info" style="margin:1rem;" th:text="#{admin.webhooks.intro}">
+        Traçabilité des notifications de paiement reçues des agrégateurs Mobile Money.
+    </div>
+
+    <!-- Filtres -->
+    <form th:action="@{/admin/payment-webhooks}" method="get" class="form-grid-2"
+          style="padding:1rem; gap:.75rem; align-items:end;">
+        <div class="form-group">
+            <label class="form-label" for="provider" th:text="#{admin.webhooks.f_provider}">Fournisseur</label>
+            <select id="provider" name="provider" class="form-control">
+                <option value="" th:text="#{admin.webhooks.all_providers}">— Tous —</option>
+                <option th:each="p : ${providers}" th:value="${p}" th:text="${p}"
+                        th:selected="${p == provider}">ORANGE_MONEY</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="status" th:text="#{admin.webhooks.f_status}">Statut</label>
+            <select id="status" name="status" class="form-control">
+                <option value="" th:text="#{admin.webhooks.all_statuses}">— Tous —</option>
+                <option th:each="s : ${statuses}" th:value="${s}"
+                        th:text="#{'admin.webhooks.st_' + ${s}}" th:selected="${s == status}">PROCESSED</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="from" th:text="#{common.date_from}">Du</label>
+            <input type="date" id="from" name="from" class="form-control" th:value="${from}"/>
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="to" th:text="#{common.date_to}">Au</label>
+            <input type="date" id="to" name="to" class="form-control" th:value="${to}"/>
+        </div>
+        <div class="form-group" style="display:flex; gap:.5rem;">
+            <button type="submit" class="btn btn-primary btn-sm" th:text="#{common.filter}">Filtrer</button>
+            <a th:href="@{/admin/payment-webhooks}" class="btn btn-ghost btn-sm"
+               th:text="#{admin.webhooks.reset}">Réinitialiser</a>
+        </div>
+    </form>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col" th:text="#{common.date}">Date</th>
+                <th scope="col" th:text="#{admin.webhooks.col_provider}">Fournisseur</th>
+                <th scope="col" th:text="#{admin.webhooks.col_txn}">Transaction</th>
+                <th scope="col" th:text="#{admin.webhooks.col_invoice}">Facture</th>
+                <th scope="col" style="text-align:right;" th:text="#{admin.webhooks.col_amount}">Montant</th>
+                <th scope="col" th:text="#{admin.webhooks.col_provider_status}">Statut fournisseur</th>
+                <th scope="col" th:text="#{admin.webhooks.col_status}">Issue</th>
+                <th scope="col" th:text="#{admin.webhooks.col_error}">Détail</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${events.isEmpty()}">
+                <td colspan="8" class="empty-state" th:text="#{admin.webhooks.empty}">
+                    Aucune notification pour ces critères.</td>
+            </tr>
+            <tr th:each="e : ${events}">
+                <td th:text="${#temporals.format(e.receivedAt, 'yyyy-MM-dd HH:mm:ss')}">2026-06-19 10:30:00</td>
+                <td><span class="badge badge-blue" th:text="${e.provider}">ORANGE_MONEY</span></td>
+                <td><code th:text="${e.transactionId}">TXN-123</code></td>
+                <td th:text="${e.invoiceNumber != null ? e.invoiceNumber : '—'}">FAC-2026-00001</td>
+                <td style="text-align:right;"
+                    th:text="${e.amount != null} ? ${#numbers.formatDecimal(e.amount,1,'WHITESPACE',0,'POINT')} + ' F' : '—'">5 000 F</td>
+                <td th:text="${e.providerStatus != null ? e.providerStatus : '—'}">SUCCESS</td>
+                <td>
+                    <span class="badge"
+                          th:classappend="${e.status == 'PROCESSED'} ? 'badge-green' : (${e.status == 'REJECTED'} ? 'badge-red' : (${e.status == 'DUPLICATE'} ? 'badge-yellow' : 'badge-blue'))"
+                          th:text="#{'admin.webhooks.st_' + ${e.status}}">Encaissé</span>
+                </td>
+                <td th:text="${e.errorMessage != null ? e.errorMessage : '—'}">—</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</th:block></body>
+</html>
