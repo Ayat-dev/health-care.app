@@ -15,6 +15,7 @@ public class DrugDto {
     private String form;
     private String dosageStrength;
     private String unit;
+    private String allergenClass;
     private boolean requiresPrescription = true;
     private boolean active = true;
     private String notes;

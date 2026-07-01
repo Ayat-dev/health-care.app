@@ -180,6 +180,8 @@ public class DataInitializer {
                     "ANALGESIQUE", "COMPRIME", "500mg", "COMPRIME", false);
             Drug amox = seedDrug(drugRepository, "AMOX500", "Amoxicilline", "Amoxicilline",
                     "ANTIBIOTIQUE", "GELULE", "500mg", "GELULE", true);
+            amox.setAllergenClass("Pénicilline"); // E2-A : recoupe l'allergie de p2
+            drugRepository.save(amox);
 
             seedStock(stockItemRepository, omeprazole, "LOT-OMP-01", today.plusYears(2),
                     200, 30, new java.math.BigDecimal("150.00"), admin);

@@ -114,6 +114,7 @@ public class PharmacyService {
         d.setForm(blankToNull(dto.getForm()));
         d.setDosageStrength(blankToNull(dto.getDosageStrength()));
         d.setUnit(dto.getUnit().trim());
+        d.setAllergenClass(blankToNull(dto.getAllergenClass()));
         d.setRequiresPrescription(dto.isRequiresPrescription());
         d.setActive(dto.isActive());
         d.setNotes(blankToNull(dto.getNotes()));
@@ -360,6 +361,7 @@ public class PharmacyService {
         dto.setForm(d.getForm());
         dto.setDosageStrength(d.getDosageStrength());
         dto.setUnit(d.getUnit());
+        dto.setAllergenClass(d.getAllergenClass());
         dto.setRequiresPrescription(d.isRequiresPrescription());
         dto.setActive(d.isActive());
         dto.setNotes(d.getNotes());

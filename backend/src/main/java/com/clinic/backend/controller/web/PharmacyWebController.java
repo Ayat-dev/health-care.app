@@ -27,6 +27,7 @@ public class PharmacyWebController {
     private final PharmacyService pharmacyService;
     private final PatientService patientService;
     private final PrescriptionService prescriptionService;
+    private final com.clinic.backend.pharmacy.AllergyChecker allergyChecker;
     private final WebI18n i18n;
 
     // ── Tableau de bord ────────────────────────────────────────────────────────
@@ -190,8 +191,29 @@ public class PharmacyWebController {
 
     // ── Helpers ──────────────────────────────────────────────────────────────────
     private void prepareDispenseForm(Model model, DispensationDto dto) {
+        java.util.List<DrugDto> drugs = pharmacyService.listActiveDrugs();
         model.addAttribute("dispensation", dto);
-        model.addAttribute("drugs", pharmacyService.listActiveDrugs());
+        model.addAttribute("drugs", drugs);
         model.addAttribute("patients", patientService.search("", 0, 500).getContent());
+        // Allergies (E2-A) : avertissement NON-BLOQUANT si un médicament de la dispensation
+        // recoupe une allergie connue du patient. Sur les médicaments déjà présents (ex.
+        // prérempli depuis une ordonnance) — les lignes ajoutées en JS ne sont pas couvertes ici.
+        model.addAttribute("allergyWarnings", allergyWarnings(dto, drugs));
+    }
+
+    private java.util.List<com.clinic.backend.dto.AllergyWarningDto> allergyWarnings(
+            DispensationDto dto, java.util.List<DrugDto> drugs) {
+        if (dto.getPatientId() == null) return java.util.List.of();
+        String allergies = patientService.getById(dto.getPatientId()).getAllergies();
+        java.util.Map<Long, DrugDto> byId = new java.util.HashMap<>();
+        for (DrugDto d : drugs) byId.put(d.getId(), d);
+        java.util.List<DrugDto> prescribed = dto.getItems().stream()
+                .map(DispensationItemDto::getDrugId)
+                .filter(java.util.Objects::nonNull)
+                .distinct()
+                .map(byId::get)
+                .filter(java.util.Objects::nonNull)
+                .toList();
+        return allergyChecker.check(allergies, prescribed);
     }
 }

@@ -47,7 +47,7 @@
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
 | D | Divers (durcissement/polish) | 12 | 12 | ✅ terminé |
 | Z | (Tier 2) Grosses features parquées | 6 | 3 | ✅ Z4(a+b)·Z5·Z6 faits ; 🛑 Z1-Z3 ABANDONNÉS (déc. util. 2026-07-01, ne pas reproposer) |
-| E | Tier E — extensions cliniques | 3 | 1 | ✅ E1 certificats fait ; ⏳ E2 allergies/interactions · E3 MFA à venir |
+| E | Tier E — extensions cliniques | 3 | 1½ | ✅ E1 certificats (+bis) ; ✅ E2-A allergies ; ⏳ E2-B interactions · E3 MFA |
 
 **Ordre conseillé** : A (clôt le multi-tenant, petites slices à forte valeur) → D4a (sécu) →
 C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prendre la plus utile.
@@ -612,12 +612,23 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
   arrêt de travail, p2=CERT-…-00002 bonne santé). 3 clés i18n ×3 (`portal.record.certificates`/
   `no_certificates`/`portal.col.type`). +2 tests `PortalTest` (télécharge le sien 200 / celui d'autrui
   403). *Vérifié* : `mvnd test` → **265 verts, 0 skip**.
-- [ ] **E2 — Allergies + interactions médicamenteuses (advisory, jamais bloquant).** Deux sous-slices :
-  **A** croiser `patient.allergies` (texte libre chiffré) avec le médicament → alerte (nécessite tagger
-  les `drugs` par classe/groupe allergène + matcher) ; **B** table `drug_interactions` curée (paire de
-  DCI → sévérité → note), vérif par paires sur l'ordonnance → alerte. Patron flag-anormal du labo pour
-  l'UI. **Le vrai coût = la DONNÉE** (table interne curée, offline/gratuite mais couverture limitée ;
-  base commerciale = licence/coût). *Framework + seed ; la valeur croît avec la curation.*
+- **E2 — Allergies + interactions médicamenteuses (advisory, jamais bloquant).** Deux sous-slices :
+  - [x] **E2-A — Allergies. ✅ FAIT 2026-07-01.** Colonne `drugs.allergen_class` (**V35**, nullable,
+    curée au catalogue) + champ au formulaire médicament. `AllergyChecker` (`@Component` **pur, ne jette
+    jamais**) : le texte d'allergie du patient (déchiffré) **contient-il** la classe allergène curée / la
+    DCI / le nom commercial (normalisé sans accents, ≥3 car.) ? → `List<AllergyWarningDto>`. Intégré au
+    **formulaire de dispensation** (`PharmacyWebController.prepareDispenseForm` : recoupe les allergies
+    du patient avec les médicaments **présents** dans la dispensation — bannière `alert-error` role=alert,
+    non-bloquante). Comble le manque documenté « le pharmacien voit immédiatement les allergies ». Seed :
+    Amoxicilline taguée « Pénicilline » (p2 y est allergique). 5 clés i18n ×3. +5 tests
+    `AllergyCheckerTest` (classe/DCI/nom, accents, aucun recoupement, null/vide, multi-médicaments).
+    **Limite v1** : seules les lignes **déjà présentes** au rendu serveur sont couvertes (les lignes
+    ajoutées en JS non — évolution possible). Surface **prescripteur** (consultation) = évolution. *Vérifié*
+    `mvnd test` → **270 verts, 0 skip**.
+  - [ ] **E2-B — Interactions médicamenteuses.** Table `drug_interactions` curée (paire de DCI →
+    sévérité → note), vérif par paires sur l'ordonnance → alerte (réutilise le patron `AllergyChecker`).
+    **Le vrai coût = la DONNÉE** (table interne curée, offline/gratuite mais couverture limitée ; base
+    commerciale = licence/coût). *Framework + seed ; la valeur croît avec la curation.*
 - [ ] **E3 — MFA (2ᵉ facteur).** TOTP (recommandé, offline/gratuit) vs SMS OTP (réutilise Africa's
   Talking mais plus faible + coût/login). Sur **les 2 chaînes** (session web + JWT) + enrôlement +
   **codes de secours** + reset admin + interaction rate-limit/lockout existant. Décisions à trancher :
@@ -652,6 +663,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-07-01 | **E2-A — vérification des allergies à la dispensation** | `drugs.allergen_class` (**V35**, curée) + champ formulaire médicament. `AllergyChecker` (`@Component` pur, ne jette jamais) : allergies patient (déchiffrées) contiennent-elles la classe allergène / DCI / nom (normalisé sans accents, ≥3 car.) → `AllergyWarningDto`. Bannière **non-bloquante** `role=alert` au formulaire de dispensation (`PharmacyWebController.prepareDispenseForm`, recoupe patient × médicaments présents). Comble le manque « pharmacien voit les allergies ». Seed : Amoxicilline→« Pénicilline » (p2 allergique). 5 clés i18n ×3. +5 tests `AllergyCheckerTest`. NB : seules les lignes présentes au rendu serveur couvertes (JS non). **270 verts, 0 skip.** |
 | 2026-07-01 | **E1-bis — certificats téléchargeables au portail patient** | `PortalDocumentService.certificatePdf` (ownership → 403 sinon) + `/portal/certificates/{id}/pdf` + section « Certificats » sur `portal/record.html`. 2 certificats seedés (`DataInitializer` : p1 arrêt de travail, p2 bonne santé). 3 clés i18n ×3. +2 tests `PortalTest` (le sien 200 / autrui 403). Patron D4b réutilisé tel quel. **265 verts, 0 skip.** |
 | 2026-07-01 | **E1 — certificats médicaux (nouveau Tier E, issu de la comparaison IA)** | Pkg `certificate` : `MedicalCertificate` (@TenantId, FK patient/médecin/consultation-opt, `CERT-YYYY-NNNNN` **native GLOBALE** comme ordonnances, repos + `rest_days` bornes inclusives, corps texte) + **V34**. Web MEDECIN `/certificates` (liste/new prefill/edit/print=détail/**pdf** via `PdfExportService`, patron ordonnance). Raccourci « 📄 Certificat » sur la consultation. Confidentialité : médecin=user courant, **diagnostic jamais injecté**, dates de repos effacées si type≠arrêt/repos. 7 types. 26 clés i18n ×3. +5 tests `CertificateTest` (numéro/repos/nettoyage ; prefill ; PDF ; gating MEDECIN 200/SECRETAIRE 403 ; patron tenant `@BeforeTransaction`+`@WithUserDetails`). NB : numérotation **native non-tenant** obligatoire (colonne `unique` globale, sinon collision inter-cliniques). **263 verts, 0 skip.** |
 | 2026-07-01 | **Décision — Z1/Z2/Z3 abandonnés (aucun code)** | Après revue détaillée (valeur/acteurs/coût matériel/technicité/PHI), l'utilisateur choisit de **laisser tomber** Z1 (FHIR avancé — pas d'écosystème d'échange Niger), Z2 (scribe audio — GPU/coût-par-consult + mur PHI), Z3 (téléméd. avancée — **notif SMS incluse**, jugée non-primordiale). Non-bloquants. **Ne pas reproposer.** Les fondations livrées (FHIR lecture P2.1, scribe étage 2 P4.1, téléconsult légère P3.7) restent en place. **➡️ Tout le tracker (A→D + Tier Z retenu) est clos** — plus de travail planifié ; toute suite = nouvelle demande utilisateur. Suite inchangée (258 verts). |

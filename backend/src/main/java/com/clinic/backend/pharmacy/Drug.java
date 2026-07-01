@@ -42,6 +42,14 @@ public class Drug {
     @Column(nullable = false, length = 20)
     private String unit;                 // COMPRIME, ML, FLACON…
 
+    /**
+     * Groupe/classe allergène (E2-A) — ex. « Pénicilline », « Sulfamides », « AINS ».
+     * Curé manuellement au catalogue ; sert au recoupement non-bloquant avec les allergies
+     * (texte libre) du patient à la dispensation. Nullable (facultatif).
+     */
+    @Column(name = "allergen_class", length = 100)
+    private String allergenClass;
+
     @Column(name = "requires_prescription", nullable = false)
     private boolean requiresPrescription = true;
 

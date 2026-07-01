@@ -4,6 +4,17 @@
 
 <div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
 
+<!-- Avertissement allergie (E2-A) — non-bloquant, informatif -->
+<div th:if="${allergyWarnings != null and !allergyWarnings.isEmpty()}" class="alert alert-error"
+     role="alert">
+    <strong th:text="#{pharmacy.dispense.allergy_title}">⚠️ Allergie possible</strong>
+    <ul style="margin:6px 0 0; padding-left:20px;">
+        <li th:each="w : ${allergyWarnings}"
+            th:text="#{pharmacy.dispense.allergy_line(${w.drugName}, ${w.allergen})}">
+            Médicament — allergie</li>
+    </ul>
+</div>
+
 <div th:if="${dispensation.prescriptionNumber}" class="alert alert-info">
     <span th:text="#{pharmacy.dispense.rx_prefix}">Dispensation sur ordonnance</span>
     <strong th:text="${dispensation.prescriptionNumber}">ORD</strong>.
