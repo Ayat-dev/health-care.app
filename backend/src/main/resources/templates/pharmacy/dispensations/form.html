@@ -15,6 +15,21 @@
     </ul>
 </div>
 
+<!-- Avertissement interactions (E2-B) — non-bloquant, informatif -->
+<div th:if="${interactionWarnings != null and !interactionWarnings.isEmpty()}" class="alert alert-error"
+     role="alert">
+    <strong th:text="#{pharmacy.dispense.interaction_title}">⚠️ Interaction médicamenteuse</strong>
+    <ul style="margin:6px 0 0; padding-left:20px;">
+        <li th:each="w : ${interactionWarnings}">
+            <span class="badge"
+                  th:classappend="${w.severity == 'MAJEURE'} ? 'badge-red' : (${w.severity == 'MODEREE'} ? 'badge-yellow' : 'badge-blue')"
+                  th:text="#{'pharmacy.interaction.severity.' + ${w.severity}}">Sévérité</span>
+            <strong th:text="${w.drugA} + ' + ' + ${w.drugB}">A + B</strong>
+            <span th:if="${w.description}" th:text="' — ' + ${w.description}"> — détail</span>
+        </li>
+    </ul>
+</div>
+
 <div th:if="${dispensation.prescriptionNumber}" class="alert alert-info">
     <span th:text="#{pharmacy.dispense.rx_prefix}">Dispensation sur ordonnance</span>
     <strong th:text="${dispensation.prescriptionNumber}">ORD</strong>.

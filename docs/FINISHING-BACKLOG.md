@@ -47,7 +47,7 @@
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
 | D | Divers (durcissement/polish) | 12 | 12 | ✅ terminé |
 | Z | (Tier 2) Grosses features parquées | 6 | 3 | ✅ Z4(a+b)·Z5·Z6 faits ; 🛑 Z1-Z3 ABANDONNÉS (déc. util. 2026-07-01, ne pas reproposer) |
-| E | Tier E — extensions cliniques | 3 | 1½ | ✅ E1 certificats (+bis) ; ✅ E2-A allergies ; ⏳ E2-B interactions · E3 MFA |
+| E | Tier E — extensions cliniques | 3 | 2 | ✅ E1 certificats (+bis) ; ✅ E2 (allergies+interactions) ; ⏳ E3 MFA |
 
 **Ordre conseillé** : A (clôt le multi-tenant, petites slices à forte valeur) → D4a (sécu) →
 C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prendre la plus utile.
@@ -625,10 +625,21 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
     **Limite v1** : seules les lignes **déjà présentes** au rendu serveur sont couvertes (les lignes
     ajoutées en JS non — évolution possible). Surface **prescripteur** (consultation) = évolution. *Vérifié*
     `mvnd test` → **270 verts, 0 skip**.
-  - [ ] **E2-B — Interactions médicamenteuses.** Table `drug_interactions` curée (paire de DCI →
-    sévérité → note), vérif par paires sur l'ordonnance → alerte (réutilise le patron `AllergyChecker`).
-    **Le vrai coût = la DONNÉE** (table interne curée, offline/gratuite mais couverture limitée ; base
-    commerciale = licence/coût). *Framework + seed ; la valeur croît avec la curation.*
+  - [x] **E2-B — Interactions médicamenteuses. ✅ FAIT 2026-07-01.** Table **globale** `drug_interactions`
+    (**V36**, référence universelle **non-`@TenantId`** comme `icd10_catalog` ; seedée par migration :
+    8 paires connues Warfarine/Aspirine, Tramadol/Fluoxétine, Simvastatine/Clarithromycine…) + `Severity`
+    MINEURE/MODEREE/MAJEURE. `InteractionChecker` (`@Component` pur, ne jette jamais, frère de
+    `AllergyChecker`) : une règle déclenche si **deux médicaments distincts** de la dispensation
+    correspondent à ses deux DCI (DCI ou nom, normalisé sans accents). Intégré au **formulaire de
+    dispensation** (bannière `role=alert` non-bloquante, badge de sévérité coloré + description). Le
+    contrôleur charge les règles actives via `DrugInteractionRepository.findByActiveTrue()` → DTO → check
+    sur les médicaments présents (mutualisé avec E2-A via `prescribedDrugs`). 4 clés i18n ×3. +6 tests
+    (`InteractionCheckerTest` pur ×5 : paire/1-seul/accents/auto-interaction/entrées insuffisantes ;
+    `DrugInteractionSeedTest` : seed chargé + déclenche). *Vérifié* `mvnd test` → **276 verts, 0 skip**.
+
+> **✅ Chantier E2 (sécurité pharmaceutique) TERMINÉ** — E2-A allergies + E2-B interactions. Advisory,
+> jamais bloquant, à la dispensation. Parqué : CRUD admin du catalogue d'interactions (seed-only pour
+> l'instant) ; surface prescripteur (consultation) ; couverture des lignes ajoutées en JS.
 - [ ] **E3 — MFA (2ᵉ facteur).** TOTP (recommandé, offline/gratuit) vs SMS OTP (réutilise Africa's
   Talking mais plus faible + coût/login). Sur **les 2 chaînes** (session web + JWT) + enrôlement +
   **codes de secours** + reset admin + interaction rate-limit/lockout existant. Décisions à trancher :
@@ -663,6 +674,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-07-01 | **E2-B — interactions médicamenteuses → chantier E2 TERMINÉ** | Table **globale** `drug_interactions` (**V36**, non-`@TenantId` comme `icd10_catalog`, seed 8 paires par migration) + `Severity` MINEURE/MODEREE/MAJEURE. `InteractionChecker` (`@Component` pur, frère d'`AllergyChecker`) : règle déclenche si 2 médicaments **distincts** matchent ses 2 DCI (DCI/nom, sans accents). Bannière non-bloquante `role=alert` + badge sévérité au formulaire de dispensation ; règles chargées via `DrugInteractionRepository.findByActiveTrue()`, mutualisé E2-A/B via `prescribedDrugs`. 4 clés i18n ×3. +6 tests (`InteractionCheckerTest` ×5 pur + `DrugInteractionSeedTest` seed+déclenche). NB : global (aucun tenant requis), CRUD admin du catalogue = évolution (seed-only). **276 verts, 0 skip.** |
 | 2026-07-01 | **E2-A — vérification des allergies à la dispensation** | `drugs.allergen_class` (**V35**, curée) + champ formulaire médicament. `AllergyChecker` (`@Component` pur, ne jette jamais) : allergies patient (déchiffrées) contiennent-elles la classe allergène / DCI / nom (normalisé sans accents, ≥3 car.) → `AllergyWarningDto`. Bannière **non-bloquante** `role=alert` au formulaire de dispensation (`PharmacyWebController.prepareDispenseForm`, recoupe patient × médicaments présents). Comble le manque « pharmacien voit les allergies ». Seed : Amoxicilline→« Pénicilline » (p2 allergique). 5 clés i18n ×3. +5 tests `AllergyCheckerTest`. NB : seules les lignes présentes au rendu serveur couvertes (JS non). **270 verts, 0 skip.** |
 | 2026-07-01 | **E1-bis — certificats téléchargeables au portail patient** | `PortalDocumentService.certificatePdf` (ownership → 403 sinon) + `/portal/certificates/{id}/pdf` + section « Certificats » sur `portal/record.html`. 2 certificats seedés (`DataInitializer` : p1 arrêt de travail, p2 bonne santé). 3 clés i18n ×3. +2 tests `PortalTest` (le sien 200 / autrui 403). Patron D4b réutilisé tel quel. **265 verts, 0 skip.** |
 | 2026-07-01 | **E1 — certificats médicaux (nouveau Tier E, issu de la comparaison IA)** | Pkg `certificate` : `MedicalCertificate` (@TenantId, FK patient/médecin/consultation-opt, `CERT-YYYY-NNNNN` **native GLOBALE** comme ordonnances, repos + `rest_days` bornes inclusives, corps texte) + **V34**. Web MEDECIN `/certificates` (liste/new prefill/edit/print=détail/**pdf** via `PdfExportService`, patron ordonnance). Raccourci « 📄 Certificat » sur la consultation. Confidentialité : médecin=user courant, **diagnostic jamais injecté**, dates de repos effacées si type≠arrêt/repos. 7 types. 26 clés i18n ×3. +5 tests `CertificateTest` (numéro/repos/nettoyage ; prefill ; PDF ; gating MEDECIN 200/SECRETAIRE 403 ; patron tenant `@BeforeTransaction`+`@WithUserDetails`). NB : numérotation **native non-tenant** obligatoire (colonne `unique` globale, sinon collision inter-cliniques). **263 verts, 0 skip.** |

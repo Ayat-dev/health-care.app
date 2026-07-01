@@ -28,6 +28,8 @@ public class PharmacyWebController {
     private final PatientService patientService;
     private final PrescriptionService prescriptionService;
     private final com.clinic.backend.pharmacy.AllergyChecker allergyChecker;
+    private final com.clinic.backend.pharmacy.InteractionChecker interactionChecker;
+    private final com.clinic.backend.pharmacy.DrugInteractionRepository drugInteractionRepository;
     private final WebI18n i18n;
 
     // ── Tableau de bord ────────────────────────────────────────────────────────
@@ -195,25 +197,40 @@ public class PharmacyWebController {
         model.addAttribute("dispensation", dto);
         model.addAttribute("drugs", drugs);
         model.addAttribute("patients", patientService.search("", 0, 500).getContent());
-        // Allergies (E2-A) : avertissement NON-BLOQUANT si un médicament de la dispensation
-        // recoupe une allergie connue du patient. Sur les médicaments déjà présents (ex.
-        // prérempli depuis une ordonnance) — les lignes ajoutées en JS ne sont pas couvertes ici.
-        model.addAttribute("allergyWarnings", allergyWarnings(dto, drugs));
+        // Sécurité pharmaceutique (E2, NON-BLOQUANT) — sur les médicaments déjà présents
+        // (ex. prérempli depuis une ordonnance) ; les lignes ajoutées en JS ne sont pas couvertes.
+        java.util.List<DrugDto> prescribed = prescribedDrugs(dto, drugs);
+        // Allergies (E2-A) : recoupe les médicaments avec les allergies connues du patient.
+        model.addAttribute("allergyWarnings", allergyWarnings(dto, prescribed));
+        // Interactions (E2-B) : recoupe les paires de médicaments avec le catalogue d'interactions.
+        model.addAttribute("interactionWarnings",
+                interactionChecker.check(prescribed, activeInteractionRules()));
     }
 
-    private java.util.List<com.clinic.backend.dto.AllergyWarningDto> allergyWarnings(
-            DispensationDto dto, java.util.List<DrugDto> drugs) {
-        if (dto.getPatientId() == null) return java.util.List.of();
-        String allergies = patientService.getById(dto.getPatientId()).getAllergies();
+    /** Médicaments (DrugDto) référencés par les lignes de la dispensation, dédoublonnés. */
+    private java.util.List<DrugDto> prescribedDrugs(DispensationDto dto, java.util.List<DrugDto> drugs) {
         java.util.Map<Long, DrugDto> byId = new java.util.HashMap<>();
         for (DrugDto d : drugs) byId.put(d.getId(), d);
-        java.util.List<DrugDto> prescribed = dto.getItems().stream()
+        return dto.getItems().stream()
                 .map(DispensationItemDto::getDrugId)
                 .filter(java.util.Objects::nonNull)
                 .distinct()
                 .map(byId::get)
                 .filter(java.util.Objects::nonNull)
                 .toList();
+    }
+
+    private java.util.List<com.clinic.backend.dto.AllergyWarningDto> allergyWarnings(
+            DispensationDto dto, java.util.List<DrugDto> prescribed) {
+        if (dto.getPatientId() == null) return java.util.List.of();
+        String allergies = patientService.getById(dto.getPatientId()).getAllergies();
         return allergyChecker.check(allergies, prescribed);
+    }
+
+    private java.util.List<com.clinic.backend.dto.DrugInteractionDto> activeInteractionRules() {
+        return drugInteractionRepository.findByActiveTrue().stream()
+                .map(r -> new com.clinic.backend.dto.DrugInteractionDto(
+                        r.getDciA(), r.getDciB(), r.getSeverity(), r.getDescription()))
+                .toList();
     }
 }
