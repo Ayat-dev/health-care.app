@@ -13,6 +13,7 @@ import com.clinic.backend.dto.DailyCashReportDto;
 import com.clinic.backend.dto.InvoiceDto;
 import com.clinic.backend.dto.InvoiceItemDto;
 import com.clinic.backend.dto.PaymentDto;
+import com.clinic.backend.dto.ReconciliationReportDto;
 import com.clinic.backend.hospitalization.Hospitalization;
 import com.clinic.backend.hospitalization.HospitalizationRepository;
 import com.clinic.backend.insurance.InsuranceProvider;
@@ -34,11 +35,15 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class BillingService {
+
+    /** Modes de paiement par QR marchand (sans webhook) → rapprochement manuel (Z4b). */
+    private static final Set<String> QR_METHODS = Set.of("AMANATA", "MYNITA");
 
     private final InvoiceRepository invoiceRepository;
     private final PaymentRepository paymentRepository;
@@ -468,6 +473,58 @@ public class BillingService {
         return report;
     }
 
+    // ── Rapprochement manuel des paiements QR (Z4b) ─────────────────────────────────
+
+    /**
+     * Rapprochement des paiements par QR marchand (AmanaTa/MyNITA) d'une journée. Les
+     * compteurs portent sur tous les paiements QR du jour ; la liste affichée peut être
+     * réduite aux non-rapprochés ({@code pendingOnly}). Mapping DTO en transaction (OSIV off).
+     */
+    @Transactional(readOnly = true)
+    public ReconciliationReportDto reconciliationReport(LocalDate day, boolean pendingOnly) {
+        LocalDate d = day != null ? day : LocalDate.now();
+        List<Payment> payments = paymentRepository
+                .findByMethodInAndPaidAtGreaterThanEqualAndPaidAtLessThanOrderByPaidAtAsc(
+                        QR_METHODS, d.atStartOfDay(), d.plusDays(1).atStartOfDay());
+        ReconciliationReportDto r = new ReconciliationReportDto();
+        r.setDay(d);
+        for (Payment p : payments) {
+            boolean reconciled = p.getReconciledAt() != null;
+            r.setTotal(r.getTotal() + 1);
+            r.setTotalAmount(r.getTotalAmount().add(p.getAmount()));
+            if (reconciled) {
+                r.setReconciledCount(r.getReconciledCount() + 1);
+            } else {
+                r.setPendingCount(r.getPendingCount() + 1);
+                r.setPendingAmount(r.getPendingAmount().add(p.getAmount()));
+            }
+            if (p.getReference() == null || p.getReference().isBlank()) {
+                r.setMissingReferenceCount(r.getMissingReferenceCount() + 1);
+            }
+            if (pendingOnly && reconciled) continue;
+            r.getPayments().add(toPaymentDto(p));
+        }
+        return r;
+    }
+
+    /**
+     * Bascule l'état de rapprochement d'un paiement (marque rapproché / annule). {@code findById}
+     * sur une entité {@code @TenantId} est cloisonné → un caissier ne peut rapprocher qu'un
+     * paiement de sa clinique (sinon introuvable). Idempotent au sens « toggle ».
+     */
+    public void toggleReconciled(Long paymentId) {
+        Payment p = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new IllegalArgumentException("Paiement introuvable"));
+        if (p.getReconciledAt() == null) {
+            p.setReconciledAt(LocalDateTime.now());
+            p.setReconciledBy(currentUser());
+        } else {
+            p.setReconciledAt(null);
+            p.setReconciledBy(null);
+        }
+        paymentRepository.save(p);
+    }
+
     // ── Numérotation FAC-YYYY-NNNNN ────────────────────────────────────────────────
     private String nextNumber() {
         ClinicConfig config = clinicConfigService.getConfig();
@@ -546,6 +603,8 @@ public class BillingService {
         pdto.setPaidAt(p.getPaidAt());
         pdto.setNotes(p.getNotes());
         pdto.setCashierName(p.getCashier() != null ? p.getCashier().getFullName() : null);
+        pdto.setReconciledAt(p.getReconciledAt());
+        pdto.setReconciledByName(p.getReconciledBy() != null ? p.getReconciledBy().getFullName() : null);
         if (p.getInvoice() != null) {
             pdto.setInvoiceId(p.getInvoice().getId());
             pdto.setInvoiceNumber(p.getInvoice().getInvoiceNumber());

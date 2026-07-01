@@ -15,6 +15,12 @@
     </div>
 </div>
 
+<!-- Rapprochement QR (AmanaTa/MyNITA) — Z4b, réservé aux rôles caisse -->
+<th:block sec:authorize="hasAnyRole('OWNER','CAISSIER')">
+    <a th:href="@{/billing/reconciliation}" class="btn btn-ghost btn-sm" style="margin-top:8px;"
+       th:text="#{billing.reconciliation.link}">Rapprochement Mobile Money</a>
+</th:block>
+
 <!-- Cumul -->
 <div class="section-title" style="margin-top:8px;" th:text="#{billing.dashboard.cumulative}">Cumul</div>
 <div class="stats-grid">

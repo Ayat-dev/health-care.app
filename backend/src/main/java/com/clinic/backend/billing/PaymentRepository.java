@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
@@ -16,6 +17,13 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
      */
     List<Payment> findByPaidAtGreaterThanEqualAndPaidAtLessThanOrderByPaidAtAsc(
             LocalDateTime from, LocalDateTime to);
+
+    /**
+     * Paiements d'une journée pour les modes fournis (rapprochement QR, Z4b) — tenant-scopés
+     * (Payment est {@code @TenantId}). Mapping DTO dans la transaction du service.
+     */
+    List<Payment> findByMethodInAndPaidAtGreaterThanEqualAndPaidAtLessThanOrderByPaidAtAsc(
+            Collection<String> methods, LocalDateTime from, LocalDateTime to);
 
     /** Encaissements d'une période regroupés par mode de paiement — [method, sum]. */
     @Query("""

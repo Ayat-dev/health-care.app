@@ -57,6 +57,38 @@ public class BillingWebController {
         return "billing/queue";
     }
 
+    // ── Rapprochement manuel des paiements QR AmanaTa/MyNITA (Z4b) ────────────────────
+    @GetMapping("/reconciliation")
+    @PreAuthorize("hasAnyRole('OWNER','CAISSIER')")
+    public String reconciliation(@RequestParam(required = false)
+                                 @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate day,
+                                 @RequestParam(defaultValue = "false") boolean pendingOnly,
+                                 Model model) {
+        LocalDate d = day != null ? day : LocalDate.now();
+        model.addAttribute("report", billingService.reconciliationReport(d, pendingOnly));
+        model.addAttribute("day", d);
+        model.addAttribute("pendingOnly", pendingOnly);
+        model.addAttribute("config", clinicConfigService.getConfig());
+        return "billing/reconciliation";
+    }
+
+    @PostMapping("/reconciliation/{paymentId}/toggle")
+    @PreAuthorize("hasAnyRole('OWNER','CAISSIER')")
+    public String toggleReconciled(@PathVariable Long paymentId,
+                                   @RequestParam(required = false)
+                                   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate day,
+                                   @RequestParam(defaultValue = "false") boolean pendingOnly,
+                                   RedirectAttributes ra) {
+        try {
+            billingService.toggleReconciled(paymentId);
+            ra.addFlashAttribute("success", "billing.reconciliation.flash_done");
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
+        LocalDate d = day != null ? day : LocalDate.now();
+        return "redirect:/billing/reconciliation?day=" + d + (pendingOnly ? "&pendingOnly=true" : "");
+    }
+
     // ── Liste des factures ───────────────────────────────────────────────────────
     @GetMapping("/invoices")
     public String list(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,

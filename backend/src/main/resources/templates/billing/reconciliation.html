@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(#{billing.reconciliation.title}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${success}" class="alert alert-success" th:text="#{${success}}">OK</div>
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<div class="panel">
+    <div class="panel-header">
+        <span th:text="#{billing.reconciliation.title}">Rapprochement Mobile Money (QR)</span>
+    </div>
+
+    <div class="alert alert-info" style="margin:1rem;" th:text="#{billing.reconciliation.intro}">
+        Les paiements AmanaTa / MyNITA se font par QR marchand, sans confirmation automatique.
+        Vérifiez la réception dans l'app marchande puis marquez chaque paiement « rapproché ».
+    </div>
+
+    <!-- Filtre : jour + non-rapprochés seulement -->
+    <form th:action="@{/billing/reconciliation}" method="get" class="form-grid-2"
+          style="padding:1rem; gap:.75rem; align-items:end;">
+        <div class="form-group">
+            <label class="form-label" for="day" th:text="#{billing.reconciliation.day}">Journée</label>
+            <input type="date" id="day" name="day" class="form-control" th:value="${day}"/>
+        </div>
+        <div class="form-group" style="align-self:end;">
+            <label class="form-label" style="display:flex; align-items:center; gap:.5rem;">
+                <input type="checkbox" name="pendingOnly" value="true" th:checked="${pendingOnly}"/>
+                <span th:text="#{billing.reconciliation.pending_only}">Non-rapprochés seulement</span>
+            </label>
+        </div>
+        <div class="form-group" style="display:flex; gap:.5rem;">
+            <button type="submit" class="btn btn-primary btn-sm" th:text="#{common.filter}">Filtrer</button>
+            <a th:href="@{/billing/reconciliation}" class="btn btn-ghost btn-sm"
+               th:text="#{billing.reconciliation.reset}">Réinitialiser</a>
+        </div>
+    </form>
+
+    <!-- Synthèse -->
+    <div class="stats-grid" style="padding:0 1rem 1rem;">
+        <div class="stat-card">
+            <div class="stat-card-label" th:text="#{billing.reconciliation.total}">Paiements QR du jour</div>
+            <div class="stat-card-value" th:text="${report.total}">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card-label" th:text="#{billing.reconciliation.pending}">Non-rapprochés</div>
+            <div class="stat-card-value" th:text="${report.pendingCount}">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card-label" th:text="#{billing.reconciliation.pending_amount}">Montant en attente</div>
+            <div class="stat-card-value"
+                 th:text="${#numbers.formatDecimal(report.pendingAmount,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card-label" th:text="#{billing.reconciliation.missing_ref}">Sans référence</div>
+            <div class="stat-card-value" th:text="${report.missingReferenceCount}">0</div>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col" th:text="#{billing.reconciliation.col_time}">Heure</th>
+                <th scope="col" th:text="#{billing.reconciliation.col_method}">Mode</th>
+                <th scope="col" th:text="#{billing.reconciliation.col_reference}">Référence</th>
+                <th scope="col" style="text-align:right;" th:text="#{billing.reconciliation.col_amount}">Montant</th>
+                <th scope="col" th:text="#{billing.reconciliation.col_invoice}">Facture</th>
+                <th scope="col" th:text="#{billing.reconciliation.col_patient}">Patient</th>
+                <th scope="col" th:text="#{billing.reconciliation.col_status}">Rapprochement</th>
+                <th scope="col"><span class="sr-only" th:text="#{common.selection}">Action</span></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${report.payments.isEmpty()}">
+                <td colspan="8" class="empty-state" th:text="#{billing.reconciliation.empty}">
+                    Aucun paiement par QR pour ce jour.</td>
+            </tr>
+            <tr th:each="p : ${report.payments}">
+                <td th:text="${#temporals.format(p.paidAt, 'HH:mm')}">09:30</td>
+                <td><span class="badge badge-blue" th:text="${@paymentMethods.label(p.method)}">AmanaTa</span></td>
+                <td>
+                    <code th:if="${!p.missingReference}" th:text="${p.reference}">REF-123</code>
+                    <span th:if="${p.missingReference}" class="badge badge-yellow"
+                          th:text="#{billing.reconciliation.no_reference}">Sans référence</span>
+                </td>
+                <td style="text-align:right;"
+                    th:text="${#numbers.formatDecimal(p.amount,1,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</td>
+                <td>
+                    <a th:if="${p.invoiceId != null}" th:href="@{'/billing/invoices/' + ${p.invoiceId}}"
+                       th:text="${p.invoiceNumber}">FAC-2026-00001</a>
+                    <span th:unless="${p.invoiceId != null}">—</span>
+                </td>
+                <td th:text="${p.patientName ?: '—'}">Patient</td>
+                <td>
+                    <span th:if="${p.reconciled}" class="badge badge-green"
+                          th:text="#{billing.reconciliation.status_reconciled}">Rapproché</span>
+                    <span th:unless="${p.reconciled}" class="badge badge-yellow"
+                          th:text="#{billing.reconciliation.status_pending}">En attente</span>
+                    <span th:if="${p.reconciled and p.reconciledByName != null}" class="tl-sub"
+                          th:text="'· ' + ${p.reconciledByName}">· caissier</span>
+                </td>
+                <td>
+                    <form th:action="@{'/billing/reconciliation/' + ${p.id} + '/toggle'}" method="post"
+                          style="display:inline;">
+                        <input type="hidden" name="day" th:value="${day}"/>
+                        <input type="hidden" name="pendingOnly" th:value="${pendingOnly}"/>
+                        <button type="submit" class="btn btn-sm"
+                                th:classappend="${p.reconciled} ? 'btn-ghost' : 'btn-primary'"
+                                th:text="${p.reconciled} ? #{billing.reconciliation.action_undo} : #{billing.reconciliation.action_reconcile}">
+                            Rapprocher</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</th:block></body>
+</html>

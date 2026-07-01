@@ -53,4 +53,16 @@ public class Payment {
 
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+    /**
+     * Rapprochement manuel (Z4b) — pour les paiements par QR marchand (AmanaTa/MyNITA), qui
+     * n'ont pas de webhook : NULL tant que le caissier n'a pas confirmé la réception côté
+     * app marchande. {@code reconciledBy} = qui a rapproché.
+     */
+    @Column(name = "reconciled_at")
+    private LocalDateTime reconciledAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reconciled_by")
+    private User reconciledBy;
 }

@@ -21,4 +21,16 @@ public class PaymentDto {
     private Long invoiceId;
     private String invoiceNumber;
     private String patientName;
+
+    // Rapprochement manuel QR (Z4b) — lecture
+    private LocalDateTime reconciledAt;
+    private String reconciledByName;
+
+    public boolean isReconciled() {
+        return reconciledAt != null;
+    }
+
+    public boolean isMissingReference() {
+        return reference == null || reference.isBlank();
+    }
 }

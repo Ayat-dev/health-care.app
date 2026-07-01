@@ -46,7 +46,7 @@
 | B | PWA — finitions | 4 | 4 | ✅ terminé |
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
 | D | Divers (durcissement/polish) | 12 | 12 | ✅ terminé |
-| Z | (Tier 2) Grosses features parquées | 6 | 2 | 🔓 Z5+Z6 faits ; Z4 re-scopé Niger (Z4a fait, Z4b à venir) ; Z1-Z3 parqués |
+| Z | (Tier 2) Grosses features parquées | 6 | 3 | 🔓 Z4(re-scopé Niger a+b)·Z5·Z6 faits ; Z1-Z3 parqués |
 
 **Ordre conseillé** : A (clôt le multi-tenant, petites slices à forte valeur) → D4a (sécu) →
 C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prendre la plus utile.
@@ -519,12 +519,26 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
     +3 tests `AdminPaymentWebhooksTest` (SUPER_ADMIN 200 + évènement affiché ; ADMIN → 403 ; filtre
     statut exclut les autres ; `@Transactional` → seed visible même-tx puis rollback). *Vérifié* :
     `mvnd test` → **254 verts, 0 skip**.
-  - [ ] **Z4b — Rapprochement des paiements QR manuels (AmanaTa/MyNITA).** Décision utilisateur :
-    **marquage manuel** (pas d'import CSV — format non documenté). Ajouter `payments.reconciled_at`/
-    `reconciled_by` (**migration V33**, 2 colonnes nullables) + vue `/billing/reconciliation`
-    (CAISSIER/ADMIN) : paiements méthode `AMANATA/MYNITA` par jour, action « Rapprocher » (estampille
-    `reconciled_at`/`by`), filtre non-rapprochés, alerte QR **sans `reference`**. Tenant-scopé
-    (contrairement à Z4a : les paiements sont `@TenantId`/liés à une facture de la clinique).
+  - [x] **Z4b — Rapprochement des paiements QR manuels (AmanaTa/MyNITA). ✅ FAIT 2026-07-01.**
+    Décision utilisateur : **marquage manuel** (pas d'import CSV — format non documenté). **Migration
+    V33** : `payments.reconciled_at`/`reconciled_by` (2 colonnes nullables + index, portable H2+PG) ;
+    `Payment` enrichi (`reconciledAt` + `reconciledBy` @ManyToOne User). Vue **`/billing/reconciliation`**
+    (`@PreAuthorize hasAnyRole('OWNER','CAISSIER')` — ADMIN→OWNER post-P6) : paiements méthode
+    `AMANATA/MYNITA` **du jour** (filtre date + « non-rapprochés seulement »), synthèse (total/en-attente/
+    montant en attente/**sans référence**), action **Rapprocher/Annuler** (POST toggle) qui estampille
+    `reconciled_at`/`by = currentUser`. **Tenant-scopé** (contrairement à Z4a : `Payment` est `@TenantId`
+    → `findById` cloisonné, un caissier ne rapproche que les paiements de SA clinique). `BillingService`
+    (`reconciliationReport(day, pendingOnly)` mappé en-tx, compteurs sur **tous** les QR du jour même
+    quand la liste est filtrée ; `toggleReconciled`), repo dérivé `findByMethodInAnd…`, DTO
+    `ReconciliationReportDto` + `PaymentDto` (`reconciledAt`/`reconciledByName` + dérivés `isReconciled`/
+    `isMissingReference`). Lien depuis le dashboard caisse (gated `sec:authorize`). 24 clés i18n
+    `billing.reconciliation.*` ×3. +4 tests `BillingReconciliationTest` (QR-only, toggle+compteurs+
+    pendingOnly, gating CAISSIER 200 / SECRETAIRE 403 ; patron tenant `@BeforeTransaction`+`@WithUserDetails`).
+    *Vérifié* : `mvnd test` → **258 verts, 0 skip**.
+
+> **✅ Chantier Z4 (re-scopé Niger) TERMINÉ** — Z4a (journal admin) + Z4b (rapprochement QR manuel) faits.
+> Parqué : Mobile Money **actif** réel (initiation + confirmation auto) — n'a de sens qu'avec Orange Money
+> Niger (API existante), décision produit distincte.
 - ~~**Z5 — Patient overview avancé** [ex-P3.6]~~ — **✅ PROMU + FAIT 2026-07-01.** Les 4 volets sur
   l'onglet **Aperçu** du dossier (`patients/detail.html`), tous dérivés en mémoire par
   `PatientOverviewService` (toujours **zéro requête**, pur sur les listes déjà chargées) :
@@ -587,6 +601,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-07-01 | **Z4b — rapprochement des paiements QR manuels (AmanaTa/MyNITA) → chantier Z4 TERMINÉ** | Marquage manuel (pas de CSV). **V33** : `payments.reconciled_at`/`reconciled_by` (nullables+index) + `Payment` enrichi. Vue `/billing/reconciliation` (`hasAnyRole('OWNER','CAISSIER')`) : QR du jour, filtre date + non-rapprochés, synthèse (total/attente/montant/**sans réf**), toggle Rapprocher/Annuler (estampille `reconciled_at`/`by=currentUser`). **Tenant-scopé** (`Payment` @TenantId → `findById` cloisonné). `BillingService.reconciliationReport(day,pendingOnly)` (mappé en-tx, compteurs sur tous les QR même si liste filtrée) + `toggleReconciled` ; repo dérivé `findByMethodInAnd…` ; DTO `ReconciliationReportDto`+`PaymentDto` (`reconciledAt`/`reconciledByName`/`isReconciled`/`isMissingReference`). Lien dashboard caisse (`sec:authorize`). 24 clés i18n ×3. +4 tests `BillingReconciliationTest` (QR-only ; toggle+compteurs+pendingOnly ; CAISSIER 200/SECRETAIRE 403 ; patron `@BeforeTransaction`+`@WithUserDetails`). **258 verts, 0 skip.** |
 | 2026-07-01 | **Z4 re-scopé Niger + Z4a — journal admin des webhooks** | **Décision** : ancien Z4 (SDK Orange/Wave/MTN, USSD/STK, CSV) jugé **obsolète** (marché Niger = AmanaTa/MyNITA QR **sans API**, aggrégateurs retirés du menu ; webhook P3.3 dormant). Re-scopé en Z4a (journal admin) + Z4b (rapprochement QR manuel, à venir). **Z4a fait** : vue **SUPER_ADMIN** `/admin/payment-webhooks` (read-only) sur `payment_webhook_events` — filtres fournisseur/statut/dates, badges d'issue, cap 200. Gate SUPER_ADMIN car table **globale** (webhook sans tenant → un ADMIN clinique verrait d'autres cliniques). Nav auto : module `ADMIN_WEBHOOKS` (`Module`/Section.ADMIN) ajouté à `RoleProfile.SUPER_ADMIN`. Repo `search(...)`+`distinctProviders()`. Template `admin/payment-webhooks/list.html`. 21 clés i18n ×3. +3 tests `AdminPaymentWebhooksTest` (SUPER_ADMIN 200/ADMIN 403/filtre statut, `@Transactional`). **254 verts, 0 skip.** |
 | 2026-07-01 | **Z5 (promu) — Patient overview avancé (Aperçu dossier)** | 4 volets sur `patients/detail.html`, tous dérivés **en mémoire** par `PatientOverviewService` (zéro requête). **(1) CPN + accouchement** dans la timeline (catégorie `maternity`, `PrenatalVisitDto`→`atStartOfDay`, 🤰/👶, lien `/maternity/{id}`). **(2) Sparklines** `VitalsSparklineDto` (poids/tension/pouls/temp, ≥2 pts) — `<polyline>` SVG normalisé service (viewBox 120×32) format **`Locale.US`** (virgule FR casserait `points`), rendu `<svg role=img aria-label>`. **(3) Filtres** : `TimelineEventDto.categoryKey` stable + puces `.tl-filter[data-cat]` depuis `timelineFilters` (compteurs, si >1 cat.). **(4) Pagination** `ul.timeline[data-paged=15]` + `#tl-more` ; `js/ui.js initTimeline()` combine filtre+révélation progressive (100 % serveur, offline-safe, 0 PHI en JS). 15 clés `patients.overview.*` ×3. CSS `.spark*`/`.tl-filter*`. +1 test `PatientOverviewServiceTest` (CPN+filtres+4 sparklines, coords Locale.US par regex) ; `A11yAxeTest`/smoke `/patients/1` re-verts. **251 verts, 0 skip.** |
 | 2026-07-01 | **Z6 (promu) — Let's Encrypt automatisé (TLS prod)** | Calque opt-in `docker-compose.letsencrypt.yml` : nginx → `nginx.letsencrypt.conf` (challenge ACME http-01 webroot + certifs certbot au chemin fixe `live/clinic/` via `--cert-name clinic`, sans templating) + compagnon `certbot` (renew loop 12 h) ; nginx reload loop 6 h → pas de reload inter-conteneurs. Bootstrap `init-letsencrypt.sh` (factice→up→certonly webroot→reload, gère chicken-and-egg + STAGING). `.env.example` (DOMAIN/EMAIL/STAGING), `nginx/README.md`+`DEPLOYMENT.md`, `.gitattributes` LF sur `*.sh`. Auto-signé LAN reste le défaut. Vérif : `docker compose -f … -f docker-compose.letsencrypt.yml config` OK + merge inspecté ; émission ACME réelle non exerçable ici (domaine public requis). **Infra only — suite backend inchangée (baseline 250).** |
