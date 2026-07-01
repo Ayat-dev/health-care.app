@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(#{mfa.setup.title}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div class="panel" style="max-width:520px;">
+    <div class="panel-header"><span th:text="#{mfa.setup.title}">Activer l'authentification en deux étapes</span></div>
+    <div class="panel-body">
+        <ol style="padding-left:20px; line-height:1.9;">
+            <li th:text="#{mfa.setup.step1}">Installez une application d'authentification (Google Authenticator, Authy…).</li>
+            <li th:text="#{mfa.setup.step2}">Scannez ce QR code (ou saisissez la clé manuellement).</li>
+            <li th:text="#{mfa.setup.step3}">Saisissez le code à 6 chiffres généré pour confirmer.</li>
+        </ol>
+
+        <div style="text-align:center; margin:16px 0;">
+            <img th:src="${qr}" alt="QR MFA" style="width:200px; height:200px;"/>
+            <div class="form-hint" style="margin-top:8px;" th:text="#{mfa.setup.manual_key}">Clé manuelle :</div>
+            <code style="font-size:15px; letter-spacing:.1em;" th:text="${secret}">SECRET</code>
+        </div>
+
+        <form th:action="@{/mfa/confirm}" method="post">
+            <div class="form-group">
+                <label class="form-label" for="code" th:text="#{mfa.setup.code}">Code de vérification</label>
+                <input class="form-control" type="text" id="code" name="code" inputmode="numeric"
+                       autocomplete="one-time-code" autofocus required style="max-width:180px; letter-spacing:.2em;"
+                       th:placeholder="#{mfa.challenge.placeholder}"/>
+            </div>
+            <div style="display:flex; gap:.5rem;">
+                <button type="submit" class="btn btn-primary" th:text="#{mfa.setup.confirm}">Confirmer</button>
+                <a th:href="@{/mfa}" class="btn btn-ghost" th:text="#{common.cancel}">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+</th:block></body>
+</html>

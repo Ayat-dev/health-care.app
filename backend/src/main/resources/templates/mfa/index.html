@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(#{mfa.index.title}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<!-- Codes de secours affichés UNE SEULE FOIS après activation -->
+<div th:if="${recoveryCodes}" class="panel" style="margin-bottom:20px;">
+    <div class="panel-header"><span th:text="#{mfa.recovery.title}">Codes de secours</span></div>
+    <div class="panel-body">
+        <p class="form-hint" th:text="#{mfa.recovery.hint}">Conservez ces codes en lieu sûr — ils ne seront plus affichés.</p>
+        <ul style="columns:2; font-family:monospace; font-size:15px; margin:8px 0; padding-left:20px;">
+            <li th:each="c : ${recoveryCodes}" th:text="${c}">ABCD-2345</li>
+        </ul>
+    </div>
+</div>
+
+<div class="panel">
+    <div class="panel-header"><span th:text="#{mfa.index.title}">Authentification en deux étapes</span></div>
+    <div class="panel-body">
+        <p th:text="#{mfa.index.intro}">
+            Ajoutez un second facteur (application d'authentification) pour sécuriser votre connexion.</p>
+
+        <!-- Activé -->
+        <div th:if="${enabled}">
+            <p><span class="badge badge-green" th:text="#{mfa.index.status_on}">✓ Activé</span>
+               <span th:text="#{mfa.index.remaining(${remaining})}">Codes de secours restants : 8</span></p>
+            <form th:action="@{/mfa/disable}" method="post"
+                  th:onsubmit="'return confirm(\'' + #{mfa.index.disable_confirm} + '\');'">
+                <button type="submit" class="btn btn-ghost" th:text="#{mfa.index.disable}">Désactiver le MFA</button>
+            </form>
+        </div>
+
+        <!-- Désactivé -->
+        <div th:unless="${enabled}">
+            <p><span class="badge badge-yellow" th:text="#{mfa.index.status_off}">Non activé</span></p>
+            <a th:href="@{/mfa/setup}" class="btn btn-primary" th:text="#{mfa.index.enable}">Activer le MFA</a>
+        </div>
+    </div>
+</div>
+
+</th:block></body>
+</html>

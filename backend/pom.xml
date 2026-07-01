@@ -75,6 +75,14 @@
             <version>8.7.0</version>
         </dependency>
 
+        <!-- MFA/2FA (Tier E3) : TOTP (RFC 6238) + génération du QR d'enrôlement côté
+             serveur (ZXing), sans CDN. Application d'authentification (opt-in, web session). -->
+        <dependency>
+            <groupId>dev.samstevens.totp</groupId>
+            <artifactId>totp</artifactId>
+            <version>1.7.1</version>
+        </dependency>
+
         <!-- Temps réel (P5.1 Lot D) : WebSocket + STOMP pour pousser les mises à jour
              des worklists (labo/radio/pharmacie/caisse). spring-security-messaging
              apporte @EnableWebSocketSecurity + l'autorisation d'abonnement par rôle. -->

@@ -72,6 +72,20 @@ public class WebConfig implements WebMvcConfigurer {
                         "/manifest.webmanifest", "/sw.js", "/offline.html",
                         "/error",
                         "/api/**", "/fhir/**", "/ws/**", "/actuator/**", "/h2-console/**");
+
+        // Porte MFA (Tier E3) : force le second facteur après login pour les comptes MFA-activés.
+        // On laisse passer le challenge lui-même, le logout, le login, l'erreur, les statiques et
+        // les endpoints machine (qui ne doivent pas recevoir de 302 HTML).
+        registry.addInterceptor(new com.clinic.backend.security.mfa.MfaGuardInterceptor())
+                .addPathPatterns("/**")
+                .excludePathPatterns(
+                        "/mfa/challenge",
+                        "/login", "/logout", "/auth/**",
+                        "/setup", "/setup/**",
+                        "/css/**", "/js/**", "/images/**", "/uploads/**", "/favicon.ico",
+                        "/manifest.webmanifest", "/sw.js", "/offline.html",
+                        "/error",
+                        "/api/**", "/fhir/**", "/ws/**", "/actuator/**", "/h2-console/**");
     }
 
     // ─── CORS — API uniquement (/api/**) ────────────────────────────────────

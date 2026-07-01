@@ -47,7 +47,7 @@
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
 | D | Divers (durcissement/polish) | 12 | 12 | ✅ terminé |
 | Z | (Tier 2) Grosses features parquées | 6 | 3 | ✅ Z4(a+b)·Z5·Z6 faits ; 🛑 Z1-Z3 ABANDONNÉS (déc. util. 2026-07-01, ne pas reproposer) |
-| E | Tier E — extensions cliniques | 3 | 2 | ✅ E1 certificats (+bis) ; ✅ E2 (allergies+interactions) ; ⏳ E3 MFA |
+| E | Tier E — extensions cliniques | 3 | 3 | ✅ TERMINÉ — E1 certificats (+bis) · E2 (allergies+interactions) · E3 MFA TOTP |
 
 **Ordre conseillé** : A (clôt le multi-tenant, petites slices à forte valeur) → D4a (sécu) →
 C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prendre la plus utile.
@@ -640,11 +640,25 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 > **✅ Chantier E2 (sécurité pharmaceutique) TERMINÉ** — E2-A allergies + E2-B interactions. Advisory,
 > jamais bloquant, à la dispensation. Parqué : CRUD admin du catalogue d'interactions (seed-only pour
 > l'instant) ; surface prescripteur (consultation) ; couverture des lignes ajoutées en JS.
-- [ ] **E3 — MFA (2ᵉ facteur).** TOTP (recommandé, offline/gratuit) vs SMS OTP (réutilise Africa's
-  Talking mais plus faible + coût/login). Sur **les 2 chaînes** (session web + JWT) + enrôlement +
-  **codes de secours** + reset admin + interaction rate-limit/lockout existant. Décisions à trancher :
-  facteur, obligatoire (ADMIN/OWNER/SUPER_ADMIN) vs opt-in. *Touche le cœur auth → tests soignés ;
-  charge de support réelle en clinique peu tech. À faire en dernier.*
+- [x] **E3 — MFA (2ᵉ facteur TOTP, opt-in). ✅ FAIT 2026-07-02.** Décisions utilisateur : **TOTP**
+  (app d'authentification, RFC 6238) + **opt-in pour tous** + **chaîne web session uniquement** (l'API/JWT
+  = évolution). Dép. `dev.samstevens.totp:1.7.1` (vérif TOTP + **QR côté serveur** via ZXing, sans CDN —
+  CSP `img-src data:` déjà OK). `users.mfa_enabled` + `mfa_secret` (**chiffré au repos**, converter PHI) +
+  table `mfa_recovery_codes` (**V37**, codes hachés BCrypt à usage unique). `MfaService` (pkg
+  `security.mfa`) : beginSetup(secret+QR data-URI) → confirmSetup(code TOTP)→ active + 8 codes de secours ;
+  verify (TOTP OU code de secours consommé) ; disable ; adminReset. **Porte au login** = `MfaGuardInterceptor`
+  (enregistré dans `WebConfig`) : après login, tant que la session n'est pas MFA-vérifiée, tout accès d'un
+  compte MFA-activé → **302 `/mfa/challenge`** (la protection anti-fixation de session force un nouveau
+  challenge à chaque login). Web `/mfa` (statut/activer/désactiver, self-service, lien 🛡️ dans le pied de
+  sidebar) + `/mfa/setup` (QR + clé manuelle + confirmation) + `/mfa/challenge` (page autonome type login).
+  **Reset admin** sur `/admin/users/{id}/sessions` (l'utilisateur a perdu appareil + codes). ~30 clés i18n
+  ×3. +9 tests (`MfaServiceTest` cycle complet enrôlement→TOTP→code de secours à usage unique→désactivation ;
+  `MfaFlowTest` ×4 : porte redirige, code valide débloque la session, mauvais code reste, opt-out non gêné).
+  **NB build** : la lib QR tire `jai-imageio-core` en **runtime** → 1er `mvnd test` doit être **online**
+  (compile seul ne le télécharge pas). *Vérifié* `mvnd test` → **281 verts, 0 skip**.
+
+> **✅ Chantier E3 (MFA) TERMINÉ — et avec lui tout le Tier E.** Parqué : MFA sur l'API/JWT (desktop) ;
+> obligation par rôle (aujourd'hui opt-in) ; « se souvenir de cet appareil » ; backend de bucket partagé.
 
 ---
 
@@ -674,6 +688,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-07-02 | **E3 — MFA TOTP (opt-in, web session) → chantier E TERMINÉ** | Décisions util. : TOTP + opt-in + web session. Dép. `dev.samstevens.totp:1.7.1` (TOTP + QR serveur ZXing, sans CDN). `users.mfa_enabled`+`mfa_secret` (chiffré converter PHI) + `mfa_recovery_codes` (**V37**, BCrypt usage unique). `MfaService` (pkg `security.mfa`) : setup(secret+QR)/confirm/verify(TOTP ou code secours)/disable/adminReset. Porte login = `MfaGuardInterceptor` (WebConfig) → 302 `/mfa/challenge` tant que session non vérifiée (anti-fixation = re-challenge par login). Web `/mfa`(statut, lien 🛡️ sidebar-footer)+`/mfa/setup`+`/mfa/challenge` (autonome). Reset admin sur page sessions. ~30 clés i18n ×3. +9 tests (`MfaServiceTest` cycle complet + `MfaFlowTest` ×4 porte/déblocage/mauvais code/opt-out). **NB : lib QR tire `jai-imageio-core` en runtime → 1er `mvnd test` ONLINE.** **281 verts, 0 skip.** |
 | 2026-07-01 | **E2-B — interactions médicamenteuses → chantier E2 TERMINÉ** | Table **globale** `drug_interactions` (**V36**, non-`@TenantId` comme `icd10_catalog`, seed 8 paires par migration) + `Severity` MINEURE/MODEREE/MAJEURE. `InteractionChecker` (`@Component` pur, frère d'`AllergyChecker`) : règle déclenche si 2 médicaments **distincts** matchent ses 2 DCI (DCI/nom, sans accents). Bannière non-bloquante `role=alert` + badge sévérité au formulaire de dispensation ; règles chargées via `DrugInteractionRepository.findByActiveTrue()`, mutualisé E2-A/B via `prescribedDrugs`. 4 clés i18n ×3. +6 tests (`InteractionCheckerTest` ×5 pur + `DrugInteractionSeedTest` seed+déclenche). NB : global (aucun tenant requis), CRUD admin du catalogue = évolution (seed-only). **276 verts, 0 skip.** |
 | 2026-07-01 | **E2-A — vérification des allergies à la dispensation** | `drugs.allergen_class` (**V35**, curée) + champ formulaire médicament. `AllergyChecker` (`@Component` pur, ne jette jamais) : allergies patient (déchiffrées) contiennent-elles la classe allergène / DCI / nom (normalisé sans accents, ≥3 car.) → `AllergyWarningDto`. Bannière **non-bloquante** `role=alert` au formulaire de dispensation (`PharmacyWebController.prepareDispenseForm`, recoupe patient × médicaments présents). Comble le manque « pharmacien voit les allergies ». Seed : Amoxicilline→« Pénicilline » (p2 allergique). 5 clés i18n ×3. +5 tests `AllergyCheckerTest`. NB : seules les lignes présentes au rendu serveur couvertes (JS non). **270 verts, 0 skip.** |
 | 2026-07-01 | **E1-bis — certificats téléchargeables au portail patient** | `PortalDocumentService.certificatePdf` (ownership → 403 sinon) + `/portal/certificates/{id}/pdf` + section « Certificats » sur `portal/record.html`. 2 certificats seedés (`DataInitializer` : p1 arrêt de travail, p2 bonne santé). 3 clés i18n ×3. +2 tests `PortalTest` (le sien 200 / autrui 403). Patron D4b réutilisé tel quel. **265 verts, 0 skip.** |

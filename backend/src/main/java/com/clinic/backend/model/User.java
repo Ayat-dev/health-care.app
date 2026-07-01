@@ -48,6 +48,17 @@ public class User implements UserDetails {
     @Column(name = "token_version", nullable = false)
     private int tokenVersion = 0;
 
+    /**
+     * MFA/2FA par TOTP (Tier E3, opt-in). {@code mfaEnabled} = second facteur exigé au login web ;
+     * {@code mfaSecret} = clé TOTP (base32) chiffrée au repos ({@link com.clinic.backend.crypto.PhiStringConverter}).
+     */
+    @Column(name = "mfa_enabled", nullable = false)
+    private boolean mfaEnabled = false;
+
+    @Convert(converter = com.clinic.backend.crypto.PhiStringConverter.class)
+    @Column(name = "mfa_secret", length = 255)
+    private String mfaSecret;
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
@@ -134,4 +145,12 @@ public class User implements UserDetails {
     public void setLockedUntil(LocalDateTime lockedUntil) { this.lockedUntil = lockedUntil; }
 
     public void setDeletedAt(LocalDateTime deletedAt) { this.deletedAt = deletedAt; }
+
+    public boolean isMfaEnabled() { return mfaEnabled; }
+
+    public void setMfaEnabled(boolean mfaEnabled) { this.mfaEnabled = mfaEnabled; }
+
+    public String getMfaSecret() { return mfaSecret; }
+
+    public void setMfaSecret(String mfaSecret) { this.mfaSecret = mfaSecret; }
 }

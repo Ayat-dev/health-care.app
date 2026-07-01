@@ -56,5 +56,23 @@
     </div>
 </div>
 
+<!-- MFA (Tier E3) : statut + reset admin (appareil + codes de secours perdus) -->
+<div class="panel" style="margin-top:20px;">
+    <div class="panel-header"><span th:text="#{admin.mfa.panel}">Authentification à deux facteurs</span></div>
+    <div class="panel-body">
+        <p th:if="${mfaEnabled}">
+            <span class="badge badge-green" th:text="#{mfa.index.status_on}">✓ Activé</span>
+            <span class="form-hint" th:text="#{admin.mfa.reset_hint}">Réinitialisez seulement si l'utilisateur a perdu son appareil et ses codes.</span>
+        </p>
+        <p th:unless="${mfaEnabled}">
+            <span class="badge badge-yellow" th:text="#{mfa.index.status_off}">Non activé</span>
+        </p>
+        <form th:if="${mfaEnabled}" th:action="@{/admin/users/{id}/mfa/reset(id=${user.id})}" method="post"
+              th:onsubmit="'return confirm(\'' + #{admin.mfa.reset_confirm} + '\');'">
+            <button type="submit" class="btn btn-ghost" th:text="#{admin.mfa.reset}">Réinitialiser le MFA</button>
+        </form>
+    </div>
+</div>
+
 </th:block></body>
 </html>

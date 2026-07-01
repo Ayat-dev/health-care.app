@@ -18,6 +18,7 @@ public class AdminUserWebController {
 
     private final UserService userService;
     private final RefreshTokenService refreshTokenService;
+    private final com.clinic.backend.security.mfa.MfaService mfaService;
 
     @GetMapping
     public String list(Model model) {
@@ -90,7 +91,16 @@ public class AdminUserWebController {
     public String sessions(@PathVariable Long id, Model model) {
         model.addAttribute("user", userService.toDto(userService.getById(id)));
         model.addAttribute("sessions", refreshTokenService.listActiveForUser(id));
+        model.addAttribute("mfaEnabled", mfaService.isEnabled(id));
         return "admin/users/sessions";
+    }
+
+    /** Reset MFA (Tier E3) : l'utilisateur a perdu son appareil ET ses codes de secours. */
+    @PostMapping("/{id}/mfa/reset")
+    public String resetMfa(@PathVariable Long id, RedirectAttributes ra) {
+        mfaService.adminReset(id);
+        ra.addFlashAttribute("success", "admin.mfa.reset_done");
+        return "redirect:/admin/users/" + id + "/sessions";
     }
 
     @PostMapping("/{id}/sessions/{tokenId}/revoke")
