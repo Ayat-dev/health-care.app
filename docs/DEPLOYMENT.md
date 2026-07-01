@@ -103,10 +103,28 @@ la même API**, sans toucher au serveur. Les fondations sont déjà là :
 
 ```bash
 cp .env.example .env        # renseigner les secrets (voir ci-dessous)
-# Générer le certificat TLS nginx AVANT le 1er démarrage (cf. nginx/README.md)
-docker compose up -d        # postgres + backend + nginx
+# Préparer le certificat TLS nginx AVANT le 1er démarrage (cf. nginx/README.md) :
+docker compose up -d        # postgres + backend + nginx (mode auto-signé LAN par défaut)
 # Option monitoring : docker compose --profile monitoring up -d
 ```
+
+### TLS : auto-signé LAN (défaut) ou Let's Encrypt automatisé (Z6)
+
+Deux modes, au choix selon que la clinique a un **domaine public** ou non :
+
+- **LAN / sans domaine (défaut)** — certificat auto-signé généré à la main
+  (`openssl`, cf. `nginx/README.md §1`). nginx utilise `nginx.conf`.
+- **Domaine public → Let's Encrypt automatisé** — émission + **renouvellement
+  automatiques**, aucune gestion manuelle de certificat :
+  ```bash
+  # 1. .env : DOMAIN + LETSENCRYPT_EMAIL (LETSENCRYPT_STAGING=1 pour un essai)
+  ./init-letsencrypt.sh                                   # émission initiale (une fois)
+  docker compose -f docker-compose.yml \
+                 -f docker-compose.letsencrypt.yml up -d  # stack + renouvellement auto
+  ```
+  Le calque `docker-compose.letsencrypt.yml` bascule nginx sur `nginx.letsencrypt.conf`
+  (challenge ACME http-01 + certificats certbot au chemin fixe `live/clinic/`) et ajoute
+  un compagnon `certbot` qui renouvelle en boucle (12 h) ; nginx recharge toutes les 6 h.
 
 Secrets obligatoires en prod (`application-prod.properties`, **fail-fast si absents**) :
 `SPRING_DATASOURCE_URL/USERNAME/PASSWORD`, `JWT_SECRET`, `APP_ENCRYPTION_KEY`,

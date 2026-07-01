@@ -1,0 +1,3 @@
+# Les scripts shell tournent sur l'hôte Linux de prod : forcer des fins de ligne
+# LF (un CRLF casserait le shebang « #!/usr/bin/env bash\r » → bad interpreter).
+*.sh text eol=lf

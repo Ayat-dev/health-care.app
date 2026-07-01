@@ -25,18 +25,45 @@ openssl req -x509 -nodes -newkey rsa:2048 -days 825 \
 > `clinic.crt` comme autorité de confiance sur les postes clients (ou déployer
 > une PKI interne) pour le supprimer.
 
-### Domaine public
+### Domaine public → **Let's Encrypt automatisé (Z6)**
 
-Préférer **Let's Encrypt** (certbot / Caddy) et monter les certificats émis à la
-place des fichiers auto-signés.
+Si la clinique a un **domaine public** (DNS pointant sur l'hôte, ports 80/443
+ouverts depuis Internet), utiliser le **certificat Let's Encrypt automatisé** au
+lieu de l'auto-signé — émission + **renouvellement automatique**, sans openssl
+manuel.
+
+1. Renseigner dans `.env` : `DOMAIN`, `LETSENCRYPT_EMAIL` (et `LETSENCRYPT_STAGING=1`
+   pour un essai à blanc, puis `0`).
+2. Émission initiale (une fois) :
+   ```bash
+   ./init-letsencrypt.sh
+   ```
+   Le script pose un certificat factice le temps que nginx démarre, fait valider
+   le domaine par Let's Encrypt (challenge http-01 via le webroot nginx), puis
+   recharge nginx avec le vrai certificat (chemin fixe `live/clinic/`, via
+   `--cert-name clinic` — donc indépendant du domaine).
+3. Démarrer / mettre à jour toute la stack **avec le calque** :
+   ```bash
+   docker compose -f docker-compose.yml -f docker-compose.letsencrypt.yml up -d
+   ```
+
+Le service `certbot` renouvelle ensuite tout seul (vérification toutes les 12 h,
+renouvellement effectif < 30 j avant expiration) et nginx recharge le certificat
+en boucle (toutes les 6 h) — **aucune intervention manuelle**.
+
+> Le certificat auto-signé du §1 reste le mode par défaut (LAN / sans domaine) :
+> ne pas inclure `-f docker-compose.letsencrypt.yml` et nginx utilise `nginx.conf`.
 
 ## 2. Démarrer
 
 ```bash
-docker compose up -d
+docker compose up -d                      # mode auto-signé LAN (défaut)
+# ou, en mode Let's Encrypt (après init-letsencrypt.sh) :
+# docker compose -f docker-compose.yml -f docker-compose.letsencrypt.yml up -d
 ```
 
-- `http://<hôte>`  → redirigé en `https://<hôte>` (301)
+- `http://<hôte>`  → redirigé en `https://<hôte>` (301 ; le challenge ACME
+  `/.well-known/acme-challenge/` n'est PAS redirigé en mode Let's Encrypt)
 - `https://<hôte>` → application (TLS terminé par nginx, relais vers `backend:8080`)
 
 HSTS est activé (1 an). Spring est configuré (`server.forward-headers-strategy=framework`,

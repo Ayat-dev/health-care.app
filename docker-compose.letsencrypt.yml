@@ -1,0 +1,56 @@
+# ============================================================
+#  Calque Let's Encrypt (Z6) — TLS automatisé pour un domaine public.
+#  À superposer au docker-compose.yml de base :
+#
+#      docker compose -f docker-compose.yml -f docker-compose.letsencrypt.yml up -d
+#
+#  Émission initiale : lancer ./init-letsencrypt.sh UNE fois (DOMAIN + e-mail
+#  dans .env, ports 80/443 ouverts, DNS pointant sur l'hôte). Ensuite le service
+#  `certbot` renouvelle automatiquement, et nginx recharge périodiquement.
+#
+#  Sans ce calque, la stack reste sur le certificat auto-signé LAN (nginx.conf).
+# ============================================================
+
+services:
+  nginx:
+    # Bascule sur la conf LE (challenge ACME + certificats certbot) sans toucher
+    # au nginx.conf auto-signé. Recharge nginx toutes les 6 h pour prendre en
+    # compte les certificats renouvelés en place par certbot.
+    volumes:
+      - ./nginx/nginx.letsencrypt.conf:/etc/nginx/nginx.letsencrypt.conf:ro
+      - letsencrypt_certs:/etc/letsencrypt:ro
+      - certbot_webroot:/var/www/certbot:ro
+    command:
+      - /bin/sh
+      - -c
+      - |
+        trap exit TERM
+        while :; do sleep 6h & wait $${!}; nginx -s reload; done &
+        exec nginx -c /etc/nginx/nginx.letsencrypt.conf -g 'daemon off;'
+
+  # ── Compagnon de renouvellement automatique ────────────────────────────────
+  certbot:
+    image: certbot/certbot:latest
+    container_name: medical_certbot
+    restart: unless-stopped
+    volumes:
+      - letsencrypt_certs:/etc/letsencrypt
+      - certbot_webroot:/var/www/certbot
+    # Tente un renouvellement toutes les 12 h (no-op tant que > 30 j avant expiration).
+    # Le challenge http-01 repasse par nginx:80 (webroot partagé) ; les certificats
+    # sont réécrits en place → la boucle de reload de nginx les recharge.
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        trap exit TERM
+        while :; do
+          certbot renew --webroot -w /var/www/certbot --cert-name clinic --quiet
+          sleep 12h & wait $${!}
+        done
+    networks:
+      - medical_net
+
+volumes:
+  letsencrypt_certs:
+  certbot_webroot:

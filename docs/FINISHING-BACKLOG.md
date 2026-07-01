@@ -46,7 +46,7 @@
 | B | PWA — finitions | 4 | 4 | ✅ terminé |
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
 | D | Divers (durcissement/polish) | 12 | 12 | ✅ terminé |
-| Z | (Tier 2) Grosses features parquées | — | — | 📦 listées, hors périmètre finitions |
+| Z | (Tier 2) Grosses features parquées | 6 | 1 | 🔓 Z6 promu+fait ; Z1-Z5 parqués |
 
 **Ordre conseillé** : A (clôt le multi-tenant, petites slices à forte valeur) → D4a (sécu) →
 C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prendre la plus utile.
@@ -503,8 +503,20 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
   montants partiels multiples. (Le récepteur webhook P3.3 existe mais dort — marché Niger = QR manuel.)
 - **Z5 — Patient overview avancé** [ex-P3.6] : filtres de timeline par type, pagination dossier
   volumineux, CPN maternité comme évènements, sparkline des constantes.
-- **Z6 — Let's Encrypt automatisé** [ex-P2.5] : certbot/Caddy pour le TLS prod (aujourd'hui certif
-  manuel / auto-signé LAN documenté).
+- ~~**Z6 — Let's Encrypt automatisé** [ex-P2.5]~~ — **✅ PROMU + FAIT 2026-07-01.** TLS prod automatisé
+  (certbot), émission + renouvellement sans intervention. **Calque opt-in** `docker-compose.letsencrypt.yml`
+  (superposé au compose de base) : bascule nginx sur `nginx/nginx.letsencrypt.conf` (challenge ACME http-01
+  servi depuis un webroot partagé + certificats certbot au **chemin fixe `live/clinic/`** via `--cert-name
+  clinic` → conf indépendante du domaine, **0 templating**) et ajoute un compagnon `certbot` qui renouvelle
+  en boucle (12 h) ; nginx recharge en boucle (6 h) → récupère les certifs renouvelés en place, **sans
+  reload inter-conteneurs**. Bootstrap one-shot `init-letsencrypt.sh` (certif factice → nginx up → certbot
+  certonly webroot → reload ; gère le chicken-and-egg + `LETSENCRYPT_STAGING`). `.env.example` (DOMAIN /
+  LETSENCRYPT_EMAIL / LETSENCRYPT_STAGING), `nginx/README.md` + `docs/DEPLOYMENT.md` documentés ;
+  `.gitattributes` force LF sur `*.sh` (shebang). **Le mode auto-signé LAN reste le défaut intact** (ne pas
+  inclure le calque). *Vérifié* : `docker compose -f … -f docker-compose.letsencrypt.yml config` OK + merge
+  inspecté (service certbot, conf LE, volumes, boucles reload/renew présents) ; base seule toujours valide.
+  **Non exerçable ici** : l'émission ACME réelle exige un domaine public + 80/443 ouverts (limite inhérente
+  à Let's Encrypt) — couverte par revue + validation de la tuyauterie compose.
 
 ---
 
@@ -534,6 +546,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-07-01 | **Z6 (promu) — Let's Encrypt automatisé (TLS prod)** | Calque opt-in `docker-compose.letsencrypt.yml` : nginx → `nginx.letsencrypt.conf` (challenge ACME http-01 webroot + certifs certbot au chemin fixe `live/clinic/` via `--cert-name clinic`, sans templating) + compagnon `certbot` (renew loop 12 h) ; nginx reload loop 6 h → pas de reload inter-conteneurs. Bootstrap `init-letsencrypt.sh` (factice→up→certonly webroot→reload, gère chicken-and-egg + STAGING). `.env.example` (DOMAIN/EMAIL/STAGING), `nginx/README.md`+`DEPLOYMENT.md`, `.gitattributes` LF sur `*.sh`. Auto-signé LAN reste le défaut. Vérif : `docker compose -f … -f docker-compose.letsencrypt.yml config` OK + merge inspecté ; émission ACME réelle non exerçable ici (domaine public requis). **Infra only — suite backend inchangée (baseline 250).** |
 | 2026-07-01 | **C2-reliquat — pattern ARIA tablist complet** | Sémantique « Tabs » WAI-ARIA portée **en statique** par `patients/detail.html` (9 onglets) + `maternity/record.html` (4) : onglets `id`/`aria-controls`/`tabindex` roving, panneaux `role=tabpanel`/`aria-labelledby`/`tabindex=0`. `js/ui.js initTabs` gère l'état dynamique + **clavier** ←/→/↑/↓/Origine/Fin (activation auto+focus) ; liaison ARIA en filet « si absent ». Comme `A11yAxeTest` audite le HTML **pré-JS**, le statique permet de **lever l'exclusion** `aria-required-children`/`aria-required-attr` (`DEFERRED_RULES` vide) + ajout `/maternity/1` aux vues. Axe **réellement exécuté** (5 tests, 0 skip) → 0 violation tablist. **250 verts, 0 skip.** |
 | 2026-06-30 | **D4d — i18n des reliquats FR en dur → bloc D4 + chantier D TERMINÉS** | Balayage outillé (templates sans `#{` + sweep accents non liés à `th:*`/`#{`). Onglet Aperçu déjà traduit (note backlog périmée). 6 vues FR en dur traduites FR/EN/AR : `notifications/list.html`, `dashboard-doctor.html` (titres/colonnes/états + badges enum→`#{status.*}`/`#{priority.*}`), `error.html`, `fragments/ui.html` (← Retour partagé→`common.back`), `setup/wizard.html` (+`th:lang`/`th:dir` RTL), `teleconsultation/room.html` (+RTL). Faux positifs écartés : défauts `th:text` multi-lignes, commentaires, emojis, noms de langue (Français/English/العربية). ~60 clés ×3 (`error/notifications/dashboard.doctor/setup/teleconsultation.*` + `common.{patient,doctor,reason,diagnosis,number,priority}`). **Bundles ré-alignés 1401 clés** (diff vide). +2 tests `PageRenderSmokeTest`. **250 verts, 0 skip.** |
 | 2026-06-30 | **D4c — recherche globale étendue + libellés CIM-10 + top pathologies sur codes** | **(1)** `GlobalSearchService` +3 catégories gatées par module : Consultations (`searchForPalette` nom patient OU code CIM-10, non chiffré), Rendez-vous (`searchForPalette` → `/appointments/{id}/edit`), Médicaments (`DrugRepository.search` → `/pharmacy/drugs/{id}/edit`). 3 clés `search.section.{consultations,appointments,drugs}` ×3. **(2)** `Icd10Service.{splitCodes,titlesByCode,resolveCodes,displayLabel}` + repo `findByCodeInUpper` ; `ConsultationDto.icd10Resolved` rempli seulement dans `getDtoById` ; `detail.html` liste « CODE — Titre ». **(3)** `ReportService.topDiagnoses` agrège `findCompletedIcd10Codes` (découpe multi-codes, compte/code, résout libellés en lot) → remplace `findCompletedDiagnoses` (supprimé). Test D3a `top_pathologies_*` réécrit sur codes (B54=2/J45=2, preuve découpage) ; +2 `GlobalSearchTest` (consult K29 / drug Paracétamol) +1 `Icd10CatalogTest` (résolution). **248 verts, 0 skip.** |
