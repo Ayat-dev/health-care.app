@@ -46,7 +46,7 @@
 | B | PWA — finitions | 4 | 4 | ✅ terminé |
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
 | D | Divers (durcissement/polish) | 12 | 12 | ✅ terminé |
-| Z | (Tier 2) Grosses features parquées | 6 | 3 | 🔓 Z4(re-scopé Niger a+b)·Z5·Z6 faits ; Z1-Z3 parqués |
+| Z | (Tier 2) Grosses features parquées | 6 | 3 | ✅ Z4(a+b)·Z5·Z6 faits ; 🛑 Z1-Z3 ABANDONNÉS (déc. util. 2026-07-01, ne pas reproposer) |
 
 **Ordre conseillé** : A (clôt le multi-tenant, petites slices à forte valeur) → D4a (sécu) →
 C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prendre la plus utile.
@@ -489,15 +489,26 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 > ici pour que **rien ne soit perdu**. À **promouvoir** explicitement dans le tableau de bord si
 > l'utilisateur le décide ; sinon, ne pas les traiter dans une session « finitions ».
 
-- **Z1 — FHIR avancé** [ex-P2.1] : écritures (`POST`/transaction Bundle), serveur HAPI `RestfulServer`
+> **🛑 DÉCISION UTILISATEUR 2026-07-01 — Z1, Z2, Z3 ABANDONNÉS (ne pas reproposer).** Aucun n'est
+> bloquant ; chacun exige soit du matériel/budget récurrent (GPU pour le scribe, VPS Jitsi), soit de
+> la technicité lourde, pour une valeur pas assez immédiate au contexte Niger. L'utilisateur a
+> explicitement choisi de les **laisser tomber** — **y compris la notif SMS du lien de téléconsult**
+> (le seul « quick win » de Z3), jugée non-primordiale. **Ne PAS les resurfacer** dans une session
+> future sauf demande explicite ré-ouvrant le sujet. Ils restent listés ci-dessous pour mémoire seule.
+
+- **Z1 — FHIR avancé** [ex-P2.1] — *abandonné (voir décision ci-dessus).* Interop machine-à-machine
+  sans écosystème d'échange au Niger : écritures (`POST`/transaction Bundle), serveur HAPI `RestfulServer`
   complet (`_format`/recherche avancée/pagination), ressources `Practitioner`/`DiagnosticReport`/
   `Condition`/`AllergyIntolerance`, **codage LOINC réel** (`lab_test_catalog.code`→LOINC), SMART-on-FHIR.
-- **Z2 — Scribe IA étage 1 (audio→texte)** [ex-P4.1] : captation micro front (MediaRecorder +
-  consentement), STT (Whisper auto-hébergé vs Deepgram/Azure — vrai poste de coût), streaming/UX
-  d'attente, éval qualité FR + accents, mapping typé des constantes, vue de validation médecin,
-  posture PHI définitive (BAA/ZDR vs LLM auto-hébergé).
-- **Z3 — Télémédecine avancée** [ex-P3.7] : notif du lien au patient (SMS/email), **Jitsi
-  auto-hébergé + JWT de salle**, fenêtre temporelle d'ouverture, salle d'attente/présence, enregistrement.
+  (La couche FHIR **lecture seule** P2.1 reste en place et suffit comme badge d'interopérabilité.)
+- **Z2 — Scribe IA étage 1 (audio→texte)** [ex-P4.1] — *abandonné.* Poste de coût réel (GPU
+  auto-hébergé **ou** ~0,10 $/consult cloud) + upload audio en connexion faible + mur PHI (rompt la
+  posture « tout local chiffré ») : captation micro front, STT FR/accents, streaming, éval qualité,
+  mapping typé des constantes, posture PHI définitive. (L'**étage 2** texte→note P4.1 reste dispo,
+  désactivé par défaut.)
+- **Z3 — Télémédecine avancée** [ex-P3.7] — *abandonné, notif SMS incluse.* Notif du lien au patient
+  (SMS/email), **Jitsi auto-hébergé + JWT de salle**, fenêtre temporelle, salle d'attente/présence,
+  enregistrement. (La téléconsult **légère** P3.7 — lien Jitsi public par RDV — reste fonctionnelle.)
 - **Z4 — Mobile Money : RE-SCOPÉ Niger (2026-07-01).** L'ancien Z4 (« Mobile Money actif » :
   initiation USSD/STK, SDK réels Orange/Wave/MTN, signatures par agrégateur, import CSV) a été
   **jugé obsolète** : il datait d'avant la correction marché → **Niger**, où les modes réels
@@ -601,6 +612,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-07-01 | **Décision — Z1/Z2/Z3 abandonnés (aucun code)** | Après revue détaillée (valeur/acteurs/coût matériel/technicité/PHI), l'utilisateur choisit de **laisser tomber** Z1 (FHIR avancé — pas d'écosystème d'échange Niger), Z2 (scribe audio — GPU/coût-par-consult + mur PHI), Z3 (téléméd. avancée — **notif SMS incluse**, jugée non-primordiale). Non-bloquants. **Ne pas reproposer.** Les fondations livrées (FHIR lecture P2.1, scribe étage 2 P4.1, téléconsult légère P3.7) restent en place. **➡️ Tout le tracker (A→D + Tier Z retenu) est clos** — plus de travail planifié ; toute suite = nouvelle demande utilisateur. Suite inchangée (258 verts). |
 | 2026-07-01 | **Z4b — rapprochement des paiements QR manuels (AmanaTa/MyNITA) → chantier Z4 TERMINÉ** | Marquage manuel (pas de CSV). **V33** : `payments.reconciled_at`/`reconciled_by` (nullables+index) + `Payment` enrichi. Vue `/billing/reconciliation` (`hasAnyRole('OWNER','CAISSIER')`) : QR du jour, filtre date + non-rapprochés, synthèse (total/attente/montant/**sans réf**), toggle Rapprocher/Annuler (estampille `reconciled_at`/`by=currentUser`). **Tenant-scopé** (`Payment` @TenantId → `findById` cloisonné). `BillingService.reconciliationReport(day,pendingOnly)` (mappé en-tx, compteurs sur tous les QR même si liste filtrée) + `toggleReconciled` ; repo dérivé `findByMethodInAnd…` ; DTO `ReconciliationReportDto`+`PaymentDto` (`reconciledAt`/`reconciledByName`/`isReconciled`/`isMissingReference`). Lien dashboard caisse (`sec:authorize`). 24 clés i18n ×3. +4 tests `BillingReconciliationTest` (QR-only ; toggle+compteurs+pendingOnly ; CAISSIER 200/SECRETAIRE 403 ; patron `@BeforeTransaction`+`@WithUserDetails`). **258 verts, 0 skip.** |
 | 2026-07-01 | **Z4 re-scopé Niger + Z4a — journal admin des webhooks** | **Décision** : ancien Z4 (SDK Orange/Wave/MTN, USSD/STK, CSV) jugé **obsolète** (marché Niger = AmanaTa/MyNITA QR **sans API**, aggrégateurs retirés du menu ; webhook P3.3 dormant). Re-scopé en Z4a (journal admin) + Z4b (rapprochement QR manuel, à venir). **Z4a fait** : vue **SUPER_ADMIN** `/admin/payment-webhooks` (read-only) sur `payment_webhook_events` — filtres fournisseur/statut/dates, badges d'issue, cap 200. Gate SUPER_ADMIN car table **globale** (webhook sans tenant → un ADMIN clinique verrait d'autres cliniques). Nav auto : module `ADMIN_WEBHOOKS` (`Module`/Section.ADMIN) ajouté à `RoleProfile.SUPER_ADMIN`. Repo `search(...)`+`distinctProviders()`. Template `admin/payment-webhooks/list.html`. 21 clés i18n ×3. +3 tests `AdminPaymentWebhooksTest` (SUPER_ADMIN 200/ADMIN 403/filtre statut, `@Transactional`). **254 verts, 0 skip.** |
 | 2026-07-01 | **Z5 (promu) — Patient overview avancé (Aperçu dossier)** | 4 volets sur `patients/detail.html`, tous dérivés **en mémoire** par `PatientOverviewService` (zéro requête). **(1) CPN + accouchement** dans la timeline (catégorie `maternity`, `PrenatalVisitDto`→`atStartOfDay`, 🤰/👶, lien `/maternity/{id}`). **(2) Sparklines** `VitalsSparklineDto` (poids/tension/pouls/temp, ≥2 pts) — `<polyline>` SVG normalisé service (viewBox 120×32) format **`Locale.US`** (virgule FR casserait `points`), rendu `<svg role=img aria-label>`. **(3) Filtres** : `TimelineEventDto.categoryKey` stable + puces `.tl-filter[data-cat]` depuis `timelineFilters` (compteurs, si >1 cat.). **(4) Pagination** `ul.timeline[data-paged=15]` + `#tl-more` ; `js/ui.js initTimeline()` combine filtre+révélation progressive (100 % serveur, offline-safe, 0 PHI en JS). 15 clés `patients.overview.*` ×3. CSS `.spark*`/`.tl-filter*`. +1 test `PatientOverviewServiceTest` (CPN+filtres+4 sparklines, coords Locale.US par regex) ; `A11yAxeTest`/smoke `/patients/1` re-verts. **251 verts, 0 skip.** |
