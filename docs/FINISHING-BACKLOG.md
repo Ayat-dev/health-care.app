@@ -46,7 +46,7 @@
 | B | PWA — finitions | 4 | 4 | ✅ terminé |
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
 | D | Divers (durcissement/polish) | 12 | 12 | ✅ terminé |
-| Z | (Tier 2) Grosses features parquées | 6 | 1 | 🔓 Z6 promu+fait ; Z1-Z5 parqués |
+| Z | (Tier 2) Grosses features parquées | 6 | 2 | 🔓 Z5+Z6 promus+faits ; Z1-Z4 parqués |
 
 **Ordre conseillé** : A (clôt le multi-tenant, petites slices à forte valeur) → D4a (sécu) →
 C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prendre la plus utile.
@@ -501,8 +501,25 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 - **Z4 — Mobile Money actif** [ex-P3.3] : initiation de paiement (push USSD/STK), vue admin du
   journal des webhooks, SDK réels par agrégateur (signatures propres), réconciliation/relance,
   montants partiels multiples. (Le récepteur webhook P3.3 existe mais dort — marché Niger = QR manuel.)
-- **Z5 — Patient overview avancé** [ex-P3.6] : filtres de timeline par type, pagination dossier
-  volumineux, CPN maternité comme évènements, sparkline des constantes.
+- ~~**Z5 — Patient overview avancé** [ex-P3.6]~~ — **✅ PROMU + FAIT 2026-07-01.** Les 4 volets sur
+  l'onglet **Aperçu** du dossier (`patients/detail.html`), tous dérivés en mémoire par
+  `PatientOverviewService` (toujours **zéro requête**, pur sur les listes déjà chargées) :
+  **(1) CPN maternité comme évènements** — chaque `PrenatalVisitDto` (CPN, date→`atStartOfDay`) + un
+  évènement **accouchement** (si `deliveryDate`) rejoignent la timeline (catégorie `maternity`, icônes
+  🤰/👶, lien `/maternity/{id}`, sous-titres âge gestationnel+tension / type+poids nouveau-né).
+  **(2) Sparkline des constantes** — `VitalsSparklineDto` par mesure (poids/tension syst./pouls/temp)
+  ayant **≥ 2 points** ; coordonnées `<polyline>` SVG **normalisées côté service** (viewBox 120×32) au
+  format **`Locale.US`** (point décimal — la virgule FR casserait l'attribut `points`) ; rendu en
+  `<svg role=img aria-label>` inline. **(3) Filtres de timeline par type** — `TimelineEventDto` gagne
+  une **`categoryKey`** stable (consultation/lab/imaging/hospitalization/billing/maternity) ; puces
+  `.tl-filter[data-cat]` construites depuis `timelineFilters` (catégories présentes, ordre canonique,
+  compteurs), affichées si > 1 catégorie. **(4) Pagination dossier volumineux** — `ul.timeline[data-paged=15]`
+  + bouton `#tl-more` ; `js/ui.js initTimeline()` combine **filtre + révélation progressive** par paquets
+  (rendu 100 % serveur, JS ne fait que masquer/révéler → offline-safe, **aucune PHI en JS**). 15 clés
+  i18n `patients.overview.*` ×3 langues (bundles ré-alignés). CSS `.spark*`/`.tl-filters`/`.tl-filter`
+  ajoutés à `app.css`. +1 test `PatientOverviewServiceTest` (CPN dans la timeline + filtres comptés +
+  4 sparklines, coords Locale.US assertées par regex) ; `A11yAxeTest`/`PageRenderSmokeTest` sur
+  `/patients/1` re-verts (SVG + puces, 0 violation). *Vérifié* : `mvnd test` → **251 verts, 0 skip**.
 - ~~**Z6 — Let's Encrypt automatisé** [ex-P2.5]~~ — **✅ PROMU + FAIT 2026-07-01.** TLS prod automatisé
   (certbot), émission + renouvellement sans intervention. **Calque opt-in** `docker-compose.letsencrypt.yml`
   (superposé au compose de base) : bascule nginx sur `nginx/nginx.letsencrypt.conf` (challenge ACME http-01
@@ -546,6 +563,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-07-01 | **Z5 (promu) — Patient overview avancé (Aperçu dossier)** | 4 volets sur `patients/detail.html`, tous dérivés **en mémoire** par `PatientOverviewService` (zéro requête). **(1) CPN + accouchement** dans la timeline (catégorie `maternity`, `PrenatalVisitDto`→`atStartOfDay`, 🤰/👶, lien `/maternity/{id}`). **(2) Sparklines** `VitalsSparklineDto` (poids/tension/pouls/temp, ≥2 pts) — `<polyline>` SVG normalisé service (viewBox 120×32) format **`Locale.US`** (virgule FR casserait `points`), rendu `<svg role=img aria-label>`. **(3) Filtres** : `TimelineEventDto.categoryKey` stable + puces `.tl-filter[data-cat]` depuis `timelineFilters` (compteurs, si >1 cat.). **(4) Pagination** `ul.timeline[data-paged=15]` + `#tl-more` ; `js/ui.js initTimeline()` combine filtre+révélation progressive (100 % serveur, offline-safe, 0 PHI en JS). 15 clés `patients.overview.*` ×3. CSS `.spark*`/`.tl-filter*`. +1 test `PatientOverviewServiceTest` (CPN+filtres+4 sparklines, coords Locale.US par regex) ; `A11yAxeTest`/smoke `/patients/1` re-verts. **251 verts, 0 skip.** |
 | 2026-07-01 | **Z6 (promu) — Let's Encrypt automatisé (TLS prod)** | Calque opt-in `docker-compose.letsencrypt.yml` : nginx → `nginx.letsencrypt.conf` (challenge ACME http-01 webroot + certifs certbot au chemin fixe `live/clinic/` via `--cert-name clinic`, sans templating) + compagnon `certbot` (renew loop 12 h) ; nginx reload loop 6 h → pas de reload inter-conteneurs. Bootstrap `init-letsencrypt.sh` (factice→up→certonly webroot→reload, gère chicken-and-egg + STAGING). `.env.example` (DOMAIN/EMAIL/STAGING), `nginx/README.md`+`DEPLOYMENT.md`, `.gitattributes` LF sur `*.sh`. Auto-signé LAN reste le défaut. Vérif : `docker compose -f … -f docker-compose.letsencrypt.yml config` OK + merge inspecté ; émission ACME réelle non exerçable ici (domaine public requis). **Infra only — suite backend inchangée (baseline 250).** |
 | 2026-07-01 | **C2-reliquat — pattern ARIA tablist complet** | Sémantique « Tabs » WAI-ARIA portée **en statique** par `patients/detail.html` (9 onglets) + `maternity/record.html` (4) : onglets `id`/`aria-controls`/`tabindex` roving, panneaux `role=tabpanel`/`aria-labelledby`/`tabindex=0`. `js/ui.js initTabs` gère l'état dynamique + **clavier** ←/→/↑/↓/Origine/Fin (activation auto+focus) ; liaison ARIA en filet « si absent ». Comme `A11yAxeTest` audite le HTML **pré-JS**, le statique permet de **lever l'exclusion** `aria-required-children`/`aria-required-attr` (`DEFERRED_RULES` vide) + ajout `/maternity/1` aux vues. Axe **réellement exécuté** (5 tests, 0 skip) → 0 violation tablist. **250 verts, 0 skip.** |
 | 2026-06-30 | **D4d — i18n des reliquats FR en dur → bloc D4 + chantier D TERMINÉS** | Balayage outillé (templates sans `#{` + sweep accents non liés à `th:*`/`#{`). Onglet Aperçu déjà traduit (note backlog périmée). 6 vues FR en dur traduites FR/EN/AR : `notifications/list.html`, `dashboard-doctor.html` (titres/colonnes/états + badges enum→`#{status.*}`/`#{priority.*}`), `error.html`, `fragments/ui.html` (← Retour partagé→`common.back`), `setup/wizard.html` (+`th:lang`/`th:dir` RTL), `teleconsultation/room.html` (+RTL). Faux positifs écartés : défauts `th:text` multi-lignes, commentaires, emojis, noms de langue (Français/English/العربية). ~60 clés ×3 (`error/notifications/dashboard.doctor/setup/teleconsultation.*` + `common.{patient,doctor,reason,diagnosis,number,priority}`). **Bundles ré-alignés 1401 clés** (diff vide). +2 tests `PageRenderSmokeTest`. **250 verts, 0 skip.** |

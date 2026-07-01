@@ -116,6 +116,72 @@ class PatientOverviewServiceTest {
     }
 
     @Test
+    void cpn_maternite_dans_la_timeline_filtres_et_sparklines() {
+        Patient p = new Patient();
+        p.setGender("F");
+
+        // 3 consultations avec constantes → sparklines (≥ 2 points par mesure)
+        Consultation c1 = consult(3, "60.0", 120, 70, "36.8");
+        Consultation c2 = consult(2, "61.5", 122, 72, "37.0");
+        Consultation c3 = consult(1, "63.0", 118, 68, "36.9"); // la plus récente
+
+        MaternityRecordDto mat = new MaternityRecordDto();
+        mat.setId(4L);
+        mat.setStatus("ACCOUCHEE");
+        PrenatalVisitDto v1 = new PrenatalVisitDto();
+        v1.setVisitNumber(1);
+        v1.setVisitDate(LocalDate.now().minusDays(20));
+        v1.setGestationalAgeWeeks(24);
+        v1.setBpSystolic(120);
+        v1.setBpDiastolic(70);
+        PrenatalVisitDto v2 = new PrenatalVisitDto();
+        v2.setVisitNumber(2);
+        v2.setVisitDate(LocalDate.now().minusDays(6));
+        v2.setGestationalAgeWeeks(26);
+        mat.getVisits().add(v1);
+        mat.getVisits().add(v2);
+        mat.setDeliveryDate(LocalDate.now().minusDays(1));
+        mat.setDeliveryType("NATUREL");
+        mat.setNewbornWeightG(3200);
+
+        PatientOverviewDto o = service.build(
+                p, List.of(c1, c2, c3), List.of(), List.of(), List.of(), List.of(), mat);
+
+        // Timeline : 3 consultations + 2 CPN + 1 accouchement = 6 évènements
+        assertThat(o.getTimeline()).hasSize(6);
+        assertThat(o.getTimeline().stream().filter(e -> "maternity".equals(e.getCategoryKey())).count())
+                .isEqualTo(3);
+
+        // Filtres présents (ordre canonique) avec compteurs
+        assertThat(o.getTimelineFilters()).extracting(TimelineFilterDto::getKey)
+                .containsExactly("consultation", "maternity");
+        assertThat(o.getTimelineFilters()).extracting(TimelineFilterDto::getCount)
+                .containsExactly(3L, 3L);
+
+        // Sparklines : les 4 mesures, coordonnées SVG en Locale.US (point décimal)
+        assertThat(o.getSparklines()).extracting(VitalsSparklineDto::getKey)
+                .containsExactlyInAnyOrder("weight", "bp_sys", "pulse", "temp");
+        VitalsSparklineDto weight = o.getSparklines().stream()
+                .filter(s -> "weight".equals(s.getKey())).findFirst().orElseThrow();
+        assertThat(weight.getCount()).isEqualTo(3);
+        assertThat(weight.getLastValue()).isEqualTo("63.0");
+        // "x.y,x.y x.y,x.y …" — la virgule ne sépare QUE x et y (pas de décimale à virgule)
+        assertThat(weight.getPoints()).matches("\\d+\\.\\d,\\d+\\.\\d( \\d+\\.\\d,\\d+\\.\\d)*");
+    }
+
+    private static Consultation consult(int daysAgo, String weight, int sys, int pulse, String temp) {
+        Consultation c = new Consultation();
+        c.setConsultationDate(LocalDateTime.now().minusDays(daysAgo));
+        c.setStatus("TERMINE");
+        c.setWeightKg(new BigDecimal(weight));
+        c.setBpSystolic(sys);
+        c.setBpDiastolic(70);
+        c.setPulseBpm(pulse);
+        c.setTemperatureC(new BigDecimal(temp));
+        return c;
+    }
+
+    @Test
     void patient_vierge_aucune_alerte_aucun_evenement() {
         Patient p = new Patient();
         PatientOverviewDto o = service.build(
@@ -123,6 +189,8 @@ class PatientOverviewServiceTest {
 
         assertThat(o.getAlerts()).isEmpty();
         assertThat(o.getTimeline()).isEmpty();
+        assertThat(o.getTimelineFilters()).isEmpty();
+        assertThat(o.getSparklines()).isEmpty();
         assertThat(o.isHasVitals()).isFalse();
         assertThat(o.isHasAllergies()).isFalse();
     }

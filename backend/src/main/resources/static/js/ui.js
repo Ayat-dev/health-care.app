@@ -150,3 +150,61 @@
         initLangDropdownAutoClose();
     });
 })();
+
+/*
+ * Timeline du dossier patient (Z5) : filtrage par type + pagination progressive.
+ * Balisage : `ul.timeline[data-paged="N"]` d'items `li.tl-item[data-category]`,
+ * une barre optionnelle de puces `.tl-filter[data-cat]` (la puce "Tous" a
+ * data-cat="all"), et un bouton `#tl-more` « Afficher plus ».
+ *
+ * Tout est rendu côté serveur (fonctionne hors-ligne, aucune PHI en JS) ; le JS
+ * ne fait que masquer/révéler : la catégorie active filtre, puis on ne montre
+ * que les N premiers items correspondants, « Afficher plus » révèle par paquets.
+ * No-op si la page n'a pas de `.timeline[data-paged]`.
+ */
+(function () {
+    function initTimeline() {
+        var list = document.querySelector('.timeline[data-paged]');
+        if (!list) return;
+        var items = Array.from(list.querySelectorAll('.tl-item'));
+        var filters = Array.from(document.querySelectorAll('.tl-filter[data-cat]'));
+        var moreBtn = document.getElementById('tl-more');
+        var step = parseInt(list.getAttribute('data-paged'), 10) || 15;
+        var activeCat = 'all';
+        var shown = step;
+
+        function matches(item) {
+            return activeCat === 'all' || item.dataset.category === activeCat;
+        }
+        function render() {
+            var visible = 0;
+            items.forEach(function (it) {
+                if (matches(it)) {
+                    visible++;
+                    it.style.display = visible <= shown ? '' : 'none';
+                } else {
+                    it.style.display = 'none';
+                }
+            });
+            if (moreBtn) moreBtn.style.display = visible > shown ? '' : 'none';
+        }
+
+        filters.forEach(function (b) {
+            b.addEventListener('click', function () {
+                activeCat = b.dataset.cat;
+                shown = step; // repart du début à chaque changement de filtre
+                filters.forEach(function (x) {
+                    var on = x === b;
+                    x.classList.toggle('active', on);
+                    x.setAttribute('aria-pressed', on ? 'true' : 'false');
+                });
+                render();
+            });
+        });
+        if (moreBtn) moreBtn.addEventListener('click', function () { shown += step; render(); });
+
+        render();
+    }
+
+    document.addEventListener('DOMContentLoaded', initTimeline);
+})();

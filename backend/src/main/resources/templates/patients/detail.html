@@ -98,14 +98,46 @@
         </div>
     </div>
 
-    <!-- Chronologie unifiée -->
+    <!-- Tendances des constantes (sparklines) — Z5 -->
+    <div th:if="${!overview.sparklines.isEmpty()}" style="margin-top:18px;">
+        <div class="detail-label" th:text="#{patients.overview.trends}">Tendances des constantes</div>
+        <div class="spark-grid">
+            <div th:each="s : ${overview.sparklines}" class="spark">
+                <div class="spark-head">
+                    <span class="spark-label" th:text="${s.label}">Poids</span>
+                    <span class="spark-last"><strong th:text="${s.lastValue}">72</strong>
+                        <span th:text="${s.unit}">kg</span></span>
+                </div>
+                <svg class="spark-svg" viewBox="0 0 120 32" preserveAspectRatio="none" role="img"
+                     th:attr="aria-label=#{patients.overview.spark_aria(${s.label},${s.minValue},${s.maxValue},${s.unit},${s.count})}">
+                    <polyline th:attr="points=${s.points}" fill="none" stroke="currentColor"
+                              stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+                </svg>
+                <div class="spark-range"
+                     th:text="#{patients.overview.spark_range(${s.minValue},${s.maxValue},${s.count})}">40–72 · 3 mesures</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chronologie unifiée — filtres par type + pagination (Z5) -->
     <div style="margin-top:24px;">
         <div class="detail-label" th:text="#{patients.detail.timeline}">Chronologie du dossier</div>
         <div th:if="${overview.timeline.isEmpty()}" class="empty-state" th:text="#{patients.detail.timeline_empty}">
             Aucun évènement enregistré pour ce patient.
         </div>
-        <ul th:unless="${overview.timeline.isEmpty()}" class="timeline">
-            <li th:each="e : ${overview.timeline}" class="tl-item">
+
+        <!-- Puces de filtre : affichées seulement si plusieurs catégories présentes -->
+        <div th:if="${overview.timelineFilters.size() > 1}" class="tl-filters"
+             role="group" th:attr="aria-label=#{patients.overview.filter_label}">
+            <button type="button" class="tl-filter active" data-cat="all" aria-pressed="true"
+                    th:text="#{patients.overview.filter_all}">Tous</button>
+            <button type="button" class="tl-filter" aria-pressed="false"
+                    th:each="f : ${overview.timelineFilters}" th:attr="data-cat=${f.key}"
+                    th:text="${f.label} + ' (' + ${f.count} + ')'">Consultation (3)</button>
+        </div>
+
+        <ul th:unless="${overview.timeline.isEmpty()}" class="timeline" data-paged="15">
+            <li th:each="e : ${overview.timeline}" class="tl-item" th:attr="data-category=${e.categoryKey}">
                 <span class="tl-icon" aria-hidden="true" th:text="${e.icon}">🩺</span>
                 <div class="tl-body">
                     <div class="tl-head">
@@ -123,6 +155,8 @@
                       th:text="${#temporals.format(e.dateTime,'dd/MM/yyyy HH:mm')}">01/01 09:00</time>
             </li>
         </ul>
+        <button type="button" id="tl-more" class="btn btn-ghost btn-sm" style="display:none;margin-top:10px;"
+                th:unless="${overview.timeline.isEmpty()}" th:text="#{patients.overview.show_more}">Afficher plus</button>
     </div>
 </div>
 

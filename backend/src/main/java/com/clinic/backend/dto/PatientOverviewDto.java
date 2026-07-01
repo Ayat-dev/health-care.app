@@ -34,4 +34,8 @@ public class PatientOverviewDto {
 
     private List<OverviewAlertDto> alerts = new ArrayList<>();
     private List<TimelineEventDto> timeline = new ArrayList<>();
+
+    // ── Z5 : filtres par catégorie + tendances des constantes (sparklines) ────
+    private List<TimelineFilterDto> timelineFilters = new ArrayList<>();
+    private List<VitalsSparklineDto> sparklines = new ArrayList<>();
 }

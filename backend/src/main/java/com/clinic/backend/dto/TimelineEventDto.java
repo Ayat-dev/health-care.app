@@ -14,17 +14,19 @@ public class TimelineEventDto {
 
     private LocalDateTime dateTime;
     private String icon;
-    private String category;   // Consultation, Laboratoire, Imagerie, Hospitalisation, Facturation
+    private String category;    // libellé i18n (Consultation, Laboratoire…)
+    private String categoryKey; // clé stable pour le filtrage client (consultation, lab, imaging…)
     private String title;
     private String subtitle;
-    private String status;     // pour le badge (peut être null)
+    private String status;      // pour le badge (peut être null)
     private String url;
 
-    public TimelineEventDto(LocalDateTime dateTime, String icon, String category,
+    public TimelineEventDto(LocalDateTime dateTime, String icon, String category, String categoryKey,
                             String title, String subtitle, String status, String url) {
         this.dateTime = dateTime;
         this.icon = icon;
         this.category = category;
+        this.categoryKey = categoryKey;
         this.title = title;
         this.subtitle = subtitle;
         this.status = status;
