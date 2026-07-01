@@ -50,6 +50,29 @@
         </div>
     </div>
 
+    <!-- ── Certificats médicaux (Tier E1-bis) ──────────────────────────────── -->
+    <div class="panel" style="margin-bottom:20px;">
+        <div class="panel-header"><h2 th:text="#{portal.record.certificates}">Certificats</h2></div>
+        <div th:if="${certificates.isEmpty()}" class="empty-state" th:text="#{portal.record.no_certificates}">Aucun certificat.</div>
+        <div th:unless="${certificates.isEmpty()}" class="table-wrap">
+            <table class="table">
+                <thead>
+                <tr><th scope="col" th:text="#{portal.col.number}">N°</th><th scope="col" th:text="#{common.date}">Date</th><th scope="col" th:text="#{portal.col.type}">Type</th><th scope="col" th:text="#{portal.col.doctor}">Médecin</th><th scope="col"><span class="sr-only" th:text="#{common.actions}">Actions</span></th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="cert : ${certificates}">
+                    <td th:text="${cert.certificateNumber}">CERT-…</td>
+                    <td th:text="${cert.issueDate != null ? #temporals.format(cert.issueDate, 'dd/MM/yyyy') : '—'}">—</td>
+                    <td th:text="#{'certificates.type.' + ${cert.type}}">Type</td>
+                    <td th:text="${cert.doctorName != null ? cert.doctorName : '—'}">—</td>
+                    <td><a th:href="@{/portal/certificates/{id}/pdf(id=${cert.id})}" target="_blank"
+                           class="btn btn-ghost btn-sm" th:text="#{portal.download.pdf}">⬇ PDF</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <!-- ── Analyses de laboratoire (résultats validés) ─────────────────────── -->
     <div class="panel" style="margin-bottom:20px;">
         <div class="panel-header"><h2 th:text="#{portal.record.lab_results}">Résultats d'analyses</h2></div>

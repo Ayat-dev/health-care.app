@@ -51,6 +51,7 @@ public class PortalWebController {
     private final LabService labService;
     private final RadiologyService radiologyService;
     private final BillingService billingService;
+    private final com.clinic.backend.certificate.MedicalCertificateService certificateService;
     private final com.clinic.backend.service.UserService userService;
     private final UserRepository userRepository;
     private final WebI18n i18n;
@@ -147,6 +148,7 @@ public class PortalWebController {
                 .filter(java.util.Objects::nonNull)
                 .toList();
         model.addAttribute("prescriptions", prescriptions);
+        model.addAttribute("certificates", certificateService.findForPatient(patient.getId()));
         return "portal/record";
     }
 
@@ -173,6 +175,12 @@ public class PortalWebController {
     public org.springframework.http.ResponseEntity<byte[]> receiptPdf(@PathVariable Long id) {
         return com.clinic.backend.controller.web.BillingWebController.pdfInline(
                 portalDocumentService.receiptPdf(id), "recu-" + id + ".pdf");
+    }
+
+    @GetMapping("/certificates/{id}/pdf")
+    public org.springframework.http.ResponseEntity<byte[]> certificatePdf(@PathVariable Long id) {
+        return com.clinic.backend.controller.web.BillingWebController.pdfInline(
+                portalDocumentService.certificatePdf(id), "certificat-" + id + ".pdf");
     }
 
     // ── Profil / mot de passe ─────────────────────────────────────────────────

@@ -2,6 +2,8 @@ package com.clinic.backend.config;
 
 import com.clinic.backend.appointment.Appointment;
 import com.clinic.backend.appointment.AppointmentRepository;
+import com.clinic.backend.certificate.MedicalCertificate;
+import com.clinic.backend.certificate.MedicalCertificateRepository;
 import com.clinic.backend.consultation.Consultation;
 import com.clinic.backend.consultation.ConsultationRepository;
 import com.clinic.backend.consultation.Prescription;
@@ -73,6 +75,7 @@ public class DataInitializer {
                                AppointmentRepository appointmentRepository,
                                ConsultationRepository consultationRepository,
                                PrescriptionRepository prescriptionRepository,
+                               MedicalCertificateRepository certificateRepository,
                                DrugRepository drugRepository,
                                StockItemRepository stockItemRepository,
                                LabTestCatalogRepository labTestCatalogRepository,
@@ -229,6 +232,30 @@ public class DataInitializer {
             c2.setPulseBpm(78);
             c2.setStatus("EN_COURS");
             consultationRepository.save(c2);
+
+            // ── Certificats médicaux (Tier E1) ────────────────────────────────
+            MedicalCertificate cert1 = new MedicalCertificate();
+            cert1.setCertificateNumber("CERT-" + today.getYear() + "-00001");
+            cert1.setType("ARRET_TRAVAIL");
+            cert1.setPatient(p1);
+            cert1.setDoctor(doctor);
+            cert1.setConsultation(c1);
+            cert1.setIssueDate(today.minusDays(7));
+            cert1.setRestStartDate(today.minusDays(7));
+            cert1.setRestEndDate(today.minusDays(4));
+            cert1.setRestDays(4);
+            cert1.setContent("Je soussigné, Dr Martin, certifie que l'état de santé de la patiente "
+                    + "justifie un arrêt de travail sur la période indiquée.");
+            certificateRepository.save(cert1);
+
+            MedicalCertificate cert2 = new MedicalCertificate();
+            cert2.setCertificateNumber("CERT-" + today.getYear() + "-00002");
+            cert2.setType("BONNE_SANTE");
+            cert2.setPatient(p2);
+            cert2.setDoctor(doctor);
+            cert2.setIssueDate(today);
+            cert2.setContent("Certificat de bonne santé délivré à la demande de l'intéressé.");
+            certificateRepository.save(cert2);
 
             // ── Laboratoire ───────────────────────────────────────────────────
             LabTestCatalog nfs   = labTestCatalogRepository.findByCodeIgnoreCase("NFS").orElse(null);

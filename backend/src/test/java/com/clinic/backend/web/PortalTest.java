@@ -108,9 +108,20 @@ class PortalTest {
     }
 
     @Test
+    void telecharge_son_certificat_pdf() throws Exception {
+        assertPdf("/portal/certificates/1/pdf"); // CERT-…-00001 = p1 (E1-bis)
+    }
+
+    @Test
     void telechargement_document_autrui_refuse() throws Exception {
         // LAB req 2 appartient à p2 → 403 (cloisonnement).
         mvc.perform(get("/portal/lab/2/pdf")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void telechargement_certificat_autrui_refuse() throws Exception {
+        // CERT-…-00002 appartient à p2 → 403 (cloisonnement).
+        mvc.perform(get("/portal/certificates/2/pdf")).andExpect(status().isForbidden());
     }
 
     // ── D4b : annulation de RDV (cloisonnée) ────────────────────────────────────

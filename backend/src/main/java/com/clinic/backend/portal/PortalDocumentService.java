@@ -1,10 +1,12 @@
 package com.clinic.backend.portal;
 
 import com.clinic.backend.billing.BillingService;
+import com.clinic.backend.certificate.MedicalCertificateService;
 import com.clinic.backend.clinicconfig.ClinicConfigService;
 import com.clinic.backend.consultation.PrescriptionService;
 import com.clinic.backend.dto.InvoiceDto;
 import com.clinic.backend.dto.LabRequestDto;
+import com.clinic.backend.dto.MedicalCertificateDto;
 import com.clinic.backend.dto.PrescriptionDto;
 import com.clinic.backend.dto.RadiologyRequestDto;
 import com.clinic.backend.export.PdfExportService;
@@ -42,6 +44,7 @@ public class PortalDocumentService {
     private final RadiologyService radiologyService;
     private final PrescriptionService prescriptionService;
     private final BillingService billingService;
+    private final MedicalCertificateService certificateService;
 
     /** Bulletin de laboratoire (résultats validés). */
     public byte[] labBulletinPdf(Long requestId) {
@@ -71,6 +74,13 @@ public class PortalDocumentService {
         InvoiceDto invoice = billingService.getDtoById(invoiceId);
         requireOwnership(invoice.getPatientId());
         return render("billing/invoices/receipt", "invoice", invoice, invoice.getPatientId());
+    }
+
+    /** Certificat médical (Tier E1-bis). */
+    public byte[] certificatePdf(Long certificateId) {
+        MedicalCertificateDto certificate = certificateService.getDtoById(certificateId);
+        requireOwnership(certificate.getPatientId());
+        return render("certificates/print", "certificate", certificate, certificate.getPatientId());
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────────

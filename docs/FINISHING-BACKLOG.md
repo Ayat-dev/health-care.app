@@ -604,8 +604,14 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
   jamais injecté** ; dates de repos effacées si type ≠ arrêt/repos. 7 types (`certificates.type.*`).
   26 clés i18n ×3. +5 tests `CertificateTest` (numéro+repos calculé+nettoyage non-repos ; prefill
   consultation ; PDF binaire ; gating MEDECIN 200/SECRETAIRE 403 ; patron tenant). *Vérifié* :
-  `mvnd test` → **263 verts, 0 skip**. **Suivi (E1-bis, différé)** : téléchargement portail patient
-  (patron D4b `PortalDocumentService`).
+  `mvnd test` → **263 verts, 0 skip**.
+- [x] **E1-bis — Téléchargement des certificats au portail patient. ✅ FAIT 2026-07-01.**
+  `PortalDocumentService.certificatePdf` (cloisonné `requireOwnership` → 403 si pas le dossier du
+  patient connecté) + endpoint `/portal/certificates/{id}/pdf` + section « Certificats » sur
+  `portal/record.html` (⬇ PDF par ligne). 2 certificats seedés dans `DataInitializer` (p1=CERT-…-00001
+  arrêt de travail, p2=CERT-…-00002 bonne santé). 3 clés i18n ×3 (`portal.record.certificates`/
+  `no_certificates`/`portal.col.type`). +2 tests `PortalTest` (télécharge le sien 200 / celui d'autrui
+  403). *Vérifié* : `mvnd test` → **265 verts, 0 skip**.
 - [ ] **E2 — Allergies + interactions médicamenteuses (advisory, jamais bloquant).** Deux sous-slices :
   **A** croiser `patient.allergies` (texte libre chiffré) avec le médicament → alerte (nécessite tagger
   les `drugs` par classe/groupe allergène + matcher) ; **B** table `drug_interactions` curée (paire de
@@ -646,6 +652,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-07-01 | **E1-bis — certificats téléchargeables au portail patient** | `PortalDocumentService.certificatePdf` (ownership → 403 sinon) + `/portal/certificates/{id}/pdf` + section « Certificats » sur `portal/record.html`. 2 certificats seedés (`DataInitializer` : p1 arrêt de travail, p2 bonne santé). 3 clés i18n ×3. +2 tests `PortalTest` (le sien 200 / autrui 403). Patron D4b réutilisé tel quel. **265 verts, 0 skip.** |
 | 2026-07-01 | **E1 — certificats médicaux (nouveau Tier E, issu de la comparaison IA)** | Pkg `certificate` : `MedicalCertificate` (@TenantId, FK patient/médecin/consultation-opt, `CERT-YYYY-NNNNN` **native GLOBALE** comme ordonnances, repos + `rest_days` bornes inclusives, corps texte) + **V34**. Web MEDECIN `/certificates` (liste/new prefill/edit/print=détail/**pdf** via `PdfExportService`, patron ordonnance). Raccourci « 📄 Certificat » sur la consultation. Confidentialité : médecin=user courant, **diagnostic jamais injecté**, dates de repos effacées si type≠arrêt/repos. 7 types. 26 clés i18n ×3. +5 tests `CertificateTest` (numéro/repos/nettoyage ; prefill ; PDF ; gating MEDECIN 200/SECRETAIRE 403 ; patron tenant `@BeforeTransaction`+`@WithUserDetails`). NB : numérotation **native non-tenant** obligatoire (colonne `unique` globale, sinon collision inter-cliniques). **263 verts, 0 skip.** |
 | 2026-07-01 | **Décision — Z1/Z2/Z3 abandonnés (aucun code)** | Après revue détaillée (valeur/acteurs/coût matériel/technicité/PHI), l'utilisateur choisit de **laisser tomber** Z1 (FHIR avancé — pas d'écosystème d'échange Niger), Z2 (scribe audio — GPU/coût-par-consult + mur PHI), Z3 (téléméd. avancée — **notif SMS incluse**, jugée non-primordiale). Non-bloquants. **Ne pas reproposer.** Les fondations livrées (FHIR lecture P2.1, scribe étage 2 P4.1, téléconsult légère P3.7) restent en place. **➡️ Tout le tracker (A→D + Tier Z retenu) est clos** — plus de travail planifié ; toute suite = nouvelle demande utilisateur. Suite inchangée (258 verts). |
 | 2026-07-01 | **Z4b — rapprochement des paiements QR manuels (AmanaTa/MyNITA) → chantier Z4 TERMINÉ** | Marquage manuel (pas de CSV). **V33** : `payments.reconciled_at`/`reconciled_by` (nullables+index) + `Payment` enrichi. Vue `/billing/reconciliation` (`hasAnyRole('OWNER','CAISSIER')`) : QR du jour, filtre date + non-rapprochés, synthèse (total/attente/montant/**sans réf**), toggle Rapprocher/Annuler (estampille `reconciled_at`/`by=currentUser`). **Tenant-scopé** (`Payment` @TenantId → `findById` cloisonné). `BillingService.reconciliationReport(day,pendingOnly)` (mappé en-tx, compteurs sur tous les QR même si liste filtrée) + `toggleReconciled` ; repo dérivé `findByMethodInAnd…` ; DTO `ReconciliationReportDto`+`PaymentDto` (`reconciledAt`/`reconciledByName`/`isReconciled`/`isMissingReference`). Lien dashboard caisse (`sec:authorize`). 24 clés i18n ×3. +4 tests `BillingReconciliationTest` (QR-only ; toggle+compteurs+pendingOnly ; CAISSIER 200/SECRETAIRE 403 ; patron `@BeforeTransaction`+`@WithUserDetails`). **258 verts, 0 skip.** |
