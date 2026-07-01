@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(#{certificates.form.title}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div class="form-card">
+    <div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+    <form th:action="${certificate.id != null} ? @{/certificates/{id}/edit(id=${certificate.id})} : @{/certificates/new}"
+          method="post" th:object="${certificate}">
+
+        <input type="hidden" th:field="*{patientId}"/>
+        <input type="hidden" th:field="*{consultationId}"/>
+
+        <div class="form-group">
+            <span class="form-label" th:text="#{certificates.form.patient}">Patient</span>
+            <div th:text="${certificate.patientName} + (${certificate.patientRecordNumber != null} ? ' · ' + ${certificate.patientRecordNumber} : '')">
+                NOM Prénom</div>
+        </div>
+
+        <div class="form-grid-2">
+            <div class="form-group">
+                <label class="form-label" for="type" th:text="#{certificates.form.type}">Type</label>
+                <select id="type" class="form-control" th:field="*{type}">
+                    <option th:each="t : ${types}" th:value="${t}"
+                            th:text="#{'certificates.type.' + ${t}}">Certificat</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="issueDate" th:text="#{certificates.form.issue_date}">Date d'émission</label>
+                <input type="date" id="issueDate" class="form-control" th:field="*{issueDate}"/>
+            </div>
+        </div>
+
+        <!-- Repos : pertinent pour arrêt de travail / repos médical (le service ignore ces
+             champs pour les autres types) -->
+        <fieldset style="border:1px solid var(--border-2); border-radius:8px; padding:12px 14px; margin:8px 0;">
+            <legend class="form-label" th:text="#{certificates.form.rest_legend}">Repos prescrit (le cas échéant)</legend>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="restStartDate" th:text="#{certificates.form.rest_from}">Du</label>
+                    <input type="date" id="restStartDate" class="form-control" th:field="*{restStartDate}"/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="restEndDate" th:text="#{certificates.form.rest_to}">Au</label>
+                    <input type="date" id="restEndDate" class="form-control" th:field="*{restEndDate}"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="restDays" th:text="#{certificates.form.rest_days}">Nombre de jours (sinon calculé)</label>
+                <input type="number" id="restDays" min="1" class="form-control" th:field="*{restDays}"/>
+            </div>
+        </fieldset>
+
+        <div class="form-group">
+            <label class="form-label" for="content" th:text="#{certificates.form.content}">Contenu du certificat</label>
+            <textarea id="content" class="form-control" rows="6" th:field="*{content}"
+                      th:placeholder="#{certificates.form.content_ph}"></textarea>
+            <p class="form-hint" th:text="#{certificates.form.confidentiality}">
+                Le diagnostic n'est pas ajouté automatiquement — précisez uniquement ce qui doit figurer.</p>
+        </div>
+
+        <div style="display:flex; gap:.5rem;">
+            <button type="submit" class="btn btn-primary" th:text="#{common.save}">Enregistrer</button>
+            <a th:replace="~{fragments/ui :: backHistory}"></a>
+        </div>
+    </form>
+</div>
+
+</th:block></body>
+</html>

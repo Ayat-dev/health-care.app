@@ -47,6 +47,7 @@
 | C | Accessibilité (A11y) — finitions | 3 | 3 | ✅ terminé |
 | D | Divers (durcissement/polish) | 12 | 12 | ✅ terminé |
 | Z | (Tier 2) Grosses features parquées | 6 | 3 | ✅ Z4(a+b)·Z5·Z6 faits ; 🛑 Z1-Z3 ABANDONNÉS (déc. util. 2026-07-01, ne pas reproposer) |
+| E | Tier E — extensions cliniques | 3 | 1 | ✅ E1 certificats fait ; ⏳ E2 allergies/interactions · E3 MFA à venir |
 
 **Ordre conseillé** : A (clôt le multi-tenant, petites slices à forte valeur) → D4a (sécu) →
 C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prendre la plus utile.
@@ -586,6 +587,39 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 ---
 
+## E — TIER E : extensions cliniques (nouveau chantier, 2026-07-01)
+
+> Issu d'une comparaison du produit à deux descriptions IA (ChatGPT/Gemini) d'un « système
+> moderne complet ». Le noyau ClinicApp est au niveau (souvent au-delà sur le non-fonctionnel) ;
+> ces 3 extensions sont les **seuls candidats à vraie valeur** hors modules « ERP hospitalier »
+> (bloc/RH/compta/biomed — jugés hors-scope clinique ou à externaliser). Ordre recommandé E1→E3.
+
+- [x] **E1 — Certificats médicaux. ✅ FAIT 2026-07-01.** Pkg `certificate` : entité `MedicalCertificate`
+  (`@TenantId` ; FK patient/médecin/consultation-opt ; `type` ; numérotation `CERT-YYYY-NNNNN` **préfixe
+  constant + native GLOBALE** — comme les ordonnances, uniques inter-cliniques ; dates de repos +
+  `rest_days` calculé bornes inclusives ; corps texte). **V34** (`medical_certificates`). Web MEDECIN
+  (`/certificates` : liste/new prefill(consultation|patient)/edit/**print=détail**/**pdf** via
+  `PdfExportService`, patron impression ordonnance). Raccourci « 📄 Certificat » sur la consultation.
+  **Confidentialité** : le médecin = émetteur (user courant) ; le corps est saisi à la main, **diagnostic
+  jamais injecté** ; dates de repos effacées si type ≠ arrêt/repos. 7 types (`certificates.type.*`).
+  26 clés i18n ×3. +5 tests `CertificateTest` (numéro+repos calculé+nettoyage non-repos ; prefill
+  consultation ; PDF binaire ; gating MEDECIN 200/SECRETAIRE 403 ; patron tenant). *Vérifié* :
+  `mvnd test` → **263 verts, 0 skip**. **Suivi (E1-bis, différé)** : téléchargement portail patient
+  (patron D4b `PortalDocumentService`).
+- [ ] **E2 — Allergies + interactions médicamenteuses (advisory, jamais bloquant).** Deux sous-slices :
+  **A** croiser `patient.allergies` (texte libre chiffré) avec le médicament → alerte (nécessite tagger
+  les `drugs` par classe/groupe allergène + matcher) ; **B** table `drug_interactions` curée (paire de
+  DCI → sévérité → note), vérif par paires sur l'ordonnance → alerte. Patron flag-anormal du labo pour
+  l'UI. **Le vrai coût = la DONNÉE** (table interne curée, offline/gratuite mais couverture limitée ;
+  base commerciale = licence/coût). *Framework + seed ; la valeur croît avec la curation.*
+- [ ] **E3 — MFA (2ᵉ facteur).** TOTP (recommandé, offline/gratuit) vs SMS OTP (réutilise Africa's
+  Talking mais plus faible + coût/login). Sur **les 2 chaînes** (session web + JWT) + enrôlement +
+  **codes de secours** + reset admin + interaction rate-limit/lockout existant. Décisions à trancher :
+  facteur, obligatoire (ADMIN/OWNER/SUPER_ADMIN) vs opt-in. *Touche le cœur auth → tests soignés ;
+  charge de support réelle en clinique peu tech. À faire en dernier.*
+
+---
+
 ## 🖥️ Notes d'environnement (Testcontainers sur ce poste Windows + Docker Desktop)
 
 > Nécessaire **uniquement** pour les tests `@Tag("testcontainers")` (A1, et futurs tests PG/conteneur)
@@ -612,6 +646,7 @@ C (a11y) → B (PWA) → reste de D. Mais chaque slice est indépendante : prend
 
 | Date | Slice | Résultat (tests, fichiers clés, NB) |
 |---|---|---|
+| 2026-07-01 | **E1 — certificats médicaux (nouveau Tier E, issu de la comparaison IA)** | Pkg `certificate` : `MedicalCertificate` (@TenantId, FK patient/médecin/consultation-opt, `CERT-YYYY-NNNNN` **native GLOBALE** comme ordonnances, repos + `rest_days` bornes inclusives, corps texte) + **V34**. Web MEDECIN `/certificates` (liste/new prefill/edit/print=détail/**pdf** via `PdfExportService`, patron ordonnance). Raccourci « 📄 Certificat » sur la consultation. Confidentialité : médecin=user courant, **diagnostic jamais injecté**, dates de repos effacées si type≠arrêt/repos. 7 types. 26 clés i18n ×3. +5 tests `CertificateTest` (numéro/repos/nettoyage ; prefill ; PDF ; gating MEDECIN 200/SECRETAIRE 403 ; patron tenant `@BeforeTransaction`+`@WithUserDetails`). NB : numérotation **native non-tenant** obligatoire (colonne `unique` globale, sinon collision inter-cliniques). **263 verts, 0 skip.** |
 | 2026-07-01 | **Décision — Z1/Z2/Z3 abandonnés (aucun code)** | Après revue détaillée (valeur/acteurs/coût matériel/technicité/PHI), l'utilisateur choisit de **laisser tomber** Z1 (FHIR avancé — pas d'écosystème d'échange Niger), Z2 (scribe audio — GPU/coût-par-consult + mur PHI), Z3 (téléméd. avancée — **notif SMS incluse**, jugée non-primordiale). Non-bloquants. **Ne pas reproposer.** Les fondations livrées (FHIR lecture P2.1, scribe étage 2 P4.1, téléconsult légère P3.7) restent en place. **➡️ Tout le tracker (A→D + Tier Z retenu) est clos** — plus de travail planifié ; toute suite = nouvelle demande utilisateur. Suite inchangée (258 verts). |
 | 2026-07-01 | **Z4b — rapprochement des paiements QR manuels (AmanaTa/MyNITA) → chantier Z4 TERMINÉ** | Marquage manuel (pas de CSV). **V33** : `payments.reconciled_at`/`reconciled_by` (nullables+index) + `Payment` enrichi. Vue `/billing/reconciliation` (`hasAnyRole('OWNER','CAISSIER')`) : QR du jour, filtre date + non-rapprochés, synthèse (total/attente/montant/**sans réf**), toggle Rapprocher/Annuler (estampille `reconciled_at`/`by=currentUser`). **Tenant-scopé** (`Payment` @TenantId → `findById` cloisonné). `BillingService.reconciliationReport(day,pendingOnly)` (mappé en-tx, compteurs sur tous les QR même si liste filtrée) + `toggleReconciled` ; repo dérivé `findByMethodInAnd…` ; DTO `ReconciliationReportDto`+`PaymentDto` (`reconciledAt`/`reconciledByName`/`isReconciled`/`isMissingReference`). Lien dashboard caisse (`sec:authorize`). 24 clés i18n ×3. +4 tests `BillingReconciliationTest` (QR-only ; toggle+compteurs+pendingOnly ; CAISSIER 200/SECRETAIRE 403 ; patron `@BeforeTransaction`+`@WithUserDetails`). **258 verts, 0 skip.** |
 | 2026-07-01 | **Z4 re-scopé Niger + Z4a — journal admin des webhooks** | **Décision** : ancien Z4 (SDK Orange/Wave/MTN, USSD/STK, CSV) jugé **obsolète** (marché Niger = AmanaTa/MyNITA QR **sans API**, aggrégateurs retirés du menu ; webhook P3.3 dormant). Re-scopé en Z4a (journal admin) + Z4b (rapprochement QR manuel, à venir). **Z4a fait** : vue **SUPER_ADMIN** `/admin/payment-webhooks` (read-only) sur `payment_webhook_events` — filtres fournisseur/statut/dates, badges d'issue, cap 200. Gate SUPER_ADMIN car table **globale** (webhook sans tenant → un ADMIN clinique verrait d'autres cliniques). Nav auto : module `ADMIN_WEBHOOKS` (`Module`/Section.ADMIN) ajouté à `RoleProfile.SUPER_ADMIN`. Repo `search(...)`+`distinctProviders()`. Template `admin/payment-webhooks/list.html`. 21 clés i18n ×3. +3 tests `AdminPaymentWebhooksTest` (SUPER_ADMIN 200/ADMIN 403/filtre statut, `@Transactional`). **254 verts, 0 skip.** |

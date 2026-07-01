@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(#{certificates.list.title}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div class="panel">
+    <div class="panel-header">
+        <span th:text="#{certificates.list.title}">Certificats médicaux</span>
+    </div>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col" th:text="#{common.date}">Date</th>
+                <th scope="col" th:text="#{certificates.list.col_number}">Numéro</th>
+                <th scope="col" th:text="#{certificates.list.col_type}">Type</th>
+                <th scope="col" th:text="#{common.patient}">Patient</th>
+                <th scope="col" th:text="#{common.doctor}">Médecin</th>
+                <th scope="col"><span class="sr-only" th:text="#{common.selection}">Action</span></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${certificates.isEmpty()}">
+                <td colspan="6" class="empty-state" th:text="#{certificates.list.empty}">Aucun certificat.</td>
+            </tr>
+            <tr th:each="c : ${certificates}">
+                <td th:text="${#temporals.format(c.issueDate,'dd/MM/yyyy')}">01/01/2026</td>
+                <td><code th:text="${c.certificateNumber}">CERT-2026-00001</code></td>
+                <td><span class="badge badge-blue" th:text="#{'certificates.type.' + ${c.type}}">Général</span></td>
+                <td th:text="${c.patientName}">NOM Prénom</td>
+                <td th:text="${c.doctorName}">Dr. Nom</td>
+                <td><a th:href="@{/certificates/{id}/print(id=${c.id})}" class="btn btn-ghost btn-sm"
+                       th:text="#{certificates.list.open}">Ouvrir</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</th:block></body>
+</html>

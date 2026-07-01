@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="'Certificat ' + ${certificate.certificateNumber}">Certificat</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: "Segoe UI", Arial, sans-serif; color: #0f172a; margin: 0; padding: 24px; background: #f1f5f9; }
+        .sheet { max-width: 800px; margin: 0 auto; background: #fff; padding: 32px 40px; border: 1px solid #e2e8f0; }
+        .rx-header { display: flex; justify-content: space-between; align-items: flex-start;
+                     border-bottom: 2px solid #0f172a; padding-bottom: 12px; }
+        .clinic-name { font-size: 22px; font-weight: 700; }
+        .clinic-meta { font-size: 12px; color: #475569; line-height: 1.5; }
+        .logo { max-height: 64px; }
+        .rx-row { display: flex; justify-content: space-between; gap: 24px; margin-top: 16px; font-size: 14px; }
+        .rx-block { line-height: 1.6; }
+        .rx-label { color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+        .cert-title { font-size: 20px; font-weight: 700; text-align: center; text-transform: uppercase;
+                      letter-spacing: .06em; margin: 32px 0 20px; }
+        .cert-body { font-size: 15px; line-height: 1.8; white-space: pre-wrap; min-height: 80px; }
+        .cert-rest { margin-top: 16px; font-size: 14px; padding: 10px 12px; background: #f8fafc;
+                     border-left: 3px solid #2563eb; }
+        .rx-footer { margin-top: 48px; display: flex; justify-content: space-between; align-items: flex-end;
+                     font-size: 12px; color: #475569; }
+        .signature { text-align: center; }
+        .signature .line { width: 200px; border-top: 1px solid #94a3b8; margin-top: 48px; padding-top: 4px; }
+        .toolbar { max-width: 800px; margin: 0 auto 16px; text-align: right; }
+        .btn { display: inline-block; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer;
+               font-size: 13px; text-decoration: none; }
+        .btn-print { background: #2563eb; color: #fff; }
+        @media print {
+            body { background: #fff; padding: 0; }
+            .sheet { border: none; max-width: none; }
+            .toolbar { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar" th:if="${!pdf}">
+    <a th:replace="~{fragments/ui :: backHistory}"></a>
+    <a th:href="@{/certificates/{id}/edit(id=${certificate.id})}" class="btn" style="background:#e2e8f0;color:#0f172a;">Modifier</a>
+    <a th:href="@{/certificates/{id}/pdf(id=${certificate.id})}" class="btn" style="background:#0f766e;color:#fff;">⬇ PDF</a>
+    <button onclick="window.print()" class="btn btn-print">Imprimer</button>
+</div>
+
+<div class="sheet">
+    <div class="rx-header">
+        <div>
+            <div class="clinic-name" th:text="${config.name}">Nom de la clinique</div>
+            <div class="clinic-meta">
+                <div th:if="${config.slogan}" th:text="${config.slogan}">Slogan</div>
+                <div th:text="${config.address}">Adresse</div>
+                <div>
+                    <span th:if="${config.phone}" th:text="'Tél : ' + ${config.phone}">Tél</span>
+                    <span th:if="${config.email}" th:text="' · ' + ${config.email}">Email</span>
+                </div>
+            </div>
+        </div>
+        <img th:if="${config.logoUrl}" th:src="${config.logoUrl}" class="logo" alt="Logo"/>
+    </div>
+
+    <div class="cert-title" th:text="#{'certificates.type.' + ${certificate.type}}">Certificat médical</div>
+
+    <div class="rx-row">
+        <div class="rx-block">
+            <div class="rx-label">Patient</div>
+            <div th:text="${certificate.patientName}">NOM Prénom</div>
+            <div class="clinic-meta" th:text="'N° dossier : ' + ${certificate.patientRecordNumber}">N° dossier</div>
+        </div>
+        <div class="rx-block" style="text-align:right;">
+            <div class="rx-label">Âge</div>
+            <div th:text="${patientAge != null ? patientAge + ' ans' : '—'}">— ans</div>
+        </div>
+    </div>
+
+    <div class="cert-body" th:text="${certificate.content ?: ''}">Corps du certificat…</div>
+
+    <div class="cert-rest" th:if="${certificate.restStartDate != null and certificate.restEndDate != null}">
+        Repos prescrit du <strong th:text="${#temporals.format(certificate.restStartDate,'dd/MM/yyyy')}">01/01</strong>
+        au <strong th:text="${#temporals.format(certificate.restEndDate,'dd/MM/yyyy')}">05/01</strong>
+        <span th:if="${certificate.restDays != null}" th:text="' (' + ${certificate.restDays} + ' jour(s))'"> (5 jours)</span>.
+    </div>
+
+    <div class="rx-footer">
+        <div>
+            <div th:text="'Certificat n° ' + ${certificate.certificateNumber}">Certificat n°</div>
+            <div th:text="'Fait le ' + ${#temporals.format(certificate.issueDate,'dd/MM/yyyy')}">Fait le 01/01/2026</div>
+        </div>
+        <div class="signature">
+            <div th:text="'Dr. ' + ${certificate.doctorName}">Dr. Nom</div>
+            <div class="line">Signature / Cachet</div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

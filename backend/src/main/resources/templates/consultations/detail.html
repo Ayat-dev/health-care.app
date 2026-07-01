@@ -126,6 +126,8 @@
            class="btn btn-ghost" th:text="#{consultations.actions.admit}">🏥 Admettre le patient</a>
         <a th:href="@{/billing/invoices/new(consultationId=${consultation.id},patientId=${consultation.patientId})}"
            class="btn btn-ghost" th:text="#{consultations.actions.invoice}">💳 Créer une facture</a>
+        <a th:href="@{/certificates/new(consultationId=${consultation.id},patientId=${consultation.patientId})}"
+           class="btn btn-ghost" th:text="#{consultations.actions.certificate}">📄 Certificat médical</a>
     </div>
     <p class="form-hint" style="padding:0 16px 14px;" th:text="#{consultations.actions.hint}">
         Le suivi (résultats, comptes-rendus, séjour, encaissement) se poursuit dans le module correspondant.
