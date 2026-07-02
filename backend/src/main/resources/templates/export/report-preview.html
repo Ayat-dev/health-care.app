@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(${preview.title}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div class="panel">
+    <div class="panel-header">
+        <span th:text="${preview.title}">Aperçu de l'export</span>
+        <span class="badge badge-blue" th:if="${!preview.periodLabel.isEmpty()}"
+              th:text="${preview.periodLabel}">Période</span>
+    </div>
+
+    <form method="get" class="panel-body">
+        <input th:each="c : ${preview.context}" type="hidden" th:name="${c.key}" th:value="${c.value}"/>
+
+        <p class="form-hint" th:text="#{export.preview.sections_help}">
+            Cochez les rubriques à inclure dans le fichier, puis téléchargez.
+        </p>
+
+        <div style="display:flex; gap:.5rem; margin:8px 0 16px;">
+            <button type="submit" th:formaction="${preview.previewUrl}" class="btn btn-ghost btn-sm"
+                    th:text="#{export.preview.refresh}">Actualiser l'aperçu</button>
+            <button type="submit" th:formaction="${preview.downloadUrl}" class="btn btn-primary btn-sm">
+                <svg class="icon-inline" aria-hidden="true"><use href="#ic-file-excel"></use></svg>
+                <span th:text="#{export.preview.download}">Télécharger l'Excel</span>
+            </button>
+        </div>
+
+        <!-- Une rubrique = une case à cocher + son tableau -->
+        <div th:each="s : ${preview.sections}" class="panel" style="margin-bottom:14px;">
+            <div class="panel-header" style="gap:.5rem;">
+                <label style="display:inline-flex; align-items:center; gap:.5rem; font-weight:600;">
+                    <input type="checkbox" name="sections" th:value="${s.key}" th:checked="${s.selected}"/>
+                    <span th:text="${s.label}">Rubrique</span>
+                </label>
+            </div>
+            <div th:if="${s.rows.isEmpty()}" class="empty-state" th:text="#{export.preview.no_data}">Aucune donnée.</div>
+            <div th:unless="${s.rows.isEmpty()}" class="table-wrap">
+                <table class="table">
+                    <thead>
+                    <tr><th th:each="h : ${s.headers}" scope="col" th:text="${h}">Colonne</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="row : ${s.rows}">
+                        <td th:each="cell : ${row}" th:text="${cell}">valeur</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </form>
+</div>
+
+</th:block></body>
+</html>

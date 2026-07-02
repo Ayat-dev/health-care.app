@@ -109,6 +109,23 @@ class FicheExportWebTest {
 
     @Test
     @WithUserDetails(value = "owner", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void apercu_rapport_activite_liste_les_sections() throws Exception {
+        mvc.perform(get("/reports/activity/export/preview"))
+           .andExpect(status().isOk())
+           .andExpect(content().string(org.hamcrest.Matchers.containsString("name=\"sections\"")))
+           .andExpect(content().string(org.hamcrest.Matchers.containsString("Consultations par département")));
+    }
+
+    @Test
+    @WithUserDetails(value = "owner", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void export_rapport_sections_filtrees_reste_xlsx() throws Exception {
+        mvc.perform(get("/reports/activity/excel").param("sections", "kpis"))
+           .andExpect(status().isOk())
+           .andExpect(header().string("Content-Type", XLSX));
+    }
+
+    @Test
+    @WithUserDetails(value = "owner", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void export_impayes_pdf() throws Exception {
         mvc.perform(get("/reports/outstanding/pdf"))
            .andExpect(status().isOk())

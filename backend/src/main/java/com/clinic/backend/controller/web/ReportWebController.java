@@ -132,31 +132,93 @@ public class ReportWebController {
     @GetMapping("/financial/excel")
     @PreAuthorize("hasAnyRole('OWNER','CAISSIER')")
     public ResponseEntity<byte[]> financialExcel(@RequestParam(required = false) Integer month,
-                                                 @RequestParam(required = false) Integer year) {
+                                                 @RequestParam(required = false) Integer year,
+                                                 @RequestParam(required = false) java.util.List<String> sections) {
         int m = month != null ? month : LocalDate.now().getMonthValue();
         int y = year != null ? year : LocalDate.now().getYear();
-        return xlsxAttachment(reportExportService.monthlyFinancialExcel(reportService.monthlyFinancial(m, y)),
-                "bilan-financier-" + y + "-" + String.format("%02d", m) + ".xlsx");
+        byte[] xlsx = reportExportService.sectionsXlsx("Bilan financier",
+                reportExportService.financialSections(reportService.monthlyFinancial(m, y)), toSet(sections));
+        return xlsxAttachment(xlsx, "bilan-financier-" + y + "-" + String.format("%02d", m) + ".xlsx");
+    }
+
+    @GetMapping("/financial/export/preview")
+    @PreAuthorize("hasAnyRole('OWNER','CAISSIER')")
+    public String financialPreview(@RequestParam(required = false) Integer month,
+                                   @RequestParam(required = false) Integer year,
+                                   @RequestParam(required = false) java.util.List<String> sections, Model model) {
+        int m = month != null ? month : LocalDate.now().getMonthValue();
+        int y = year != null ? year : LocalDate.now().getYear();
+        model.addAttribute("preview", reportExportService.preview(
+                "Bilan financier", periodLabel(m, y), "/reports/financial/export/preview", "/reports/financial/excel",
+                periodCtx(m, y), reportExportService.financialSections(reportService.monthlyFinancial(m, y)), toSet(sections)));
+        return "export/report-preview";
     }
 
     @GetMapping("/activity/excel")
     @PreAuthorize("hasAnyRole('MEDECIN','OWNER')")
     public ResponseEntity<byte[]> activityExcel(@RequestParam(required = false) Integer month,
-                                                @RequestParam(required = false) Integer year) {
+                                                @RequestParam(required = false) Integer year,
+                                                @RequestParam(required = false) java.util.List<String> sections) {
         int m = month != null ? month : LocalDate.now().getMonthValue();
         int y = year != null ? year : LocalDate.now().getYear();
-        return xlsxAttachment(reportExportService.activityExcel(reportService.activity(m, y)),
-                "rapport-activite-" + y + "-" + String.format("%02d", m) + ".xlsx");
+        byte[] xlsx = reportExportService.sectionsXlsx("Activité",
+                reportExportService.activitySections(reportService.activity(m, y)), toSet(sections));
+        return xlsxAttachment(xlsx, "rapport-activite-" + y + "-" + String.format("%02d", m) + ".xlsx");
+    }
+
+    @GetMapping("/activity/export/preview")
+    @PreAuthorize("hasAnyRole('MEDECIN','OWNER')")
+    public String activityPreview(@RequestParam(required = false) Integer month,
+                                  @RequestParam(required = false) Integer year,
+                                  @RequestParam(required = false) java.util.List<String> sections, Model model) {
+        int m = month != null ? month : LocalDate.now().getMonthValue();
+        int y = year != null ? year : LocalDate.now().getYear();
+        model.addAttribute("preview", reportExportService.preview(
+                "Rapport d'activité", periodLabel(m, y), "/reports/activity/export/preview", "/reports/activity/excel",
+                periodCtx(m, y), reportExportService.activitySections(reportService.activity(m, y)), toSet(sections)));
+        return "export/report-preview";
     }
 
     @GetMapping("/epidemiology/excel")
     @PreAuthorize("hasAnyRole('MEDECIN','OWNER')")
     public ResponseEntity<byte[]> epidemiologyExcel(@RequestParam(required = false) Integer month,
-                                                    @RequestParam(required = false) Integer year) {
+                                                    @RequestParam(required = false) Integer year,
+                                                    @RequestParam(required = false) java.util.List<String> sections) {
         int m = month != null ? month : LocalDate.now().getMonthValue();
         int y = year != null ? year : LocalDate.now().getYear();
-        return xlsxAttachment(reportExportService.epidemiologyExcel(reportService.epidemiology(m, y)),
-                "epidemiologie-" + y + "-" + String.format("%02d", m) + ".xlsx");
+        byte[] xlsx = reportExportService.sectionsXlsx("Épidémiologie",
+                reportExportService.epidemiologySections(reportService.epidemiology(m, y)), toSet(sections));
+        return xlsxAttachment(xlsx, "epidemiologie-" + y + "-" + String.format("%02d", m) + ".xlsx");
+    }
+
+    @GetMapping("/epidemiology/export/preview")
+    @PreAuthorize("hasAnyRole('MEDECIN','OWNER')")
+    public String epidemiologyPreview(@RequestParam(required = false) Integer month,
+                                      @RequestParam(required = false) Integer year,
+                                      @RequestParam(required = false) java.util.List<String> sections, Model model) {
+        int m = month != null ? month : LocalDate.now().getMonthValue();
+        int y = year != null ? year : LocalDate.now().getYear();
+        model.addAttribute("preview", reportExportService.preview(
+                "Statistiques épidémiologiques", periodLabel(m, y), "/reports/epidemiology/export/preview",
+                "/reports/epidemiology/excel", periodCtx(m, y),
+                reportExportService.epidemiologySections(reportService.epidemiology(m, y)), toSet(sections)));
+        return "export/report-preview";
+    }
+
+    private static java.util.Set<String> toSet(java.util.List<String> v) {
+        return v != null ? new java.util.LinkedHashSet<>(v) : null;
+    }
+
+    private static java.util.Map<String, String> periodCtx(int m, int y) {
+        java.util.Map<String, String> ctx = new java.util.LinkedHashMap<>();
+        ctx.put("month", String.valueOf(m));
+        ctx.put("year", String.valueOf(y));
+        return ctx;
+    }
+
+    private static String periodLabel(int m, int y) {
+        return Month.of(m).getDisplayName(TextStyle.FULL,
+                org.springframework.context.i18n.LocaleContextHolder.getLocale()) + " " + y;
     }
 
     static ResponseEntity<byte[]> xlsxAttachment(byte[] xlsx, String filename) {

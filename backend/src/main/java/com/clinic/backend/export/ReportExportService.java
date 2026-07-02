@@ -121,7 +121,10 @@ public class ReportExportService {
 
     // ── Excel ────────────────────────────────────────────────────────────────────
 
-    public byte[] monthlyFinancialExcel(MonthlyFinancialReportDto r) {
+    /** Section de rapport avec une clé stable (pour la sélection à l'aperçu). */
+    public record KeyedSection(String key, ExcelExportService.Section section) {}
+
+    public List<KeyedSection> financialSections(MonthlyFinancialReportDto r) {
         List<List<Object>> kpis = new ArrayList<>();
         kpis.add(Arrays.asList("Facturé (part patient)", r.getTotalInvoiced()));
         kpis.add(Arrays.asList("Encaissé", r.getTotalCollected()));
@@ -129,36 +132,85 @@ public class ReportExportService {
         kpis.add(Arrays.asList("Nombre de factures", r.getInvoiceCount()));
         List<List<Object>> byMethod = new ArrayList<>();
         r.getCollectedByMethod().forEach((m, a) -> byMethod.add(Arrays.asList(m, a)));
-        return excelExportService.toSectionsXlsx("Bilan financier", List.of(
-                new ExcelExportService.Section("Indicateurs", List.of("Indicateur", "Montant"), kpis),
-                new ExcelExportService.Section("Encaissements par mode de paiement", List.of("Mode", "Montant"), byMethod)));
+        return List.of(
+                new KeyedSection("kpis", new ExcelExportService.Section("Indicateurs", List.of("Indicateur", "Montant"), kpis)),
+                new KeyedSection("byMethod", new ExcelExportService.Section("Encaissements par mode de paiement", List.of("Mode", "Montant"), byMethod)));
     }
 
-    public byte[] activityExcel(ActivityReportDto r) {
+    public List<KeyedSection> activitySections(ActivityReportDto r) {
         List<List<Object>> kpis = new ArrayList<>();
         kpis.add(Arrays.asList("Consultations", r.getConsultations()));
         kpis.add(Arrays.asList("Rendez-vous", r.getAppointments()));
         kpis.add(Arrays.asList("Nouveaux patients", r.getNewPatients()));
         kpis.add(Arrays.asList("Demandes de laboratoire", r.getLabRequests()));
         kpis.add(Arrays.asList("Admissions", r.getAdmissions()));
-        return excelExportService.toSectionsXlsx("Activité", List.of(
-                new ExcelExportService.Section("Indicateurs", List.of("Indicateur", "Valeur"), kpis),
-                new ExcelExportService.Section("Consultations par département",
+        return List.of(
+                new KeyedSection("kpis", new ExcelExportService.Section("Indicateurs", List.of("Indicateur", "Valeur"), kpis)),
+                new KeyedSection("byDept", new ExcelExportService.Section("Consultations par département",
                         List.of("Département", "Consultations"), countRows(r.getConsultationsByDepartment()))));
     }
 
-    public byte[] epidemiologyExcel(EpidemiologyReportDto r) {
-        return excelExportService.toSectionsXlsx("Épidémiologie", List.of(
-                new ExcelExportService.Section("Indicateurs", List.of("Indicateur", "Valeur"),
-                        List.of(Arrays.asList("Consultations analysées", r.getTotalConsultations()))),
-                new ExcelExportService.Section("Principales pathologies",
-                        List.of("Pathologie", "Cas"), countRows(r.getTopPathologies())),
-                new ExcelExportService.Section("Répartition par tranche d'âge",
-                        List.of("Tranche", "Consultations"), countRows(r.getByAgeGroup())),
-                new ExcelExportService.Section("Répartition par sexe",
-                        List.of("Sexe", "Consultations"), countRows(r.getBySex())),
-                new ExcelExportService.Section("Répartition par département",
+    public List<KeyedSection> epidemiologySections(EpidemiologyReportDto r) {
+        return List.of(
+                new KeyedSection("kpis", new ExcelExportService.Section("Indicateurs", List.of("Indicateur", "Valeur"),
+                        List.of(Arrays.asList("Consultations analysées", r.getTotalConsultations())))),
+                new KeyedSection("pathologies", new ExcelExportService.Section("Principales pathologies",
+                        List.of("Pathologie", "Cas"), countRows(r.getTopPathologies()))),
+                new KeyedSection("age", new ExcelExportService.Section("Répartition par tranche d'âge",
+                        List.of("Tranche", "Consultations"), countRows(r.getByAgeGroup()))),
+                new KeyedSection("sex", new ExcelExportService.Section("Répartition par sexe",
+                        List.of("Sexe", "Consultations"), countRows(r.getBySex()))),
+                new KeyedSection("dept", new ExcelExportService.Section("Répartition par département",
                         List.of("Département", "Consultations"), countRows(r.getByDepartment()))));
+    }
+
+    /** Produit le .xlsx en ne gardant que les sections sélectionnées (vide/null → toutes). */
+    public byte[] sectionsXlsx(String sheet, List<KeyedSection> all, java.util.Set<String> selectedKeys) {
+        List<ExcelExportService.Section> chosen = new ArrayList<>();
+        for (KeyedSection k : all) {
+            if (selectedKeys == null || selectedKeys.isEmpty() || selectedKeys.contains(k.key())) {
+                chosen.add(k.section());
+            }
+        }
+        if (chosen.isEmpty()) all.forEach(k -> chosen.add(k.section())); // jamais zéro section
+        return excelExportService.toSectionsXlsx(sheet, chosen);
+    }
+
+    /** Construit l'aperçu (toutes les sections affichées, cochées selon la sélection). */
+    public com.clinic.backend.dto.ReportPreviewDto preview(
+            String title, String periodLabel, String previewUrl, String downloadUrl,
+            java.util.Map<String, String> context, List<KeyedSection> all, java.util.Set<String> selectedKeys) {
+        com.clinic.backend.dto.ReportPreviewDto p = new com.clinic.backend.dto.ReportPreviewDto();
+        p.setTitle(title);
+        p.setPeriodLabel(periodLabel != null ? periodLabel : "");
+        p.setPreviewUrl(previewUrl);
+        p.setDownloadUrl(downloadUrl);
+        if (context != null) {
+            context.forEach((k, v) -> { if (v != null && !v.isBlank()) p.getContext().put(k, v); });
+        }
+        boolean all_ = selectedKeys == null || selectedKeys.isEmpty();
+        for (KeyedSection ks : all) {
+            com.clinic.backend.dto.ReportPreviewDto.Section s = new com.clinic.backend.dto.ReportPreviewDto.Section();
+            s.setKey(ks.key());
+            s.setLabel(ks.section().title());
+            s.setSelected(all_ || selectedKeys.contains(ks.key()));
+            s.setHeaders(ks.section().headers());
+            s.setRows(ks.section().rows());
+            p.getSections().add(s);
+        }
+        return p;
+    }
+
+    public byte[] monthlyFinancialExcel(MonthlyFinancialReportDto r) {
+        return sectionsXlsx("Bilan financier", financialSections(r), null);
+    }
+
+    public byte[] activityExcel(ActivityReportDto r) {
+        return sectionsXlsx("Activité", activitySections(r), null);
+    }
+
+    public byte[] epidemiologyExcel(EpidemiologyReportDto r) {
+        return sectionsXlsx("Épidémiologie", epidemiologySections(r), null);
     }
 
     /** Lignes [label, count] pour une répartition (liste nullable). */

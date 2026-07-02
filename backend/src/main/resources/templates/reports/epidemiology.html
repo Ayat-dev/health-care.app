@@ -6,7 +6,7 @@
     <span th:text="#{reports.epidemiology.heading} + ' ' + ${monthName} + ' ' + ${year}">Épidémiologie</span>
     <span class="no-print">
         <a th:href="@{/reports/epidemiology/pdf(month=${month},year=${year})}" class="btn btn-ghost btn-sm"><svg class="icon-inline" aria-hidden="true"><use href="#ic-file-pdf"></use></svg> <span th:text="#{reports.action.pdf}">PDF</span></a>
-        <a th:href="@{/reports/epidemiology/excel(month=${month},year=${year})}" class="btn btn-ghost btn-sm"><svg class="icon-inline" aria-hidden="true"><use href="#ic-file-excel"></use></svg> <span th:text="#{reports.action.excel}">Excel</span></a>
+        <a th:href="@{/reports/epidemiology/export/preview(month=${month},year=${year})}" class="btn btn-ghost btn-sm"><svg class="icon-inline" aria-hidden="true"><use href="#ic-file-excel"></use></svg> <span th:text="#{reports.action.excel}">Excel</span></a>
         <button onclick="window.print()" class="btn btn-ghost btn-sm"><svg class="icon-inline" aria-hidden="true"><use href="#ic-printer"></use></svg> <span th:text="#{common.print}">Imprimer</span></button>
     </span>
 </div>
