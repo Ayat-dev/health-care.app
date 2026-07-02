@@ -129,7 +129,7 @@
             <div class="form-group">
                 <label class="form-label" for="password" th:text="#{login.password}">Mot de passe</label>
                 <input class="form-control" type="password" id="password" name="password"
-                       placeholder="••••••••" required/>
+                       th:placeholder="#{login.password_placeholder}" required/>
             </div>
             <button type="submit" class="btn-login" th:text="#{login.submit}">Se connecter</button>
         </form>

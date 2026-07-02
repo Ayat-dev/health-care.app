@@ -136,9 +136,9 @@
         window.addEventListener('resize', function () { if (window.innerWidth > 768 && isOpen()) close(); });
     }
 
-    /* Menu déroulant de langue (<details>) : se referme au clic à l'extérieur. */
+    /* Menus déroulants (<details> : langue, profil) : se referment au clic à l'extérieur. */
     function initLangDropdownAutoClose() {
-        document.querySelectorAll('details.lang-dropdown').forEach(function (d) {
+        document.querySelectorAll('details.lang-dropdown, details.profile-dropdown').forEach(function (d) {
             document.addEventListener('click', function (e) {
                 if (d.open && !d.contains(e.target)) d.removeAttribute('open');
             });

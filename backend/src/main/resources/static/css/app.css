@@ -1291,6 +1291,89 @@ body.login-page {
 .lang-menu a.active { color: var(--blue); font-weight: 600; }
 [dir="rtl"] .lang-menu { inset-inline-end: auto; inset-inline-start: 0; }
 
+/* ── Box de profil (topbar) — même patron que le sélecteur de langue ───────── */
+.profile-dropdown { position: relative; }
+.profile-dropdown > summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 8px 0 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-700);
+  font-size: 13px;
+  max-width: 190px;
+}
+.profile-dropdown > summary::-webkit-details-marker { display: none; }
+.profile-dropdown > summary::after {
+  content: "";
+  flex-shrink: 0;
+  width: 0; height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--text-400);
+}
+.profile-dropdown[open] > summary { border-color: var(--blue); }
+.profile-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar-avatar {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: #1e3a5f;
+  color: #fff;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.topbar-avatar .nav-icon { width: 15px; height: 15px; }
+.profile-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  inset-inline-end: 0;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  z-index: 120;
+}
+.profile-menu-name {
+  padding: 8px 10px 7px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-900);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+.profile-menu a,
+.profile-menu .profile-logout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-700);
+  font-size: 13px;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+}
+.profile-menu form { margin: 0; }
+.profile-menu a:hover { background: var(--blue-light); color: var(--blue); }
+.profile-menu .profile-logout:hover { background: var(--red-light, #fef2f2); color: var(--red); }
+.profile-menu .nav-icon { width: 16px; height: 16px; }
+[dir="rtl"] .profile-menu { inset-inline-end: auto; inset-inline-start: 0; }
+.sidebar-footer .user-avatar { color: #fff; }
+.sidebar-footer .user-avatar .nav-icon { width: 16px; height: 16px; }
+
 /* ── i18n : support RTL (arabe) ───────────────────────────── */
 /* La sidebar est en position:fixed left:0 et .main a un margin-left ;
    en RTL on bascule tout du côté droit. */
