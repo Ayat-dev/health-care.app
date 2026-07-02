@@ -122,28 +122,52 @@ public class ReportExportService {
     // ── Excel ────────────────────────────────────────────────────────────────────
 
     public byte[] monthlyFinancialExcel(MonthlyFinancialReportDto r) {
-        List<String> headers = List.of("Mode de paiement", "Montant encaissé");
-        List<List<Object>> rows = new ArrayList<>();
-        r.getCollectedByMethod().forEach((m, a) -> rows.add(Arrays.asList(m, a)));
-        return excelExportService.toXlsx("Bilan financier", headers, rows);
+        List<List<Object>> kpis = new ArrayList<>();
+        kpis.add(Arrays.asList("Facturé (part patient)", r.getTotalInvoiced()));
+        kpis.add(Arrays.asList("Encaissé", r.getTotalCollected()));
+        kpis.add(Arrays.asList("Reste à recouvrer", r.getTotalOutstanding()));
+        kpis.add(Arrays.asList("Nombre de factures", r.getInvoiceCount()));
+        List<List<Object>> byMethod = new ArrayList<>();
+        r.getCollectedByMethod().forEach((m, a) -> byMethod.add(Arrays.asList(m, a)));
+        return excelExportService.toSectionsXlsx("Bilan financier", List.of(
+                new ExcelExportService.Section("Indicateurs", List.of("Indicateur", "Montant"), kpis),
+                new ExcelExportService.Section("Encaissements par mode de paiement", List.of("Mode", "Montant"), byMethod)));
     }
 
     public byte[] activityExcel(ActivityReportDto r) {
-        List<String> headers = List.of("Département", "Consultations");
-        List<List<Object>> rows = new ArrayList<>();
-        for (LabelValueDto lv : r.getConsultationsByDepartment()) {
-            rows.add(Arrays.asList(lv.getLabel(), lv.getCount()));
-        }
-        return excelExportService.toXlsx("Activité", headers, rows);
+        List<List<Object>> kpis = new ArrayList<>();
+        kpis.add(Arrays.asList("Consultations", r.getConsultations()));
+        kpis.add(Arrays.asList("Rendez-vous", r.getAppointments()));
+        kpis.add(Arrays.asList("Nouveaux patients", r.getNewPatients()));
+        kpis.add(Arrays.asList("Demandes de laboratoire", r.getLabRequests()));
+        kpis.add(Arrays.asList("Admissions", r.getAdmissions()));
+        return excelExportService.toSectionsXlsx("Activité", List.of(
+                new ExcelExportService.Section("Indicateurs", List.of("Indicateur", "Valeur"), kpis),
+                new ExcelExportService.Section("Consultations par département",
+                        List.of("Département", "Consultations"), countRows(r.getConsultationsByDepartment()))));
     }
 
     public byte[] epidemiologyExcel(EpidemiologyReportDto r) {
-        List<String> headers = List.of("Pathologie", "Cas");
+        return excelExportService.toSectionsXlsx("Épidémiologie", List.of(
+                new ExcelExportService.Section("Indicateurs", List.of("Indicateur", "Valeur"),
+                        List.of(Arrays.asList("Consultations analysées", r.getTotalConsultations()))),
+                new ExcelExportService.Section("Principales pathologies",
+                        List.of("Pathologie", "Cas"), countRows(r.getTopPathologies())),
+                new ExcelExportService.Section("Répartition par tranche d'âge",
+                        List.of("Tranche", "Consultations"), countRows(r.getByAgeGroup())),
+                new ExcelExportService.Section("Répartition par sexe",
+                        List.of("Sexe", "Consultations"), countRows(r.getBySex())),
+                new ExcelExportService.Section("Répartition par département",
+                        List.of("Département", "Consultations"), countRows(r.getByDepartment()))));
+    }
+
+    /** Lignes [label, count] pour une répartition (liste nullable). */
+    private static List<List<Object>> countRows(List<LabelValueDto> items) {
         List<List<Object>> rows = new ArrayList<>();
-        for (LabelValueDto lv : r.getTopPathologies()) {
-            rows.add(Arrays.asList(lv.getLabel(), lv.getCount()));
+        if (items != null) {
+            for (LabelValueDto lv : items) rows.add(Arrays.asList(lv.getLabel(), lv.getCount()));
         }
-        return excelExportService.toXlsx("Épidémiologie", headers, rows);
+        return rows;
     }
 
     public byte[] outstandingExcel(OutstandingReportDto r) {
