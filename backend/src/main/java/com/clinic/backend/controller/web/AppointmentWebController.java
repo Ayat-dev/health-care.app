@@ -55,19 +55,52 @@ public class AppointmentWebController {
         return "appointments/list";
     }
 
-    // ── Export Excel de l'agenda (plage de dates) ─────────────────────────────
+    // ── Aperçu de l'export agenda (choix des colonnes) ─────────────────────────
+    @GetMapping("/export/preview")
+    public String exportPreview(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) Long doctorId,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) java.util.List<String> cols,
+            Model model) {
+        LocalDate f = from != null ? from : LocalDate.now();
+        LocalDate t = to != null ? to : f;
+        java.util.Map<String, String> ctx = new java.util.LinkedHashMap<>();
+        ctx.put("from", f.toString());
+        ctx.put("to", t.toString());
+        ctx.put("doctorId", doctorId != null ? doctorId.toString() : null);
+        ctx.put("status", status);
+        model.addAttribute("preview", ficheExportService.preview(
+                i18n.t("appointments.list.heading"), "/appointments/export/preview", "/appointments/export",
+                ctx, com.clinic.backend.export.FicheExportService.APPOINTMENT_COLS, dtos(f, t, doctorId, status),
+                toSet(cols)));
+        return "export/preview";
+    }
+
+    // ── Export Excel de l'agenda (plage de dates) — colonnes filtrables ────────
     @GetMapping("/export")
     public ResponseEntity<byte[]> export(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
             @RequestParam(required = false) Long doctorId,
-            @RequestParam(required = false) String status) {
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) java.util.List<String> cols) {
         LocalDate f = from != null ? from : LocalDate.now();
         LocalDate t = to != null ? to : f;
-        List<AppointmentDto> rows = appointmentService.search(f, t, doctorId, null, status)
+        byte[] xlsx = ficheExportService.xlsx("Rendez-vous",
+                com.clinic.backend.export.FicheExportService.APPOINTMENT_COLS,
+                dtos(f, t, doctorId, status), toSet(cols));
+        return ReportWebController.xlsxAttachment(xlsx, "rendez-vous-" + f + "_" + t + ".xlsx");
+    }
+
+    private List<AppointmentDto> dtos(LocalDate f, LocalDate t, Long doctorId, String status) {
+        return appointmentService.search(f, t, doctorId, null, status)
                 .stream().map(appointmentService::toDto).toList();
-        return ReportWebController.xlsxAttachment(ficheExportService.appointmentsXlsx(rows),
-                "rendez-vous-" + f + "_" + t + ".xlsx");
+    }
+
+    private static java.util.Set<String> toSet(java.util.List<String> cols) {
+        return cols != null ? new java.util.LinkedHashSet<>(cols) : null;
     }
 
     // ── Vue semaine ───────────────────────────────────────────────────────

@@ -51,12 +51,34 @@ public class PatientWebController {
         return "patients/list";
     }
 
+    // ── Aperçu de l'export registre patients (choix des colonnes) ────────────────
+    @GetMapping("/export/preview")
+    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER','SECRETAIRE','PHARMACIEN','LABORANTIN','CAISSIER')")
+    public String exportPreview(@RequestParam(defaultValue = "") String q,
+                                @RequestParam(required = false) java.util.List<String> cols, Model model) {
+        java.util.Map<String, String> ctx = new java.util.LinkedHashMap<>();
+        ctx.put("q", q);
+        model.addAttribute("preview", ficheExportService.preview(
+                i18n.t("patients.list.heading"), "/patients/export/preview", "/patients/export",
+                ctx, com.clinic.backend.export.FicheExportService.PATIENT_COLS,
+                patientService.search(q, 0, 5000).getContent(), toSet(cols)));
+        return "export/preview";
+    }
+
     // ── Export Excel du registre patients (PHI — mêmes rôles que la liste) ────────
     @GetMapping("/export")
     @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER','SECRETAIRE','PHARMACIEN','LABORANTIN','CAISSIER')")
-    public org.springframework.http.ResponseEntity<byte[]> export(@RequestParam(defaultValue = "") String q) {
-        var patients = patientService.search(q, 0, 5000).getContent();
-        return ReportWebController.xlsxAttachment(ficheExportService.patientsXlsx(patients), "registre-patients.xlsx");
+    public org.springframework.http.ResponseEntity<byte[]> export(
+            @RequestParam(defaultValue = "") String q,
+            @RequestParam(required = false) java.util.List<String> cols) {
+        byte[] xlsx = ficheExportService.xlsx("Patients",
+                com.clinic.backend.export.FicheExportService.PATIENT_COLS,
+                patientService.search(q, 0, 5000).getContent(), toSet(cols));
+        return ReportWebController.xlsxAttachment(xlsx, "registre-patients.xlsx");
+    }
+
+    private static java.util.Set<String> toSet(java.util.List<String> cols) {
+        return cols != null ? new java.util.LinkedHashSet<>(cols) : null;
     }
 
     @GetMapping("/{id}")

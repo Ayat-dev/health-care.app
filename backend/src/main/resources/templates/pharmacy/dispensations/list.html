@@ -9,7 +9,7 @@
     <div class="panel-header">
         <span th:text="#{pharmacy.dispensations.history}">Historique des dispensations</span>
         <span style="display:flex; gap:.5rem;">
-            <a th:href="@{/pharmacy/dispensations/export}" class="btn btn-ghost btn-sm"><svg class="icon-inline" aria-hidden="true"><use href="#ic-file-excel"></use></svg> <span th:text="#{reports.action.excel}">Excel</span></a>
+            <a th:href="@{/pharmacy/dispensations/export/preview}" class="btn btn-ghost btn-sm"><svg class="icon-inline" aria-hidden="true"><use href="#ic-file-excel"></use></svg> <span th:text="#{reports.action.excel}">Excel</span></a>
             <a th:href="@{/pharmacy/dispensations/new}" class="btn btn-primary btn-sm" th:text="#{pharmacy.dispensations.new}">+ Nouvelle dispensation</a>
         </span>
     </div>

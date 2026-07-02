@@ -148,12 +148,27 @@ public class PharmacyWebController {
         return "pharmacy/dispensations/list";
     }
 
+    // ── Aperçu de l'export des dispensations (choix des colonnes) ────────────────────
+    @GetMapping("/dispensations/export/preview")
+    public String exportDispensationsPreview(@RequestParam(required = false) java.util.List<String> cols, Model model) {
+        var lines = com.clinic.backend.export.FicheExportService.flattenDispensations(pharmacyService.listDispensations());
+        model.addAttribute("preview", ficheExportService.preview(
+                i18n.t("pharmacy.dispensations.history"), "/pharmacy/dispensations/export/preview",
+                "/pharmacy/dispensations/export", new java.util.LinkedHashMap<>(),
+                com.clinic.backend.export.FicheExportService.DISPENSATION_COLS, lines,
+                cols != null ? new java.util.LinkedHashSet<>(cols) : null));
+        return "export/preview";
+    }
+
     // ── Export Excel du journal des dispensations (sorties de stock) ─────────────────
     @GetMapping("/dispensations/export")
-    public org.springframework.http.ResponseEntity<byte[]> exportDispensations() {
-        return ReportWebController.xlsxAttachment(
-                ficheExportService.dispensationsXlsx(pharmacyService.listDispensations()),
-                "dispensations.xlsx");
+    public org.springframework.http.ResponseEntity<byte[]> exportDispensations(
+            @RequestParam(required = false) java.util.List<String> cols) {
+        var lines = com.clinic.backend.export.FicheExportService.flattenDispensations(pharmacyService.listDispensations());
+        byte[] xlsx = ficheExportService.xlsx("Dispensations",
+                com.clinic.backend.export.FicheExportService.DISPENSATION_COLS, lines,
+                cols != null ? new java.util.LinkedHashSet<>(cols) : null);
+        return ReportWebController.xlsxAttachment(xlsx, "dispensations.xlsx");
     }
 
     @GetMapping("/dispensations/new")

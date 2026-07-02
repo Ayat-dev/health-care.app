@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(${preview.title}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div class="panel">
+    <div class="panel-header">
+        <span th:text="${preview.title}">Aperçu de l'export</span>
+        <span class="badge badge-blue"
+              th:text="${preview.totalRows} + ' ' + #{export.preview.rows_total}">0 lignes</span>
+    </div>
+
+    <form method="get" class="panel-body">
+        <!-- Filtres de contexte réinjectés (from/to/status/q…) -->
+        <input th:each="c : ${preview.context}" type="hidden" th:name="${c.key}" th:value="${c.value}"/>
+
+        <p class="form-hint" th:text="#{export.preview.help}">
+            Cochez les colonnes à inclure, puis actualisez l'aperçu ou téléchargez.
+        </p>
+
+        <!-- Sélecteur de colonnes -->
+        <div style="display:flex; flex-wrap:wrap; gap:.4rem 1.2rem; margin:8px 0 16px;">
+            <label th:each="f : ${preview.fields}" style="display:inline-flex; align-items:center; gap:.4rem; font-size:13.5px;">
+                <input type="checkbox" name="cols" th:value="${f.key}" th:checked="${f.selected}"/>
+                <span th:text="${f.label}">Colonne</span>
+            </label>
+        </div>
+
+        <div style="display:flex; gap:.5rem; margin-bottom:16px;">
+            <button type="submit" th:formaction="${preview.previewUrl}" class="btn btn-ghost btn-sm"
+                    th:text="#{export.preview.refresh}">Actualiser l'aperçu</button>
+            <button type="submit" th:formaction="${preview.downloadUrl}" class="btn btn-primary btn-sm">
+                <svg class="icon-inline" aria-hidden="true"><use href="#ic-file-excel"></use></svg>
+                <span th:text="#{export.preview.download}">Télécharger l'Excel</span>
+            </button>
+        </div>
+
+        <!-- Aperçu des données -->
+        <div class="section-title"
+             th:text="#{export.preview.sample(${preview.sampleSize})}">Aperçu (12 premières lignes)</div>
+        <div th:if="${preview.sampleRows.isEmpty()}" class="empty-state" th:text="#{export.preview.no_data}">
+            Aucune donnée à exporter.
+        </div>
+        <div th:unless="${preview.sampleRows.isEmpty()}" class="table-wrap">
+            <table class="table">
+                <thead>
+                <tr><th th:each="h : ${preview.sampleHeaders}" scope="col" th:text="${h}">Colonne</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="row : ${preview.sampleRows}">
+                    <td th:each="cell : ${row}" th:text="${cell}">valeur</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </form>
+</div>
+
+</th:block></body>
+</html>

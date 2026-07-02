@@ -103,14 +103,40 @@ public class BillingWebController {
         return "billing/invoices/list";
     }
 
-    // ── Export Excel du journal des factures (compta) ────────────────────────────────
+    // ── Aperçu de l'export (choix des colonnes) ──────────────────────────────────────
+    @GetMapping("/invoices/export/preview")
+    public String exportInvoicesPreview(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) java.util.List<String> cols,
+            Model model) {
+        Map<String, String> ctx = new java.util.LinkedHashMap<>();
+        ctx.put("from", from != null ? from.toString() : null);
+        ctx.put("to", to != null ? to.toString() : null);
+        ctx.put("status", status);
+        model.addAttribute("preview", ficheExportService.preview(
+                i18n.t("billing.list.heading"), "/billing/invoices/export/preview", "/billing/invoices/export",
+                ctx, com.clinic.backend.export.FicheExportService.INVOICE_COLS,
+                billingService.searchDto(from, to, null, status), toSet(cols)));
+        return "export/preview";
+    }
+
+    // ── Export Excel du journal des factures (compta) — colonnes filtrables ───────────
     @GetMapping("/invoices/export")
     public ResponseEntity<byte[]> exportInvoices(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
-            @RequestParam(required = false) String status) {
-        byte[] xlsx = ficheExportService.invoicesXlsx(billingService.searchDto(from, to, null, status));
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) java.util.List<String> cols) {
+        byte[] xlsx = ficheExportService.xlsx("Factures",
+                com.clinic.backend.export.FicheExportService.INVOICE_COLS,
+                billingService.searchDto(from, to, null, status), toSet(cols));
         return ReportWebController.xlsxAttachment(xlsx, "factures.xlsx");
+    }
+
+    private static java.util.Set<String> toSet(java.util.List<String> cols) {
+        return cols != null ? new java.util.LinkedHashSet<>(cols) : null;
     }
 
     // ── Détail ─────────────────────────────────────────────────────────────────────

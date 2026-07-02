@@ -10,6 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -67,6 +68,33 @@ class FicheExportWebTest {
         mvc.perform(get("/pharmacy/dispensations/export"))
            .andExpect(status().isOk())
            .andExpect(header().string("Content-Type", XLSX));
+    }
+
+    // ── Aperçu + sélection de colonnes ───────────────────────────────────────
+
+    @Test
+    @WithUserDetails(value = "caissier", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void apercu_factures_rend_200_avec_colonnes() throws Exception {
+        mvc.perform(get("/billing/invoices/export/preview"))
+           .andExpect(status().isOk())
+           .andExpect(content().string(org.hamcrest.Matchers.containsString("N° facture")))
+           .andExpect(content().string(org.hamcrest.Matchers.containsString("name=\"cols\"")));
+    }
+
+    @Test
+    @WithUserDetails(value = "caissier", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void export_factures_colonnes_filtrees_reste_xlsx() throws Exception {
+        mvc.perform(get("/billing/invoices/export").param("cols", "number").param("cols", "patient"))
+           .andExpect(status().isOk())
+           .andExpect(header().string("Content-Type", XLSX));
+    }
+
+    @Test
+    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void apercu_registre_patients_rend_200() throws Exception {
+        mvc.perform(get("/patients/export/preview"))
+           .andExpect(status().isOk())
+           .andExpect(content().string(org.hamcrest.Matchers.containsString("name=\"cols\"")));
     }
 
     // ── Chantier A : exports rapports nouvellement câblés ────────────────────
