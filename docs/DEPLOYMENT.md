@@ -137,6 +137,32 @@ Au premier accès `https://<pc-serveur>/`, l'admin tombe sur l'assistant `/setup
 
 ---
 
+## 4bis. Sauvegardes & restauration (données médicales)
+
+Le service **`db-backup`** (image `prodrigestivill/postgres-backup-local`) démarre
+**avec la stack par défaut** — une base médicale sans sauvegarde n'est pas déployable.
+
+- **Planification & rétention** : `pg_dump` compressé selon `BACKUP_SCHEDULE`
+  (défaut `0 2 * * *`, soit 02:00) ; rotation jour/semaine/mois (`BACKUP_KEEP_DAYS/WEEKS/MONTHS`).
+- **Emplacement** : `./backups/` sur l'hôte (bind-mount). **⚠️ À copier hors-site**
+  (rsync vers un autre serveur, disque USB, stockage objet) — une sauvegarde sur le
+  même disque que la base ne protège pas d'une panne matérielle.
+- **Sauvegarde manuelle ponctuelle** (avant migration, export…) :
+  ```bash
+  scripts/backup.sh              # → ./backups/clinicdb_<date>.sql.gz
+  ```
+- **Restauration** (⚠️ destructif — écrase la base) :
+  ```bash
+  scripts/restore.sh backups/clinicdb_2026-07-02_020000.sql.gz
+  docker compose restart backend
+  ```
+- **À faire au moins une fois avant la mise en prod** : un **test de restauration**
+  complet sur un environnement de staging (une sauvegarde jamais restaurée n'est pas
+  une sauvegarde). Les fichiers `uploads/` (photos/documents patients) doivent être
+  sauvegardés séparément (volume `backend_uploads` / dossier `uploads/`).
+
+---
+
 ## 5. Récapitulatif des composants (côté serveur)
 
 | Composant | Rôle | Package / fichier |
@@ -146,4 +172,6 @@ Au premier accès `https://<pc-serveur>/`, l'admin tombe sur l'assistant `/setup
 | `SetupWebController` | Sert et traite l'assistant `/setup` | `backend/.../controller/web/` |
 | `SecurityConfig` | 3 chaînes : Actuator, API/JWT, Web/session (`/setup` en accès libre) | `backend/.../security/` |
 | `ProdDataInitializer` | Amorçage admin headless (optionnel) | `backend/.../config/` |
-| `docker-compose.yml` | Orchestration serveur (postgres + backend + nginx) | racine |
+| `db-backup` (compose) | Sauvegardes PostgreSQL planifiées + rotation → `./backups` | `docker-compose.yml` |
+| `scripts/backup.sh` · `scripts/restore.sh` | Sauvegarde ponctuelle / restauration manuelle | `scripts/` |
+| `docker-compose.yml` | Orchestration serveur (postgres + backend + db-backup + nginx) | racine |

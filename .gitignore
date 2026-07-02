@@ -32,6 +32,9 @@ logs/
 uploads/
 backend/uploads/
 
+# Sauvegardes de base de données — JAMAIS versionnées (données médicales)
+backups/
+
 # Certificats TLS du reverse-proxy (P2.5) — JAMAIS versionnés (clé privée)
 nginx/certs/
 

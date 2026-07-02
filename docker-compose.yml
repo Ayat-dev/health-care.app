@@ -40,6 +40,35 @@ services:
     networks:
       - medical_net
 
+  # ── Sauvegardes automatiques PostgreSQL ────────────────────────────────────
+  # pg_dump planifié + rotation (jour/semaine/mois), écrit dans ./backups sur
+  # l'hôte (copiable hors-site : rsync/USB). Démarre avec la stack par défaut —
+  # une base médicale sans sauvegarde n'est pas déployable. Restauration : voir
+  # scripts/restore.sh et docs/DEPLOYMENT.md §Sauvegardes.
+  db-backup:
+    image: prodrigestivill/postgres-backup-local:16
+    container_name: medical_db_backup
+    restart: always
+    env_file: .env
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # Planification cron + rétention (surchargeable dans .env)
+      SCHEDULE: ${BACKUP_SCHEDULE:-0 2 * * *}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-30}
+      BACKUP_KEEP_WEEKS: ${BACKUP_KEEP_WEEKS:-8}
+      BACKUP_KEEP_MONTHS: ${BACKUP_KEEP_MONTHS:-12}
+      POSTGRES_EXTRA_OPTS: "--clean --if-exists"
+    volumes:
+      - ./backups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - medical_net
+
   # ── Reverse-proxy TLS (P2.5 — chiffrement en transit) ──────────────────────
   # Termine le HTTPS et relaie vers le backend. Génerer le certificat AVANT le
   # 1er démarrage (cf. nginx/README.md) — sinon nginx refuse de démarrer.
