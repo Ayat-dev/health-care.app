@@ -1,6 +1,8 @@
 package com.clinic.backend.notification;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Component;
  * {@link #supports(String)} and are picked ahead of this one.
  */
 @Component
+@Order(Ordered.LOWEST_PRECEDENCE) // filet de sécurité : tout sender réel (email/SMS) est choisi avant
 @Slf4j
 public class LoggingNotificationSender implements NotificationSender {
 
