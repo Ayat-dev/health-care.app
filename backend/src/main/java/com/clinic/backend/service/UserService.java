@@ -1,5 +1,6 @@
 package com.clinic.backend.service;
 
+import com.clinic.backend.audit.Audited;
 import com.clinic.backend.config.ResourceNotFoundException;
 import com.clinic.backend.dto.UserDto;
 import com.clinic.backend.model.Role;
@@ -61,6 +62,7 @@ public class UserService {
     }
 
     // ── Création ────────────────────────────────────────────────────────────
+    @Audited(action = "CREATE", entity = "User")
     public User create(UserDto dto) {
         String username = dto.getUsername() == null ? "" : dto.getUsername().trim();
         if (username.isEmpty())
@@ -85,6 +87,7 @@ public class UserService {
      * Contrairement à {@link #create(UserDto)} (qui rattache à la clinique du créateur), la
      * clinique est passée explicitement — le SUPER_ADMIN n'a pas de clinique courante. Rôle forcé ADMIN.
      */
+    @Audited(action = "CREATE", entity = "User")
     public User createForClinic(Long clinicId, UserDto dto) {
         if (clinicId == null)
             throw new IllegalArgumentException("La clinique est obligatoire.");
@@ -104,7 +107,8 @@ public class UserService {
         return saved;
     }
 
-    // ── Modification ──────────────────────────────────────────────────────────
+    // ── Modification (inclut le changement de rôle) ─────────────────────────────
+    @Audited(action = "UPDATE", entity = "User")
     public User update(Long id, UserDto dto) {
         User u = getById(id);
         validateRole(dto.getRole());
@@ -134,6 +138,7 @@ public class UserService {
      * @throws IllegalArgumentException si le mot de passe actuel est incorrect ou si
      *         le nouveau ne respecte pas la politique (≥ 8 caractères, ≥ 1 chiffre)
      */
+    @Audited(action = "PASSWORD_CHANGE", entity = "User")
     public void changeOwnPassword(Long userId, String currentPassword, String newPassword) {
         User u = getById(userId);
         if (currentPassword == null || !passwordEncoder.matches(currentPassword, u.getPassword())) {
@@ -148,6 +153,7 @@ public class UserService {
     }
 
     // ── Activer / désactiver ──────────────────────────────────────────────────
+    @Audited(action = "TOGGLE_ACTIVE", entity = "User")
     public void toggleActive(Long id) {
         User u = getById(id);
         u.setActive(!u.isActive());
@@ -157,6 +163,7 @@ public class UserService {
     }
 
     // ── Suppression logique ───────────────────────────────────────────────────
+    @Audited(action = "DELETE", entity = "User")
     public void delete(Long id) {
         User u = getById(id);
         u.setDeletedAt(LocalDateTime.now());

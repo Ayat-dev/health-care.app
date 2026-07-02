@@ -83,6 +83,7 @@ public class PatientService {
     }
 
     // ── Suppression logique ───────────────────────────────────────────────
+    @Audited(action = "DELETE", entity = "Patient")
     public void delete(Long id) {
         Patient p = getById(id);
         p.setDeletedAt(LocalDateTime.now());

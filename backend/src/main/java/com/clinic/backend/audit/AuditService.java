@@ -76,11 +76,38 @@ public class AuditService {
                 from, to, PageRequest.of(0, limit));
     }
 
-    @Transactional(readOnly = true)
-    public List<String> entityTypes() { return repository.distinctEntityTypes(); }
+    /**
+     * Catalogue complet des types d'entités et actions que le système peut émettre
+     * (voir les annotations {@code @Audited}). Sert à peupler les menus de filtre même
+     * quand aucune trace correspondante n'existe encore — union avec les valeurs
+     * réellement présentes en base, pour rester robuste si le catalogue évolue.
+     */
+    private static final List<String> KNOWN_ENTITY_TYPES = List.of(
+            "Patient", "Consultation", "LabRequest", "Hospitalization",
+            "Invoice", "Dispensation", "User");
+    private static final List<String> KNOWN_ACTIONS = List.of(
+            "CREATE", "UPDATE", "DELETE", "COMPLETE", "VALIDATE", "CANCEL",
+            "ADMIT", "TRANSFER", "DISCHARGE", "PAYMENT", "DISPENSE",
+            "TOGGLE_ACTIVE", "PASSWORD_CHANGE");
 
     @Transactional(readOnly = true)
-    public List<String> actions() { return repository.distinctActions(); }
+    public List<String> entityTypes() {
+        return union(KNOWN_ENTITY_TYPES, repository.distinctEntityTypes());
+    }
+
+    @Transactional(readOnly = true)
+    public List<String> actions() {
+        return union(KNOWN_ACTIONS, repository.distinctActions());
+    }
+
+    /** Union triée (catalogue connu + valeurs en base), sans doublon ni null. */
+    private static List<String> union(List<String> known, List<String> fromDb) {
+        java.util.TreeSet<String> set = new java.util.TreeSet<>(known);
+        if (fromDb != null) {
+            for (String v : fromDb) if (v != null && !v.isBlank()) set.add(v);
+        }
+        return new java.util.ArrayList<>(set);
+    }
 
     // ── Helpers ──────────────────────────────────────────────────────────────────
 

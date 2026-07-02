@@ -53,12 +53,13 @@
                 <th scope="col" th:text="#{admin.audit.col_action}">Action</th>
                 <th scope="col" th:text="#{admin.audit.col_entity}">Entité</th>
                 <th scope="col" th:text="#{admin.audit.col_id}">ID</th>
+                <th scope="col" th:text="#{admin.audit.col_details}">Détails</th>
                 <th scope="col" th:text="#{admin.audit.col_ip}">IP</th>
             </tr>
             </thead>
             <tbody>
             <tr th:if="${entries.isEmpty()}">
-                <td colspan="6" class="empty-state" th:text="#{admin.audit.empty}">Aucune entrée d’audit pour ces critères.</td>
+                <td colspan="7" class="empty-state" th:text="#{admin.audit.empty}">Aucune entrée d’audit pour ces critères.</td>
             </tr>
             <tr th:each="e : ${entries}">
                 <td th:text="${#temporals.format(e.createdAt, 'yyyy-MM-dd HH:mm:ss')}">2026-06-19 10:30:00</td>
@@ -66,6 +67,7 @@
                 <td><span class="badge badge-blue" th:text="${e.action}">CREATE</span></td>
                 <td th:text="${e.entityType}">Patient</td>
                 <td th:text="${e.entityId != null ? e.entityId : '—'}">42</td>
+                <td th:text="${e.details != null ? e.details : '—'}">invoiceNumber=FAC-2026-00042</td>
                 <td><code th:text="${e.ipAddress != null ? e.ipAddress : '—'}">127.0.0.1</code></td>
             </tr>
             </tbody>

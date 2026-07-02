@@ -26,15 +26,38 @@ public class AuditAspect {
 
     private final AuditService auditService;
 
+    /** Getters « clé métier » lisibles (référence, pas de PHI) tentés dans l'ordre pour {@code details}. */
+    private static final String[] KEY_GETTERS = {
+            "getInvoiceNumber", "getRequestNumber", "getPrescriptionNumber",
+            "getRecordNumber", "getRoomNumber", "getUsername"
+    };
+
     @AfterReturning(pointcut = "@annotation(audited)", returning = "result")
     public void onAudited(JoinPoint joinPoint, Audited audited, Object result) {
         try {
             Long entityId = extractId(result, joinPoint.getArgs());
-            auditService.record(audited.action(), audited.entity(), entityId, null);
+            String details = extractDetails(result);
+            auditService.record(audited.action(), audited.entity(), entityId, details);
         } catch (Exception e) {
             log.warn("AuditAspect: trace non écrite pour {} {} — {}",
                     audited.action(), audited.entity(), e.getMessage());
         }
+    }
+
+    /** Lit la première « clé métier » disponible sur la valeur de retour (n° facture, dossier, login…). */
+    private String extractDetails(Object result) {
+        if (result == null) return null;
+        for (String getter : KEY_GETTERS) {
+            try {
+                Object value = result.getClass().getMethod(getter).invoke(result);
+                if (value instanceof String s && !s.isBlank()) {
+                    return getter.substring(3, 4).toLowerCase() + getter.substring(4) + "=" + s;
+                }
+            } catch (Exception ignored) {
+                // getter absent sur ce type → on essaie le suivant
+            }
+        }
+        return null;
     }
 
     private Long extractId(Object result, Object[] args) {
