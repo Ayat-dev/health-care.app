@@ -198,6 +198,21 @@ a:hover { text-decoration: underline; }
   gap: 9px;
 }
 
+/* Le nom d'utilisateur (largeur variable selon la personne) occupe l'espace restant
+   et tronque au besoin, pour que l'icône MFA et le bouton Déconnexion soient ancrés
+   à droite au MÊME endroit quel que soit l'utilisateur connecté. */
+.sidebar-footer .user-info {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Actions du pied (MFA, déconnexion) : ne rétrécissent jamais, restent alignées. */
+.sidebar-footer > form,
+.sidebar-footer > .btn { flex: 0 0 auto; }
+
 .user-avatar {
   width: 30px; height: 30px;
   border-radius: 50%;

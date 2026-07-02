@@ -105,8 +105,8 @@
 
         </nav>
         <div class="sidebar-footer">
-            <span sec:authentication="name" th:title="#{layout.user}">Utilisateur</span>
-            <a th:href="@{/mfa}" class="btn btn-ghost btn-sm" th:title="#{mfa.index.title}"
+            <span class="user-info" sec:authentication="name" th:title="#{layout.user}">Utilisateur</span>
+            <a th:href="@{/mfa}" class="btn btn-ghost btn-sm btn-icon" th:title="#{mfa.index.title}"
                th:aria-label="#{mfa.index.title}">
                 <svg class="nav-icon" aria-hidden="true"><use href="#ic-shield"></use></svg>
             </a>
