@@ -9,7 +9,7 @@
     <div class="panel-header">
         <span th:text="#{billing.list.heading}">Factures</span>
         <span style="display:flex; gap:.5rem;">
-            <a th:href="@{/billing/invoices/export(from=${from},to=${to},status=${status})}" class="btn btn-ghost btn-sm">⬇ <span th:text="#{reports.action.excel}">Excel</span></a>
+            <a th:href="@{/billing/invoices/export(from=${from},to=${to},status=${status})}" class="btn btn-ghost btn-sm"><svg class="icon-inline" aria-hidden="true"><use href="#ic-file-excel"></use></svg> <span th:text="#{reports.action.excel}">Excel</span></a>
             <a th:href="@{/billing/invoices/new}" class="btn btn-primary btn-sm" th:text="#{billing.list.new}">+ Nouvelle facture</a>
         </span>
     </div>

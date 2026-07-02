@@ -263,7 +263,7 @@ class SecurityMatrixTest {
     void page_offline_est_publique() throws Exception {
         mvc.perform(get("/offline.html"))
            .andExpect(status().isOk())
-           .andExpect(content().string(containsString("Connexion indisponible")));
+           .andExpect(content().string(containsString("Serveur injoignable")));
     }
 
     // ── Actuator (P4.3) : health/info publics, prometheus/metrics protégés ────

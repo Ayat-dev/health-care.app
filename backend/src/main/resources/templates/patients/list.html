@@ -6,7 +6,7 @@
     <div class="panel-header">
         <span th:text="#{patients.list.heading}">Liste des patients</span>
         <span style="display:flex; gap:.5rem;">
-            <a th:href="@{/patients/export(q=${q})}" class="btn btn-ghost btn-sm">⬇ <span th:text="#{reports.action.excel}">Excel</span></a>
+            <a th:href="@{/patients/export(q=${q})}" class="btn btn-ghost btn-sm"><svg class="icon-inline" aria-hidden="true"><use href="#ic-file-excel"></use></svg> <span th:text="#{reports.action.excel}">Excel</span></a>
             <a sec:authorize="hasAnyRole('MEDECIN','SECRETAIRE','INFIRMIER')" th:href="@{/patients/new}" class="btn btn-primary btn-sm" th:text="#{patients.list.new}">+ Nouveau patient</a>
         </span>
     </div>

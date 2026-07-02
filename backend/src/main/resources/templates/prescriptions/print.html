@@ -42,8 +42,8 @@
 <div class="toolbar" th:if="${!pdf}">
     <a th:replace="~{fragments/ui :: backHistory}"></a>
     <a th:href="@{/prescriptions/{id}/pdf(id=${prescription.id})}" class="btn"
-       style="background:#0f766e;color:#fff;">⬇ PDF</a>
-    <button onclick="window.print()" class="btn btn-print">Imprimer</button>
+       style="background:#0f766e;color:#fff;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg> PDF</a>
+    <button onclick="window.print()" class="btn btn-print"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg> Imprimer</button>
 </div>
 
 <div class="sheet">

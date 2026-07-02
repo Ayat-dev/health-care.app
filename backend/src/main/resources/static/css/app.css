@@ -353,6 +353,19 @@ a:hover { text-decoration: underline; }
 .btn-icon.btn-sm { width: 28px; }
 .btn-full { width: 100%; justify-content: center; }
 
+/* Icône inline dans un bouton (export PDF/Excel, impression, téléchargement).
+   Épouse la couleur du texte (currentColor), alignée sur la ligne de base du label. */
+.icon-inline {
+  width: 15px; height: 15px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vertical-align: -2px;
+}
+
 /* Notification bell */
 .btn-notif {
   position: relative;

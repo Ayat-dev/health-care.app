@@ -5,9 +5,9 @@
 <div class="panel-header" style="padding:0 0 12px;">
     <span th:text="#{reports.financial.heading} + ' ' + ${monthName} + ' ' + ${year}">Bilan</span>
     <span class="no-print">
-        <a th:href="@{/reports/financial/pdf(month=${month},year=${year})}" class="btn btn-ghost btn-sm">⬇ <span th:text="#{reports.action.pdf}">PDF</span></a>
-        <a th:href="@{/reports/financial/excel(month=${month},year=${year})}" class="btn btn-ghost btn-sm">⬇ <span th:text="#{reports.action.excel}">Excel</span></a>
-        <button onclick="window.print()" class="btn btn-ghost btn-sm">🖨 <span th:text="#{common.print}">Imprimer</span></button>
+        <a th:href="@{/reports/financial/pdf(month=${month},year=${year})}" class="btn btn-ghost btn-sm"><svg class="icon-inline" aria-hidden="true"><use href="#ic-file-pdf"></use></svg> <span th:text="#{reports.action.pdf}">PDF</span></a>
+        <a th:href="@{/reports/financial/excel(month=${month},year=${year})}" class="btn btn-ghost btn-sm"><svg class="icon-inline" aria-hidden="true"><use href="#ic-file-excel"></use></svg> <span th:text="#{reports.action.excel}">Excel</span></a>
+        <button onclick="window.print()" class="btn btn-ghost btn-sm"><svg class="icon-inline" aria-hidden="true"><use href="#ic-printer"></use></svg> <span th:text="#{common.print}">Imprimer</span></button>
     </span>
 </div>
 

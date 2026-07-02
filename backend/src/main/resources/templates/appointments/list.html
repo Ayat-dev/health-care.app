@@ -10,7 +10,7 @@
         <span th:text="#{appointments.list.heading}">Agenda du jour</span>
         <div style="display:flex; gap:.5rem; align-items:center;">
             <a th:href="@{/appointments/week(date=${date},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm" th:text="#{appointments.list.view_week}">Vue semaine</a>
-            <a th:href="@{/appointments/export(from=${date},to=${date},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm">⬇ <span th:text="#{reports.action.excel}">Excel</span></a>
+            <a th:href="@{/appointments/export(from=${date},to=${date},doctorId=${selectedDoctorId})}" class="btn btn-ghost btn-sm"><svg class="icon-inline" aria-hidden="true"><use href="#ic-file-excel"></use></svg> <span th:text="#{reports.action.excel}">Excel</span></a>
             <a th:href="@{/appointments/new}" class="btn btn-primary btn-sm" th:text="#{appointments.list.new}">+ Nouveau RDV</a>
         </div>
     </div>

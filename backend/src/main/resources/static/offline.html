@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#0f172a"/>
     <title>Hors ligne — ClinicApp</title>
     <style>
+        * { box-sizing: border-box; }
         body {
             margin: 0;
             min-height: 100vh;
@@ -13,11 +14,11 @@
             align-items: center;
             justify-content: center;
             background: #f1f5f9;
-            font-family: 'Inter', system-ui, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             color: #0f172a;
         }
         .offline-card {
-            max-width: 420px;
+            max-width: 460px;
             padding: 40px 32px;
             margin: 24px;
             background: #fff;
@@ -34,11 +35,33 @@
             justify-content: center;
             background: #0f172a;
             border-radius: 16px;
-            font-size: 32px;
-            color: #3b82f6;
+            color: #60a5fa;
         }
-        h1 { font-size: 20px; margin: 0 0 8px; }
-        p { color: #64748b; font-size: 14px; line-height: 1.5; margin: 0 0 24px; }
+        .offline-icon svg { width: 34px; height: 34px; }
+        h1 { font-size: 20px; margin: 0 0 10px; }
+        p { color: #475569; font-size: 14px; line-height: 1.6; margin: 0 0 16px; }
+        .checklist {
+            text-align: left;
+            font-size: 13.5px;
+            color: #475569;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 14px 16px 14px 34px;
+            margin: 0 0 22px;
+        }
+        .checklist li { margin: 4px 0; }
+        .status {
+            font-size: 13px;
+            font-weight: 600;
+            margin: 0 0 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .dot { width: 9px; height: 9px; border-radius: 50%; background: #ef4444; }
+        .status.online .dot { background: #22c55e; }
         button {
             padding: 11px 24px;
             background: #2563eb;
@@ -48,19 +71,82 @@
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
+            transition: background .15s;
         }
         button:hover { background: #1d4ed8; }
+        button:disabled { background: #94a3b8; cursor: progress; }
+        .support { margin: 18px 0 0; font-size: 12px; color: #94a3b8; }
     </style>
 </head>
 <body>
     <div class="offline-card">
-        <div class="offline-icon">⚕</div>
-        <h1>Connexion indisponible</h1>
+        <div class="offline-icon" aria-hidden="true">
+            <!-- Icône « wi-fi coupé » (autonome, aucune ressource externe) -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <line x1="2" y1="2" x2="22" y2="22"/>
+                <path d="M8.5 16.5a5 5 0 0 1 7 0"/>
+                <path d="M2 8.82a15 15 0 0 1 4.17-2.65"/>
+                <path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76"/>
+                <path d="M16.85 11.25a10 10 0 0 1 2.22 1.68"/>
+                <path d="M5 13a10 10 0 0 1 5.24-2.76"/>
+                <line x1="12" y1="20" x2="12.01" y2="20"/>
+            </svg>
+        </div>
+        <h1>Serveur injoignable</h1>
         <p>
-            Vous êtes hors ligne ou le serveur de la clinique est injoignable.
-            Vos données ne sont pas perdues : reconnectez-vous au réseau puis réessayez.
+            Ce poste n'arrive pas à joindre le serveur de la clinique.
+            <strong>Aucune donnée saisie et validée n'est perdue</strong> — elle est
+            conservée sur le serveur. Vérifiez les points ci-dessous, puis réessayez.
         </p>
-        <button type="button" onclick="location.reload()">Réessayer</button>
+        <ul class="checklist">
+            <li>Le <strong>PC-serveur</strong> de la clinique est-il allumé ?</li>
+            <li>Le <strong>réseau local</strong> (Wi-Fi / câble) de ce poste est-il connecté ?</li>
+            <li>En cas de coupure de courant, attendez le redémarrage du serveur.</li>
+        </ul>
+        <div class="status" id="status">
+            <span class="dot"></span><span id="statusText">Hors connexion</span>
+        </div>
+        <button type="button" id="retryBtn" onclick="retry()">Réessayer</button>
+        <p class="support">En cas de blocage persistant, contactez le support technique de la clinique.</p>
     </div>
+
+    <script>
+        var statusEl = document.getElementById('status');
+        var statusText = document.getElementById('statusText');
+        var retryBtn = document.getElementById('retryBtn');
+
+        function setOnline(on) {
+            statusEl.classList.toggle('online', on);
+            statusText.textContent = on ? 'Connexion rétablie — rechargement…' : 'Hors connexion';
+        }
+
+        // Recharge la page dès que le serveur répond (sonde légère sur une ressource statique).
+        function checkServer() {
+            return fetch('/manifest.webmanifest', { method: 'HEAD', cache: 'no-store' })
+                .then(function (r) { return r && r.ok; })
+                .catch(function () { return false; });
+        }
+
+        function retry() {
+            retryBtn.disabled = true;
+            retryBtn.textContent = 'Vérification…';
+            checkServer().then(function (ok) {
+                if (ok) { setOnline(true); location.reload(); }
+                else {
+                    retryBtn.disabled = false;
+                    retryBtn.textContent = 'Réessayer';
+                    setOnline(false);
+                }
+            });
+        }
+
+        // Reconnexion automatique : événement navigateur + sonde périodique (toutes les 8 s).
+        window.addEventListener('online', retry);
+        setInterval(function () {
+            checkServer().then(function (ok) { if (ok) { setOnline(true); location.reload(); } });
+        }, 8000);
+        setOnline(navigator.onLine);
+    </script>
 </body>
 </html>
