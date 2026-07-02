@@ -197,6 +197,7 @@ public class ConsultationWebController {
      * le médecin relit et enregistre lui-même.
      */
     @PostMapping("/scribe")
+    @PreAuthorize("hasRole('MEDECIN')") // assistant clinique = acte médical, aligné sur ScribeApiController
     @ResponseBody
     public ResponseEntity<?> scribe(@RequestBody ScribeRequest req) {
         try {

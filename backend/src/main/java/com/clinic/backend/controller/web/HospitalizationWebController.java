@@ -114,13 +114,16 @@ public class HospitalizationWebController {
     }
 
     // ── Chambres (référentiel) ──────────────────────────────────────────────────────
+    // Lecture : soignants (pour info) + propriétaire (pour gérer). Mutations : OWNER seul (tarifs/business, aligné sur l'API).
     @GetMapping("/rooms")
+    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER','OWNER')")
     public String rooms(Model model) {
         model.addAttribute("rooms", roomService.listAll());
         return "hospitalization/rooms";
     }
 
     @GetMapping("/rooms/new")
+    @PreAuthorize("hasRole('OWNER')") // chambres = tarifs/business (D3, P6), aligné sur l'API
     public String newRoomForm(Model model) {
         model.addAttribute("room", new RoomDto());
         model.addAttribute("departments", departments());
@@ -128,6 +131,7 @@ public class HospitalizationWebController {
     }
 
     @PostMapping("/rooms/new")
+    @PreAuthorize("hasRole('OWNER')") // chambres = tarifs/business (D3, P6), aligné sur l'API
     public String createRoom(@ModelAttribute RoomDto dto, RedirectAttributes ra, Model model) {
         try {
             roomService.create(dto);
@@ -142,6 +146,7 @@ public class HospitalizationWebController {
     }
 
     @GetMapping("/rooms/{id}/edit")
+    @PreAuthorize("hasRole('OWNER')") // chambres = tarifs/business (D3, P6), aligné sur l'API
     public String editRoomForm(@PathVariable Long id, Model model) {
         model.addAttribute("room", roomService.getDtoById(id));
         model.addAttribute("departments", departments());
@@ -149,6 +154,7 @@ public class HospitalizationWebController {
     }
 
     @PostMapping("/rooms/{id}/edit")
+    @PreAuthorize("hasRole('OWNER')") // chambres = tarifs/business (D3, P6), aligné sur l'API
     public String updateRoom(@PathVariable Long id, @ModelAttribute RoomDto dto,
                              RedirectAttributes ra, Model model) {
         try {
@@ -165,6 +171,7 @@ public class HospitalizationWebController {
     }
 
     @PostMapping("/rooms/{id}/toggle")
+    @PreAuthorize("hasRole('OWNER')") // chambres = tarifs/business (D3, P6), aligné sur l'API
     public String toggleRoom(@PathVariable Long id, RedirectAttributes ra) {
         try {
             roomService.toggleActive(id);

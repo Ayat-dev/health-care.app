@@ -19,6 +19,19 @@
     </div>
 </div>
 
+<!-- ── Créances : reste à recouvrer (impayés échus) ──────────────────────── -->
+<div class="section-title" style="margin-top:8px;" th:text="#{reports.dashboard.receivables}">Créances</div>
+<div class="stats-grid">
+    <a th:href="@{/reports/outstanding}" class="stat-card" style="text-decoration:none; color:inherit;"
+       th:classappend="${dashboard.outstandingTotal.signum() > 0} ? 'stat-card--amber'">
+        <div class="stat-card-label" th:text="#{reports.dashboard.outstanding_amount}">Reste à recouvrer</div>
+        <div class="stat-card-value"
+             th:text="${#numbers.formatDecimal(dashboard.outstandingTotal,0,'WHITESPACE',0,'POINT')} + ' ' + ${config.currency}">0</div>
+        <div class="stat-card-trend"
+             th:text="${dashboard.outstandingCount} + ' ' + #{reports.dashboard.outstanding_count}">—</div>
+    </a>
+</div>
+
 <!-- ── Exploitation : activité & occupation (agrégats, sans nominatif) ────── -->
 <div class="section-title" style="margin-top:8px;" th:text="#{reports.dashboard.activity_section}">Activité &amp; exploitation</div>
 <div class="stats-grid">

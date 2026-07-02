@@ -31,6 +31,10 @@ public class AdminDashboardDto {
     private long totalBeds;
     private BigDecimal bedOccupancyRate = BigDecimal.ZERO; // %
 
+    // ── Créances (factures impayées échues) ──────────────────────────────────
+    private BigDecimal outstandingTotal = BigDecimal.ZERO;
+    private long outstandingCount;
+
     // ── Pharmacie (alertes) ──────────────────────────────────────────────────
     private long lowStockCount;
     private long expiringCount;

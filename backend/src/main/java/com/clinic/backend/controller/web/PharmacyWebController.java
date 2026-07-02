@@ -30,6 +30,7 @@ public class PharmacyWebController {
     private final com.clinic.backend.pharmacy.AllergyChecker allergyChecker;
     private final com.clinic.backend.pharmacy.InteractionChecker interactionChecker;
     private final com.clinic.backend.pharmacy.DrugInteractionRepository drugInteractionRepository;
+    private final com.clinic.backend.export.FicheExportService ficheExportService;
     private final WebI18n i18n;
 
     // ── Tableau de bord ────────────────────────────────────────────────────────
@@ -145,6 +146,14 @@ public class PharmacyWebController {
     public String dispensations(Model model) {
         model.addAttribute("dispensations", pharmacyService.listDispensations());
         return "pharmacy/dispensations/list";
+    }
+
+    // ── Export Excel du journal des dispensations (sorties de stock) ─────────────────
+    @GetMapping("/dispensations/export")
+    public org.springframework.http.ResponseEntity<byte[]> exportDispensations() {
+        return ReportWebController.xlsxAttachment(
+                ficheExportService.dispensationsXlsx(pharmacyService.listDispensations()),
+                "dispensations.xlsx");
     }
 
     @GetMapping("/dispensations/new")

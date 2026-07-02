@@ -114,6 +114,45 @@ public class ReportWebController {
         return xlsxAttachment(reportExportService.outstandingExcel(reportService.outstanding()), "impayes.xlsx");
     }
 
+    // ── Export PDF des impayés (le service existait, le bouton web manquait) ──────
+    @GetMapping("/outstanding/pdf")
+    @PreAuthorize("hasAnyRole('OWNER','CAISSIER','SECRETAIRE')")
+    public ResponseEntity<byte[]> outstandingPdf() {
+        return BillingWebController.pdfInline(
+                reportExportService.outstandingPdf(reportService.outstanding()), "impayes.pdf");
+    }
+
+    // ── Exports Excel des rapports mensuels (services déjà présents, câblage web) ─
+    @GetMapping("/financial/excel")
+    @PreAuthorize("hasAnyRole('OWNER','CAISSIER')")
+    public ResponseEntity<byte[]> financialExcel(@RequestParam(required = false) Integer month,
+                                                 @RequestParam(required = false) Integer year) {
+        int m = month != null ? month : LocalDate.now().getMonthValue();
+        int y = year != null ? year : LocalDate.now().getYear();
+        return xlsxAttachment(reportExportService.monthlyFinancialExcel(reportService.monthlyFinancial(m, y)),
+                "bilan-financier-" + y + "-" + String.format("%02d", m) + ".xlsx");
+    }
+
+    @GetMapping("/activity/excel")
+    @PreAuthorize("hasAnyRole('MEDECIN','OWNER')")
+    public ResponseEntity<byte[]> activityExcel(@RequestParam(required = false) Integer month,
+                                                @RequestParam(required = false) Integer year) {
+        int m = month != null ? month : LocalDate.now().getMonthValue();
+        int y = year != null ? year : LocalDate.now().getYear();
+        return xlsxAttachment(reportExportService.activityExcel(reportService.activity(m, y)),
+                "rapport-activite-" + y + "-" + String.format("%02d", m) + ".xlsx");
+    }
+
+    @GetMapping("/epidemiology/excel")
+    @PreAuthorize("hasAnyRole('MEDECIN','OWNER')")
+    public ResponseEntity<byte[]> epidemiologyExcel(@RequestParam(required = false) Integer month,
+                                                    @RequestParam(required = false) Integer year) {
+        int m = month != null ? month : LocalDate.now().getMonthValue();
+        int y = year != null ? year : LocalDate.now().getYear();
+        return xlsxAttachment(reportExportService.epidemiologyExcel(reportService.epidemiology(m, y)),
+                "epidemiologie-" + y + "-" + String.format("%02d", m) + ".xlsx");
+    }
+
     static ResponseEntity<byte[]> xlsxAttachment(byte[] xlsx, String filename) {
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(

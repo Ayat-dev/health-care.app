@@ -8,7 +8,7 @@
 <div class="panel" data-worklist-topic="/topic/worklist/lab">
     <div class="panel-header">
         <span th:text="#{lab.worklist.heading}">Travail du jour — demandes en attente</span>
-        <a th:href="@{/lab/requests/new}" class="btn btn-primary btn-sm" th:text="#{lab.action.new}">+ Nouvelle demande</a>
+        <a sec:authorize="hasRole('MEDECIN')" th:href="@{/lab/requests/new}" class="btn btn-primary btn-sm" th:text="#{lab.action.new}">+ Nouvelle demande</a>
     </div>
 
     <div class="table-wrap">
@@ -47,7 +47,7 @@
                 <td th:text="${#temporals.format(r.requestedAt,'dd/MM/yyyy HH:mm')}">01/01 09:00</td>
                 <td><span class="badge" th:classappend="'badge-' + ${r.status}" th:text="#{${'status.' + r.status}}">EN_ATTENTE</span></td>
                 <td style="white-space:nowrap;">
-                    <a th:href="@{/lab/requests/{id}/results(id=${r.id})}" class="btn btn-primary btn-sm" th:text="#{lab.action.enter_results}">Saisir</a>
+                    <a sec:authorize="hasRole('LABORANTIN')" th:href="@{/lab/requests/{id}/results(id=${r.id})}" class="btn btn-primary btn-sm" th:text="#{lab.action.enter_results}">Saisir</a>
                     <a th:href="@{/lab/requests/{id}(id=${r.id})}" class="btn btn-ghost btn-sm" th:text="#{common.view}">Voir</a>
                 </td>
             </tr>

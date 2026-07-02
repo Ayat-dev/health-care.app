@@ -109,6 +109,11 @@ public class ReportService {
                 ? BigDecimal.valueOf(occupied * 100.0 / beds).setScale(1, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO);
 
+        // Créances (impayés échus) — réutilise l'agrégat du rapport des impayés
+        OutstandingReportDto outstanding = outstanding();
+        d.setOutstandingTotal(outstanding.getTotalOutstanding());
+        d.setOutstandingCount(outstanding.getInvoiceCount());
+
         // Pharmacie (alertes)
         d.setLowStockCount(pharmacyService.lowStock().size());
         d.setExpiringCount(pharmacyService.expiringStock().size());

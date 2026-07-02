@@ -39,6 +39,7 @@ public class BillingWebController {
     private final InsuranceProviderService insuranceProviderService;
     private final ClinicConfigService clinicConfigService;
     private final PdfExportService pdfExportService;
+    private final com.clinic.backend.export.FicheExportService ficheExportService;
     private final WebI18n i18n;
 
     // ── Tableau de bord financier ────────────────────────────────────────────────
@@ -102,6 +103,16 @@ public class BillingWebController {
         return "billing/invoices/list";
     }
 
+    // ── Export Excel du journal des factures (compta) ────────────────────────────────
+    @GetMapping("/invoices/export")
+    public ResponseEntity<byte[]> exportInvoices(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) String status) {
+        byte[] xlsx = ficheExportService.invoicesXlsx(billingService.searchDto(from, to, null, status));
+        return ReportWebController.xlsxAttachment(xlsx, "factures.xlsx");
+    }
+
     // ── Détail ─────────────────────────────────────────────────────────────────────
     @GetMapping("/invoices/{id}")
     public String detail(@PathVariable Long id, Model model) {
@@ -162,6 +173,7 @@ public class BillingWebController {
 
     // ── Encaissement ──────────────────────────────────────────────────────────────────
     @GetMapping("/invoices/{id}/pay")
+    @PreAuthorize("hasRole('CAISSIER')") // encaissement = caisse (P6) — SECRETAIRE/OWNER exclus, aligné sur l'API
     public String payForm(@PathVariable Long id, Model model) {
         model.addAttribute("invoice", billingService.getDtoById(id));
         model.addAttribute("payment", new PaymentDto());
@@ -170,6 +182,7 @@ public class BillingWebController {
     }
 
     @PostMapping("/invoices/{id}/pay")
+    @PreAuthorize("hasRole('CAISSIER')") // encaissement = caisse (P6) — SECRETAIRE/OWNER exclus, aligné sur l'API
     public String pay(@PathVariable Long id, @ModelAttribute PaymentDto dto,
                       RedirectAttributes ra, Model model) {
         try {
@@ -187,6 +200,7 @@ public class BillingWebController {
 
     // ── Annulation ──────────────────────────────────────────────────────────────────────
     @PostMapping("/invoices/{id}/cancel")
+    @PreAuthorize("hasRole('OWNER')") // annulation = décision business → OWNER (P6), aligné sur l'API
     public String cancel(@PathVariable Long id, @RequestParam(required = false) String reason,
                          RedirectAttributes ra) {
         try {

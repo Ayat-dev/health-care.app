@@ -118,15 +118,15 @@
 <div class="panel">
     <div class="panel-header"><span th:text="#{consultations.actions.title}">Actions cliniques</span></div>
     <div class="panel-body" style="display:flex; flex-wrap:wrap; gap:10px;">
-        <a th:href="@{/lab/requests/new(consultationId=${consultation.id},patientId=${consultation.patientId})}"
+        <a sec:authorize="hasRole('MEDECIN')" th:href="@{/lab/requests/new(consultationId=${consultation.id},patientId=${consultation.patientId})}"
            class="btn btn-ghost" th:text="#{consultations.actions.lab}">🔬 Demander des analyses</a>
-        <a th:href="@{/radiology/requests/new(consultationId=${consultation.id},patientId=${consultation.patientId})}"
+        <a sec:authorize="hasRole('MEDECIN')" th:href="@{/radiology/requests/new(consultationId=${consultation.id},patientId=${consultation.patientId})}"
            class="btn btn-ghost" th:text="#{consultations.actions.radiology}">🩻 Demander une imagerie</a>
         <a th:href="@{/hospitalization/admit(consultationId=${consultation.id},patientId=${consultation.patientId})}"
            class="btn btn-ghost" th:text="#{consultations.actions.admit}">🏥 Admettre le patient</a>
-        <a th:href="@{/billing/invoices/new(consultationId=${consultation.id},patientId=${consultation.patientId})}"
+        <a sec:authorize="hasAnyRole('OWNER','CAISSIER','SECRETAIRE')" th:href="@{/billing/invoices/new(consultationId=${consultation.id},patientId=${consultation.patientId})}"
            class="btn btn-ghost" th:text="#{consultations.actions.invoice}">💳 Créer une facture</a>
-        <a th:href="@{/certificates/new(consultationId=${consultation.id},patientId=${consultation.patientId})}"
+        <a sec:authorize="hasRole('MEDECIN')" th:href="@{/certificates/new(consultationId=${consultation.id},patientId=${consultation.patientId})}"
            class="btn btn-ghost" th:text="#{consultations.actions.certificate}">📄 Certificat médical</a>
     </div>
     <p class="form-hint" style="padding:0 16px 14px;" th:text="#{consultations.actions.hint}">

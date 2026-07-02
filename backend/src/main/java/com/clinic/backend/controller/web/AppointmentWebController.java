@@ -34,6 +34,7 @@ public class AppointmentWebController {
     private final AppointmentService appointmentService;
     private final PatientService patientService;
     private final UserRepository userRepository;
+    private final com.clinic.backend.export.FicheExportService ficheExportService;
     private final WebI18n i18n;
 
     // ── Vue jour (liste) ──────────────────────────────────────────────────
@@ -52,6 +53,21 @@ public class AppointmentWebController {
         model.addAttribute("doctors", doctors());
         model.addAttribute("selectedDoctorId", doctorId);
         return "appointments/list";
+    }
+
+    // ── Export Excel de l'agenda (plage de dates) ─────────────────────────────
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> export(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) Long doctorId,
+            @RequestParam(required = false) String status) {
+        LocalDate f = from != null ? from : LocalDate.now();
+        LocalDate t = to != null ? to : f;
+        List<AppointmentDto> rows = appointmentService.search(f, t, doctorId, null, status)
+                .stream().map(appointmentService::toDto).toList();
+        return ReportWebController.xlsxAttachment(ficheExportService.appointmentsXlsx(rows),
+                "rendez-vous-" + f + "_" + t + ".xlsx");
     }
 
     // ── Vue semaine ───────────────────────────────────────────────────────

@@ -17,10 +17,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 /**
  * Interface web Thymeleaf pour la gestion des patients.
  *
- * Règles d'accès :
- *  - Lecture (liste, détail) : tous les rôles cliniques sauf PATIENT
- *  - Création / modification  : ADMIN, MEDECIN, SECRETAIRE, INFIRMIER
- *  - Suppression              : ADMIN uniquement (soft delete)
+ * Règles d'accès (PHI — ADMIN/OWNER exclus depuis P6) :
+ *  - Lecture (liste, détail) : MEDECIN, INFIRMIER, SECRETAIRE, PHARMACIEN, LABORANTIN, CAISSIER
+ *  - Création / modification  : MEDECIN, SECRETAIRE, INFIRMIER
+ *  - Suppression (soft delete) : MEDECIN uniquement, via l'API — pas d'endpoint web
  */
 @Controller
 @RequestMapping("/patients")
@@ -36,6 +36,7 @@ public class PatientWebController {
     private final com.clinic.backend.hospitalization.HospitalizationService hospitalizationService;
     private final com.clinic.backend.maternity.MaternityService maternityService;
     private final com.clinic.backend.billing.BillingService billingService;
+    private final com.clinic.backend.export.FicheExportService ficheExportService;
     private final com.clinic.backend.i18n.WebI18n i18n;
 
     @GetMapping
@@ -48,6 +49,14 @@ public class PatientWebController {
         model.addAttribute("q", q);
         model.addAttribute("currentPage", page);
         return "patients/list";
+    }
+
+    // ── Export Excel du registre patients (PHI — mêmes rôles que la liste) ────────
+    @GetMapping("/export")
+    @PreAuthorize("hasAnyRole('MEDECIN','INFIRMIER','SECRETAIRE','PHARMACIEN','LABORANTIN','CAISSIER')")
+    public org.springframework.http.ResponseEntity<byte[]> export(@RequestParam(defaultValue = "") String q) {
+        var patients = patientService.search(q, 0, 5000).getContent();
+        return ReportWebController.xlsxAttachment(ficheExportService.patientsXlsx(patients), "registre-patients.xlsx");
     }
 
     @GetMapping("/{id}")

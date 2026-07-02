@@ -5,6 +5,7 @@
 <div class="panel-header" style="padding:0 0 12px;">
     <span th:text="#{reports.outstanding.title}">Liste des impayés</span>
     <span class="no-print">
+        <a th:href="@{/reports/outstanding/pdf}" class="btn btn-ghost btn-sm">⬇ <span th:text="#{reports.action.pdf}">PDF</span></a>
         <a th:href="@{/reports/outstanding/excel}" class="btn btn-ghost btn-sm">⬇ <span th:text="#{reports.action.excel}">Excel</span></a>
         <button onclick="window.print()" class="btn btn-ghost btn-sm">🖨 <span th:text="#{common.print}">Imprimer</span></button>
     </span>

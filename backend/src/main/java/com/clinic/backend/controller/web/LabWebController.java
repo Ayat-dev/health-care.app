@@ -65,8 +65,9 @@ public class LabWebController {
         return "lab/detail";
     }
 
-    // ── Création ────────────────────────────────────────────────────────────────────
+    // ── Création (médecin prescripteur) ──────────────────────────────────────────────
     @GetMapping("/requests/new")
+    @PreAuthorize("hasRole('MEDECIN')") // prescription d'analyses = acte médical, aligné sur l'API
     public String newForm(@RequestParam(required = false) Long consultationId,
                           @RequestParam(required = false) Long patientId,
                           Model model) {
@@ -76,6 +77,7 @@ public class LabWebController {
     }
 
     @PostMapping("/requests/new")
+    @PreAuthorize("hasRole('MEDECIN')") // prescription d'analyses = acte médical, aligné sur l'API
     public String create(@ModelAttribute LabRequestDto dto, RedirectAttributes ra, Model model) {
         try {
             LabRequest created = labService.create(dto);
@@ -91,12 +93,14 @@ public class LabWebController {
 
     // ── Saisie des résultats (laborantin) ─────────────────────────────────────────────
     @GetMapping("/requests/{id}/results")
+    @PreAuthorize("hasRole('LABORANTIN')") // saisie = laborantin, aligné sur l'API
     public String resultForm(@PathVariable Long id, Model model) {
         model.addAttribute("request", labService.getDtoById(id));
         return "lab/result-entry";
     }
 
     @PostMapping("/requests/{id}/results")
+    @PreAuthorize("hasRole('LABORANTIN')") // saisie = laborantin, aligné sur l'API
     public String saveResults(@PathVariable Long id, @ModelAttribute LabRequestDto form,
                               RedirectAttributes ra, Model model) {
         try {
@@ -112,6 +116,7 @@ public class LabWebController {
 
     // ── Actions de statut ───────────────────────────────────────────────────────────
     @PostMapping("/requests/{id}/validate")
+    @PreAuthorize("hasRole('MEDECIN')") // validation = acte médical, aligné sur l'API
     public String validate(@PathVariable Long id, RedirectAttributes ra) {
         try {
             labService.validate(id);
@@ -134,6 +139,7 @@ public class LabWebController {
     }
 
     @PostMapping("/requests/{id}/cancel")
+    @PreAuthorize("hasRole('MEDECIN')") // annulation = acte médical, aligné sur l'API
     public String cancel(@PathVariable Long id, RedirectAttributes ra) {
         try {
             labService.cancel(id);

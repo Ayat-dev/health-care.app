@@ -161,6 +161,38 @@ class SecurityMatrixTest {
         mvc.perform(get("/reports/financial")).andExpect(status().isForbidden());
     }
 
+    // ── P6 : web réaligné sur l'API — dérives corrigées ──────────────────────
+    // (l'autorisation @PreAuthorize est évaluée AVANT le corps du handler :
+    //  un id fictif suffit pour prouver le 403.)
+
+    @Test
+    @WithMockUser(username = "sec", roles = "SECRETAIRE")
+    void secretaire_refuse_sur_encaissement() throws Exception {
+        // Le secrétaire peut créer/éditer une facture mais PAS encaisser (caisse = CAISSIER).
+        mvc.perform(get("/billing/invoices/1/pay")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "doc", roles = "MEDECIN")
+    void medecin_refuse_sur_saisie_resultats_labo() throws Exception {
+        // La saisie des résultats est réservée au laborantin.
+        mvc.perform(get("/lab/requests/1/results")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "lab", roles = "LABORANTIN")
+    void laborantin_refuse_sur_creation_demande_labo() throws Exception {
+        // La prescription d'analyses est un acte médical (MEDECIN).
+        mvc.perform(get("/lab/requests/new")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "doc", roles = "MEDECIN")
+    void medecin_refuse_sur_gestion_des_chambres() throws Exception {
+        // Le référentiel chambres/tarifs est business (OWNER), pas clinique.
+        mvc.perform(get("/hospitalization/rooms/new")).andExpect(status().isForbidden());
+    }
+
     // ── /portal : PATIENT uniquement ─────────────────────────────────────────
 
     @Test

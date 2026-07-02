@@ -57,7 +57,7 @@
                 <td><span class="badge" th:classappend="'badge-' + ${inv.status}" th:text="#{${'status.' + inv.status}}">EN_ATTENTE</span></td>
                 <td style="white-space:nowrap;">
                     <a th:href="@{/billing/invoices/{id}(id=${inv.id})}" class="btn btn-ghost btn-sm" th:text="#{common.view}">Voir</a>
-                    <a th:href="@{/billing/invoices/{id}/pay(id=${inv.id})}" class="btn btn-primary btn-sm" th:text="#{billing.queue.collect}">Encaisser</a>
+                    <a sec:authorize="hasRole('CAISSIER')" th:href="@{/billing/invoices/{id}/pay(id=${inv.id})}" class="btn btn-primary btn-sm" th:text="#{billing.queue.collect}">Encaisser</a>
                 </td>
             </tr>
             <tr id="noMatchRow" style="display:none;">

@@ -15,13 +15,13 @@
             <span class="badge" th:classappend="'badge-' + ${invoice.status}" th:text="#{${'status.' + invoice.status}}">EN_ATTENTE</span>
         </span>
         <div style="display:flex; gap:.5rem;">
-            <a th:if="${invoice.status == 'EN_ATTENTE' or invoice.status == 'PARTIEL'}"
+            <a th:if="${(invoice.status == 'EN_ATTENTE' or invoice.status == 'PARTIEL')}" sec:authorize="hasRole('CAISSIER')"
                th:href="@{/billing/invoices/{id}/pay(id=${invoice.id})}" class="btn btn-primary btn-sm" th:text="#{billing.queue.collect}">Encaisser</a>
             <a th:if="${invoice.status == 'EN_ATTENTE'}"
                th:href="@{/billing/invoices/{id}/edit(id=${invoice.id})}" class="btn btn-ghost btn-sm" th:text="#{common.edit}">Modifier</a>
             <a th:href="@{/billing/invoices/{id}/receipt(id=${invoice.id})}" target="_blank"
                class="btn btn-ghost btn-sm" th:text="#{billing.detail.print_receipt}">Imprimer le reçu</a>
-            <th:block sec:authorize="hasRole('ADMIN')">
+            <th:block sec:authorize="hasRole('OWNER')">
                 <form th:if="${invoice.status != 'PAYE' and invoice.status != 'ANNULE'}" method="post"
                       th:action="@{/billing/invoices/{id}/cancel(id=${invoice.id})}" style="display:inline;"
                       th:onsubmit="'this.reason.value = prompt(\'' + #{billing.detail.cancel_reason_prompt} + '\',\'\') || \'\'; return confirm(\'' + #{billing.detail.cancel_confirm} + '\');'">

@@ -6,6 +6,7 @@
     <span th:text="#{reports.activity.heading} + ' ' + ${monthName} + ' ' + ${year}">Activité</span>
     <span class="no-print">
         <a th:href="@{/reports/activity/pdf(month=${month},year=${year})}" class="btn btn-ghost btn-sm">⬇ <span th:text="#{reports.action.pdf}">PDF</span></a>
+        <a th:href="@{/reports/activity/excel(month=${month},year=${year})}" class="btn btn-ghost btn-sm">⬇ <span th:text="#{reports.action.excel}">Excel</span></a>
         <button onclick="window.print()" class="btn btn-ghost btn-sm">🖨 <span th:text="#{common.print}">Imprimer</span></button>
     </span>
 </div>

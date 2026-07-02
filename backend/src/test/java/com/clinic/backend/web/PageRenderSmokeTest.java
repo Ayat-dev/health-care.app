@@ -264,8 +264,9 @@ class PageRenderSmokeTest {
     /** Saisie des résultats labo : exerce le bouton « Retour » mutualisé
      *  ({@code fragments/ui :: back}) avec un argument @{...} à variable de chemin. */
     @Test
-    @WithUserDetails(value = "dr.martin", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    @WithUserDetails(value = "laborantin", userDetailsServiceBeanName = "userDetailsServiceImpl")
     void saisie_resultats_labo_rend_200_avec_bouton_retour() throws Exception {
+        // La saisie des résultats est réservée au laborantin (web réaligné sur l'API, P6).
         mvc.perform(get("/lab/requests/1/results"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("← Retour")));

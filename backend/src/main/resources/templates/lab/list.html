@@ -8,7 +8,7 @@
 <div class="panel">
     <div class="panel-header">
         <span th:text="#{lab.list.heading}">Demandes d'analyses</span>
-        <a th:href="@{/lab/requests/new}" class="btn btn-primary btn-sm" th:text="#{lab.action.new}">+ Nouvelle demande</a>
+        <a sec:authorize="hasRole('MEDECIN')" th:href="@{/lab/requests/new}" class="btn btn-primary btn-sm" th:text="#{lab.action.new}">+ Nouvelle demande</a>
     </div>
 
     <form method="get" th:action="@{/lab/requests}" class="search-bar">

@@ -8,7 +8,7 @@
 <div class="panel">
     <div class="panel-header">
         <span th:text="#{hospitalization.rooms.heading}">Chambres &amp; lits</span>
-        <a th:href="@{/hospitalization/rooms/new}" class="btn btn-primary btn-sm" th:text="#{hospitalization.rooms.new}">+ Nouvelle chambre</a>
+        <a sec:authorize="hasRole('OWNER')" th:href="@{/hospitalization/rooms/new}" class="btn btn-primary btn-sm" th:text="#{hospitalization.rooms.new}">+ Nouvelle chambre</a>
     </div>
 
     <div class="table-wrap">
@@ -39,11 +39,14 @@
                     <span th:unless="${r.active}" class="badge badge-red" th:text="#{hospitalization.rooms.inactive}">Désactivée</span>
                 </td>
                 <td style="white-space:nowrap;">
-                    <a th:href="@{/hospitalization/rooms/{id}/edit(id=${r.id})}" class="btn btn-ghost btn-sm" th:text="#{common.edit}">Modifier</a>
-                    <form th:action="@{/hospitalization/rooms/{id}/toggle(id=${r.id})}" method="post" style="display:inline">
-                        <button type="submit" class="btn btn-ghost btn-sm"
-                                th:text="${r.active} ? #{hospitalization.rooms.deactivate} : #{hospitalization.rooms.activate}">Désactiver</button>
-                    </form>
+                    <th:block sec:authorize="hasRole('OWNER')">
+                        <a th:href="@{/hospitalization/rooms/{id}/edit(id=${r.id})}" class="btn btn-ghost btn-sm" th:text="#{common.edit}">Modifier</a>
+                        <form th:action="@{/hospitalization/rooms/{id}/toggle(id=${r.id})}" method="post" style="display:inline">
+                            <button type="submit" class="btn btn-ghost btn-sm"
+                                    th:text="${r.active} ? #{hospitalization.rooms.deactivate} : #{hospitalization.rooms.activate}">Désactiver</button>
+                        </form>
+                    </th:block>
+                    <span sec:authorize="!hasRole('OWNER')" class="muted">—</span>
                 </td>
             </tr>
             </tbody>
