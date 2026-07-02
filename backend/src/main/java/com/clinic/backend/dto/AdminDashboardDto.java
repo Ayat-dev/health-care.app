@@ -13,6 +13,12 @@ import java.util.Map;
 @Getter @Setter
 public class AdminDashboardDto {
 
+    // ── Période analysée (mois/année ; sélecteur du dashboard) ────────────────
+    private int periodMonth;
+    private int periodYear;
+    /** true si la période sélectionnée est le mois calendaire courant (pilote l'affichage du jour/7j). */
+    private boolean currentPeriod;
+
     // ── Revenus (encaissements) ──────────────────────────────────────────────
     private BigDecimal revenueToday = BigDecimal.ZERO;
     private BigDecimal revenueMonth = BigDecimal.ZERO;
@@ -39,7 +45,11 @@ public class AdminDashboardDto {
     private long lowStockCount;
     private long expiringCount;
 
-    // ── Top pathologies (diagnostics les plus fréquents, mois courant) ───────
+    // ── Chiffre d'affaires facturé sur la période (par acte / par service) ────
+    private List<LabelValueDto> revenueByAct = new ArrayList<>();
+    private List<LabelValueDto> revenueByDepartment = new ArrayList<>();
+
+    // ── Top pathologies (diagnostics les plus fréquents, période) ────────────
     private List<LabelValueDto> topPathologies = new ArrayList<>();
 
     // ── Répartition des modes de paiement (mois courant) ─────────────────────

@@ -226,6 +226,16 @@ class PageRenderSmokeTest {
         mvc.perform(get("/reports")).andExpect(status().isOk());
     }
 
+    /** Dashboard OWNER sur une période choisie (sélecteur, C) : exerce le CA par acte/service
+     *  et le libellé de mois pour un mois passé (branche {@code !currentPeriod}). */
+    @Test
+    @WithUserDetails(value = "owner", userDetailsServiceBeanName = "userDetailsServiceImpl")
+    void dashboard_owner_periode_choisie_rend_200() throws Exception {
+        mvc.perform(get("/reports/dashboard").param("month", "1").param("year", "2026"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("CA par acte")));
+    }
+
     /** Config clinique : exerce la nouvelle section QR marchand (AmanaTa / MyNITA). */
     @Test
     @WithUserDetails(value = "admin", userDetailsServiceBeanName = "userDetailsServiceImpl")

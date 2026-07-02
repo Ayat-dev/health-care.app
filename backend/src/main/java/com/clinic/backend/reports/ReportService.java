@@ -31,6 +31,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +50,7 @@ import java.util.Map;
 public class ReportService {
 
     private final InvoiceRepository invoiceRepository;
+    private final com.clinic.backend.billing.InvoiceItemRepository invoiceItemRepository;
     private final PaymentRepository paymentRepository;
     private final ConsultationRepository consultationRepository;
     private final LabRequestRepository labRequestRepository;
@@ -71,33 +73,54 @@ public class ReportService {
 
     // ══════════════════════════ TABLEAU DE BORD ADMIN ══════════════════════════
 
+    /** Tableau de bord direction pour le mois calendaire courant. */
     public AdminDashboardDto adminDashboard() {
+        LocalDate today = LocalDate.now();
+        return adminDashboard(today.getMonthValue(), today.getYear());
+    }
+
+    /**
+     * Tableau de bord direction pour un mois/année choisis (sélecteur de période, C).
+     * Les métriques « du mois » (revenus, consultations, CA par acte/service, top
+     * pathologies, modes de paiement) suivent la période ; le jour/7j n'est renseigné
+     * que si la période est le mois courant. L'occupation des lits, les créances et les
+     * alertes stock restent en temps réel (point-in-time), indépendantes de la période.
+     */
+    public AdminDashboardDto adminDashboard(int month, int year) {
         AdminDashboardDto d = new AdminDashboardDto();
         LocalDate today = LocalDate.now();
-
-        // Revenus (encaissements)
-        BigDecimal revToday = invoiceRepository.collectedBetween(
-                today.atStartOfDay(), today.plusDays(1).atStartOfDay());
-        LocalDate monthStart = today.withDayOfMonth(1);
+        LocalDate monthStart = LocalDate.of(year, month, 1);
         LocalDate nextMonthStart = monthStart.plusMonths(1);
         LocalDate prevMonthStart = monthStart.minusMonths(1);
+        boolean currentPeriod = month == today.getMonthValue() && year == today.getYear();
+        d.setPeriodMonth(month);
+        d.setPeriodYear(year);
+        d.setCurrentPeriod(currentPeriod);
+
+        // Revenus (encaissements) sur la période
         BigDecimal revMonth = invoiceRepository.collectedBetween(
                 monthStart.atStartOfDay(), nextMonthStart.atStartOfDay());
         BigDecimal revPrev = invoiceRepository.collectedBetween(
                 prevMonthStart.atStartOfDay(), monthStart.atStartOfDay());
-        d.setRevenueToday(revToday);
         d.setRevenueMonth(revMonth);
         d.setRevenuePrevMonth(revPrev);
         d.setRevenueMonthVariationPercent(variationPercent(revMonth, revPrev));
+        // Le « jour » n'a de sens que pour le mois courant
+        if (currentPeriod) {
+            d.setRevenueToday(invoiceRepository.collectedBetween(
+                    today.atStartOfDay(), today.plusDays(1).atStartOfDay()));
+        }
 
-        // Activité
-        LocalDate weekStart = today.minusDays(6);
-        d.setConsultationsToday(consultationRepository.countBetween(
-                today.atStartOfDay(), today.plusDays(1).atStartOfDay()));
-        d.setConsultationsWeek(consultationRepository.countBetween(
-                weekStart.atStartOfDay(), today.plusDays(1).atStartOfDay()));
+        // Activité sur la période
         d.setConsultationsMonth(consultationRepository.countBetween(
                 monthStart.atStartOfDay(), nextMonthStart.atStartOfDay()));
+        if (currentPeriod) {
+            LocalDate weekStart = today.minusDays(6);
+            d.setConsultationsToday(consultationRepository.countBetween(
+                    today.atStartOfDay(), today.plusDays(1).atStartOfDay()));
+            d.setConsultationsWeek(consultationRepository.countBetween(
+                    weekStart.atStartOfDay(), today.plusDays(1).atStartOfDay()));
+        }
         d.setPatientsTotal(patientRepository.countActive());
 
         // Occupation des lits
@@ -118,13 +141,33 @@ public class ReportService {
         d.setLowStockCount(pharmacyService.lowStock().size());
         d.setExpiringCount(pharmacyService.expiringStock().size());
 
-        // Top pathologies (mois courant)
+        // Chiffre d'affaires facturé sur la période (par acte / par service)
+        d.setRevenueByAct(toAmountRows(
+                invoiceItemRepository.revenueByAct(monthStart.atStartOfDay(), nextMonthStart.atStartOfDay()),
+                8, "—"));
+        d.setRevenueByDepartment(toAmountRows(
+                invoiceItemRepository.revenueByDepartment(monthStart.atStartOfDay(), nextMonthStart.atStartOfDay()),
+                0, "Non classé"));
+
+        // Top pathologies (période)
         d.setTopPathologies(topDiagnoses(monthStart.atStartOfDay(), nextMonthStart.atStartOfDay(), 5));
 
-        // Répartition des paiements (mois courant)
+        // Répartition des paiements (période)
         d.setPaymentMethodBreakdown(methodBreakdown(
                 monthStart.atStartOfDay(), nextMonthStart.atStartOfDay()));
         return d;
+    }
+
+    /** Mappe des lignes {@code [label, SUM]} en {@link LabelValueDto} montant (limit=0 → tout). */
+    private static List<LabelValueDto> toAmountRows(List<Object[]> rows, int limit, String nullLabel) {
+        List<LabelValueDto> out = new ArrayList<>();
+        for (Object[] r : rows) {
+            if (limit > 0 && out.size() >= limit) break;
+            String label = r[0] != null ? r[0].toString() : nullLabel;
+            BigDecimal amount = r[1] != null ? (BigDecimal) r[1] : BigDecimal.ZERO;
+            out.add(new LabelValueDto(label, amount));
+        }
+        return out;
     }
 
     // ══════════════════════════ TABLEAU DE BORD MÉDECIN ════════════════════════

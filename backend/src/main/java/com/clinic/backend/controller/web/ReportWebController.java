@@ -31,12 +31,18 @@ public class ReportWebController {
     // le rapport qu'il a le droit de consulter (évite un 403 sur la page de direction
     // pour le caissier/secrétaire qui ont le module REPORTS mais pas le dashboard direction).
     @GetMapping({"", "/dashboard"})
-    public String dashboard(Model model, org.springframework.security.core.Authentication auth) {
+    public String dashboard(@RequestParam(required = false) Integer month,
+                            @RequestParam(required = false) Integer year,
+                            Model model, org.springframework.security.core.Authentication auth) {
         // Cockpit financier (revenu, encaissé jour/mois) = pilotage business → OWNER seul.
         // L'ADMIN (technique) n'y a plus accès ; le MEDECIN non plus (P6, fuite financière colmatée).
         if (hasAnyRole(auth, "OWNER")) {
-            model.addAttribute("dashboard", reportService.adminDashboard());
+            LocalDate now = LocalDate.now();
+            int m = month != null ? month : now.getMonthValue();
+            int y = year != null ? year : now.getYear();
+            model.addAttribute("dashboard", reportService.adminDashboard(m, y));
             model.addAttribute("config", clinicConfigService.getConfig());
+            addPeriod(model, m, y);
             return "reports/dashboard";
         }
         // MEDECIN : jamais de chiffre financier → renvoyé vers ses rapports cliniques.
