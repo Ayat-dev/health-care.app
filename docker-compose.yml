@@ -87,6 +87,26 @@ services:
     networks:
       - medical_net
 
+  # ── Accès patient à distance — Cloudflare Tunnel (opt-in) ──────────────────
+  # Expose le portail à Internet SANS ouvrir de port ni IP fixe (marche derrière
+  # une box opérateur / CGNAT). Démarrage :
+  #     docker compose --profile remote up -d
+  # Pré-requis : créer un tunnel dans le tableau de bord Cloudflare Zero Trust,
+  # coller son token dans .env (CLOUDFLARE_TUNNEL_TOKEN), et router le hostname
+  # public → service HTTP interne « http://backend:8080 » (TLS assuré au bord par
+  # Cloudflare ; l'app respecte X-Forwarded-Proto → cookies sécurisés OK).
+  # L'usage interne clinique reste sur le LAN, indépendant de ce tunnel.
+  cloudflared:
+    image: cloudflare/cloudflared:latest   # penser à épingler une version en prod
+    container_name: medical_cloudflared
+    restart: always
+    profiles: ["remote"]
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - backend
+    networks:
+      - medical_net
+
   # ── Monitoring (P4.3 — Prometheus + Grafana) ───────────────────────────────
   # Démarrage opt-in via le profil compose « monitoring » :
   #     docker compose --profile monitoring up -d

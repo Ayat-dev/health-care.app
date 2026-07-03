@@ -163,6 +163,41 @@ Le service **`db-backup`** (image `prodrigestivill/postgres-backup-local`) déma
 
 ---
 
+## 4ter. Accès des patients à leur espace (portail)
+
+Le portail patient (`/portal`) est complet (RDV, dossier, PDF résultats/ordonnances/
+certificats). Restent deux questions : **le réseau** et **les identifiants**.
+
+### Onboarding — activation du compte (staff)
+Un compte portail est **créé et rattaché au dossier par le staff** (MEDECIN/SECRETAIRE),
+depuis la fiche patient → panneau **« Portail patient »** → **Activer l'accès portail**.
+Un **identifiant** (dérivé du n° de dossier) et un **mot de passe temporaire** sont
+affichés **une seule fois** : à remettre au patient, qui le change à sa 1re connexion.
+Boutons *Réinitialiser le mot de passe* / *Désactiver* disponibles ensuite.
+
+### Réseau — deux modes (combinables)
+1. **Sur place (LAN, sans internet)** — le patient ouvre `https://<serveur>/portal`
+   sur le **Wi-Fi de la clinique**, ou depuis une **borne** en salle d'attente
+   (navigateur en plein écran / mode kiosque). Aucun internet requis. En certificat
+   auto-signé, ajouter l'exception une fois sur la borne. Idéal comme socle.
+2. **À domicile — Cloudflare Tunnel (opt-in)** — expose le portail à Internet **sans
+   ouvrir de port ni IP fixe** :
+   ```bash
+   # 1. Créer un tunnel sur https://one.dash.cloudflare.com (Zero Trust → Tunnels)
+   #    et router le hostname public → http://backend:8080
+   # 2. Coller CLOUDFLARE_TUNNEL_TOKEN dans .env, puis :
+   docker compose --profile remote up -d
+   ```
+   Cloudflare assure le TLS au bord ; l'app respecte `X-Forwarded-Proto` (cookies
+   sécurisés OK). L'usage interne clinique reste sur le LAN, indépendant du tunnel.
+   *(Alternative si IP publique dispo : domaine + Let's Encrypt, cf. §4.)*
+
+> **Sécurité** : dès que le portail est exposé à Internet (tunnel ou domaine), le
+> lockout anti-brute-force (5 échecs → 15 min) et le MFA optionnel s'appliquent ;
+> n'exposer que le nécessaire et surveiller le journal d'audit.
+
+---
+
 ## 5. Récapitulatif des composants (côté serveur)
 
 | Composant | Rôle | Package / fichier |
@@ -172,6 +207,8 @@ Le service **`db-backup`** (image `prodrigestivill/postgres-backup-local`) déma
 | `SetupWebController` | Sert et traite l'assistant `/setup` | `backend/.../controller/web/` |
 | `SecurityConfig` | 3 chaînes : Actuator, API/JWT, Web/session (`/setup` en accès libre) | `backend/.../security/` |
 | `ProdDataInitializer` | Amorçage admin headless (optionnel) | `backend/.../config/` |
+| `PortalAccountService` | Activation/rattachement du compte portail patient (staff) | `backend/.../portal/` |
+| `cloudflared` (compose, profil `remote`) | Accès patient à distance sans ouvrir de port | `docker-compose.yml` |
 | `db-backup` (compose) | Sauvegardes PostgreSQL planifiées + rotation → `./backups` | `docker-compose.yml` |
 | `scripts/backup.sh` · `scripts/restore.sh` | Sauvegarde ponctuelle / restauration manuelle | `scripts/` |
 | `docker-compose.yml` | Orchestration serveur (postgres + backend + db-backup + nginx) | racine |
