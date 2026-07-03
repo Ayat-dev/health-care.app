@@ -6,6 +6,20 @@
 <div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
 <div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
 
+<!-- Identifiants portail (affichés UNE SEULE fois, après activation/réinitialisation) -->
+<div th:if="${portalPassword != null}" class="alert alert-info">
+    <strong th:text="#{patients.portal.creds_title}">Accès portail créé — à remettre au patient</strong>
+    <div style="margin-top:6px;">
+        <span th:text="#{patients.portal.creds_user}">Identifiant</span> :
+        <code th:text="${portalUsername}">pat-2026-00001</code> &nbsp;·&nbsp;
+        <span th:text="#{patients.portal.creds_pass}">Mot de passe temporaire</span> :
+        <code th:text="${portalPassword}">Ab2cd3ef</code>
+    </div>
+    <div class="form-hint" style="margin-top:6px;" th:text="#{patients.portal.creds_hint}">
+        Ce mot de passe ne sera plus affiché. Le patient le changera à sa première connexion.
+    </div>
+</div>
+
 <!-- En-tête dossier -->
 <div class="patient-header">
     <div class="patient-photo-col">
@@ -36,6 +50,46 @@
     <div class="patient-actions">
         <a th:href="@{/patients/{id}/edit(id=${patient.id})}" class="btn btn-primary btn-sm" th:text="#{common.edit}">Modifier</a>
         <a th:replace="~{fragments/ui :: back(@{/patients})}"></a>
+    </div>
+</div>
+
+<!-- Portail patient : onboarding du compte d'accès (front-desk / clinicien) -->
+<div class="panel" sec:authorize="hasAnyRole('MEDECIN','SECRETAIRE')">
+    <div class="panel-header">
+        <span th:text="#{patients.portal.title}">Portail patient</span>
+        <span th:if="${portalStatus.activated() and portalStatus.active()}" class="badge badge-green"
+              th:text="#{patients.portal.active}">Actif</span>
+        <span th:if="${portalStatus.activated() and !portalStatus.active()}" class="badge badge-red"
+              th:text="#{patients.portal.inactive}">Désactivé</span>
+    </div>
+    <div class="panel-body" style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+        <!-- Pas encore de compte -->
+        <th:block th:unless="${portalStatus.activated()}">
+            <span class="form-hint" style="margin:0;" th:text="#{patients.portal.none}">
+                Aucun accès portail. Activez-le pour permettre au patient de consulter son espace.
+            </span>
+            <form th:action="@{/patients/{id}/portal/activate(id=${patient.id})}" method="post">
+                <button class="btn btn-primary btn-sm" type="submit" th:text="#{patients.portal.activate}">Activer l'accès portail</button>
+            </form>
+        </th:block>
+        <!-- Compte existant -->
+        <th:block th:if="${portalStatus.activated()}">
+            <span>
+                <span class="form-hint" style="margin:0;" th:text="#{patients.portal.creds_user}">Identifiant</span> :
+                <code th:text="${portalStatus.username()}">pat-2026-00001</code>
+            </span>
+            <form th:action="@{/patients/{id}/portal/reset(id=${patient.id})}" method="post" style="display:inline;">
+                <button class="btn btn-ghost btn-sm" type="submit" th:text="#{patients.portal.reset}">Réinitialiser le mot de passe</button>
+            </form>
+            <form th:if="${portalStatus.active()}" th:action="@{/patients/{id}/portal/toggle(id=${patient.id})}" method="post" style="display:inline;">
+                <input type="hidden" name="active" value="false"/>
+                <button class="btn btn-ghost btn-sm" type="submit" th:text="#{patients.portal.deactivate}">Désactiver</button>
+            </form>
+            <form th:unless="${portalStatus.active()}" th:action="@{/patients/{id}/portal/toggle(id=${patient.id})}" method="post" style="display:inline;">
+                <input type="hidden" name="active" value="true"/>
+                <button class="btn btn-ghost btn-sm" type="submit" th:text="#{patients.portal.reactivate}">Réactiver</button>
+            </form>
+        </th:block>
     </div>
 </div>
 

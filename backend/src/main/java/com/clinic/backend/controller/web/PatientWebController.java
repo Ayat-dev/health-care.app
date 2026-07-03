@@ -37,6 +37,7 @@ public class PatientWebController {
     private final com.clinic.backend.maternity.MaternityService maternityService;
     private final com.clinic.backend.billing.BillingService billingService;
     private final com.clinic.backend.export.FicheExportService ficheExportService;
+    private final com.clinic.backend.portal.PortalAccountService portalAccountService;
     private final com.clinic.backend.i18n.WebI18n i18n;
 
     @GetMapping
@@ -110,7 +111,51 @@ public class PatientWebController {
                 patient, consultations, labRequests, radiologyRequests,
                 hospitalizations, invoices, maternityRecord));
 
+        // État du compte portail (accès patient à son espace).
+        model.addAttribute("portalStatus", portalAccountService.status(id));
+
         return "patients/detail";
+    }
+
+    // ── Compte portail patient (onboarding) — front-desk / clinicien ─────────────
+    @PostMapping("/{id}/portal/activate")
+    @PreAuthorize("hasAnyRole('MEDECIN','SECRETAIRE')")
+    public String activatePortal(@PathVariable Long id, RedirectAttributes ra) {
+        try {
+            var creds = portalAccountService.activate(id);
+            ra.addFlashAttribute("portalUsername", creds.username());
+            ra.addFlashAttribute("portalPassword", creds.tempPassword());
+            ra.addFlashAttribute("success", i18n.t("patients.portal.activated"));
+        } catch (RuntimeException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/patients/" + id;
+    }
+
+    @PostMapping("/{id}/portal/reset")
+    @PreAuthorize("hasAnyRole('MEDECIN','SECRETAIRE')")
+    public String resetPortalPassword(@PathVariable Long id, RedirectAttributes ra) {
+        try {
+            var creds = portalAccountService.resetPassword(id);
+            ra.addFlashAttribute("portalUsername", creds.username());
+            ra.addFlashAttribute("portalPassword", creds.tempPassword());
+            ra.addFlashAttribute("success", i18n.t("patients.portal.reset_done"));
+        } catch (RuntimeException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/patients/" + id;
+    }
+
+    @PostMapping("/{id}/portal/toggle")
+    @PreAuthorize("hasAnyRole('MEDECIN','SECRETAIRE')")
+    public String togglePortal(@PathVariable Long id, @RequestParam boolean active, RedirectAttributes ra) {
+        try {
+            portalAccountService.setActive(id, active);
+            ra.addFlashAttribute("success", i18n.t(active ? "patients.portal.reactivated" : "patients.portal.deactivated"));
+        } catch (RuntimeException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/patients/" + id;
     }
 
     @GetMapping("/new")
