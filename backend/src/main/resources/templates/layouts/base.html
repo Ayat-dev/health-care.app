@@ -186,6 +186,23 @@
             </div>
         </div>
         <div class="page-content">
+            <!-- Bandeau de licence (Phase 3 desktop) — visible seulement si enforcement actif
+                 et état à signaler (essai en cours, échéance proche, ou expirée=lecture seule). -->
+            <th:block th:if="${licenseState != null and licenseState.showBanner()}">
+                <div th:classappend="${licenseState.bannerLevel() == 'danger'} ? 'alert-error' : 'alert-info'"
+                     class="alert" role="status">
+                    <span th:if="${licenseState.status().name() == 'EXPIRED'}">
+                        Licence expirée — l'application est en <strong>lecture seule</strong> (consultation et export possibles).
+                    </span>
+                    <span th:if="${licenseState.status().name() == 'TRIAL'}">
+                        Période d'essai : il vous reste <strong th:text="${licenseState.daysRemaining()}">0</strong> jour(s).
+                    </span>
+                    <span th:if="${licenseState.status().name() == 'ACTIVE'}">
+                        Votre licence expire dans <strong th:text="${licenseState.daysRemaining()}">0</strong> jour(s).
+                    </span>
+                    <a th:href="@{/license}" style="margin-inline-start:.5rem;">Gérer la licence</a>
+                </div>
+            </th:block>
             <!-- Statut de la file de synchro hors-ligne (B4) — masqué par défaut ; js/offline-sync.js
                  l'affiche quand des RDV créés hors-ligne sont en attente / en échec de rejeu. -->
             <div id="offline-queue-status" class="offline-banner" role="status" aria-live="polite" hidden

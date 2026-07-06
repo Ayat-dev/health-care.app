@@ -1,5 +1,7 @@
 package com.clinic.backend.config;
 
+import com.clinic.backend.license.LicenseGuardInterceptor;
+import com.clinic.backend.license.LicenseService;
 import com.clinic.backend.setup.SetupGuardInterceptor;
 import com.clinic.backend.setup.SetupService;
 import org.springframework.context.annotation.Bean;
@@ -27,9 +29,11 @@ import java.util.Locale;
 public class WebConfig implements WebMvcConfigurer {
 
     private final SetupService setupService;
+    private final LicenseService licenseService;
 
-    public WebConfig(SetupService setupService) {
+    public WebConfig(SetupService setupService, LicenseService licenseService) {
         this.setupService = setupService;
+        this.licenseService = licenseService;
     }
 
     // ─── Fichiers uploadés (photos patients, images radiology) ───────────────
@@ -81,6 +85,22 @@ public class WebConfig implements WebMvcConfigurer {
                 .excludePathPatterns(
                         "/mfa/challenge",
                         "/login", "/logout", "/auth/**",
+                        "/setup", "/setup/**",
+                        "/css/**", "/js/**", "/images/**", "/uploads/**", "/favicon.ico",
+                        "/manifest.webmanifest", "/sw.js", "/offline.html",
+                        "/error",
+                        "/api/**", "/fhir/**", "/ws/**", "/actuator/**", "/h2-console/**");
+
+        // Expiration de licence (Phase 3 desktop) : en état bloqué, l'app passe en
+        // lecture seule (seules les écritures POST/PUT/PATCH/DELETE sont refusées et
+        // redirigées vers /license). Lectures + export (GET) toujours ouverts. On exclut
+        // l'activation, l'auth, le MFA, les statiques et les endpoints machine.
+        registry.addInterceptor(new LicenseGuardInterceptor(licenseService))
+                .addPathPatterns("/**")
+                .excludePathPatterns(
+                        "/license", "/license/**",
+                        "/login", "/logout", "/auth/**",
+                        "/mfa/**",
                         "/setup", "/setup/**",
                         "/css/**", "/js/**", "/images/**", "/uploads/**", "/favicon.ico",
                         "/manifest.webmanifest", "/sw.js", "/offline.html",

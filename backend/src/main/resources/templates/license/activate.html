@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/base :: layout('Licence', ~{::content})}">
+<body>
+<th:block th:fragment="content">
+
+    <div class="page-content">
+
+        <!-- Bandeau si l'accès est bloqué (redirigé depuis une écriture refusée) -->
+        <div th:if="${blockedNotice}" class="alert alert-error">
+            Votre licence a expiré : l'application est en <strong>lecture seule</strong>.
+            La consultation des dossiers et l'export restent possibles ; activez une licence
+            pour rétablir la saisie.
+        </div>
+
+        <div th:if="${success}" class="alert alert-info" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+        <!-- État courant -->
+        <div class="panel">
+            <div class="panel-header">
+                <h2>État de la licence</h2>
+            </div>
+            <div style="padding: 1rem 1.25rem;">
+                <p th:switch="${state.status().name()}" style="margin-bottom: .75rem;">
+                    <span th:case="'ACTIVE'" class="badge badge-green">Licence active</span>
+                    <span th:case="'TRIAL'" class="badge badge-yellow">Période d'essai</span>
+                    <span th:case="'EXPIRED'" class="badge badge-red">Expirée</span>
+                    <span th:case="*" class="badge">Non applicable</span>
+                </p>
+
+                <table class="table">
+                    <tbody>
+                    <tr th:if="${state.edition() != null}">
+                        <th style="width: 40%;">Édition</th>
+                        <td th:text="${state.edition()}">—</td>
+                    </tr>
+                    <tr th:if="${state.clinicName() != null}">
+                        <th>Clinique</th>
+                        <td th:text="${state.clinicName()}">—</td>
+                    </tr>
+                    <tr th:if="${state.validUntil() != null}">
+                        <th>Échéance</th>
+                        <td th:text="${#temporals.format(state.validUntil(), 'dd/MM/yyyy')}">—</td>
+                    </tr>
+                    <tr th:unless="${state.blocked()}">
+                        <th>Jours restants</th>
+                        <td th:text="${state.daysRemaining()}">—</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Activation -->
+        <div class="form-card" style="margin-top: 1.25rem;" sec:authorize="hasAnyRole('OWNER','ADMIN','SUPER_ADMIN')">
+            <h2>Activer une licence</h2>
+            <p style="margin-bottom: 1rem; color: var(--text-muted, #64748b);">
+                Collez ci-dessous la clé de licence fournie par l'éditeur. La vérification
+                est locale (aucune connexion internet requise).
+            </p>
+            <form th:action="@{/license/activate}" method="post">
+                <div class="form-group">
+                    <label class="form-label" for="licenseKey">Clé de licence</label>
+                    <textarea class="form-control" id="licenseKey" name="licenseKey" rows="4"
+                              placeholder="Collez la clé de licence ici…" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Activer</button>
+            </form>
+        </div>
+
+    </div>
+
+</th:block>
+</body>
+</html>

@@ -1,5 +1,7 @@
 package com.clinic.backend.config;
 
+import com.clinic.backend.license.LicenseService;
+import com.clinic.backend.license.LicenseState;
 import com.clinic.backend.model.User;
 import com.clinic.backend.notification.NotificationRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,6 +33,13 @@ import java.util.Set;
 public class GlobalModelAdvice {
 
     private final NotificationRepository notificationRepository;
+    private final LicenseService licenseService;
+
+    // ── Bandeau de licence (Phase 3 desktop) — null si enforcement désactivé ─────
+    @ModelAttribute("licenseState")
+    public LicenseState licenseState() {
+        return licenseService.isEnforced() ? licenseService.currentState() : null;
+    }
 
     // ── URI courante ─────────────────────────────────────────────────────────────
 
