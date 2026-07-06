@@ -196,7 +196,20 @@ a:hover { text-decoration: underline; }
   display: flex;
   align-items: center;
   gap: 9px;
+  text-decoration: none;
+  color: inherit;
+  transition: background .12s ease;
 }
+/* Le pied est un lien vers /profile : retour visuel au survol/focus. */
+.sidebar-footer:hover,
+.sidebar-footer:focus-visible { background: rgba(255,255,255,.05); }
+.sidebar-footer-chevron {
+  flex: 0 0 auto;
+  width: 16px; height: 16px;
+  color: var(--sidebar-section);
+  opacity: .6;
+}
+.sidebar-footer:hover .sidebar-footer-chevron { opacity: 1; }
 
 /* Le nom d'utilisateur (largeur variable selon la personne) occupe l'espace restant
    et tronque au besoin, pour que l'icône MFA et le bouton Déconnexion soient ancrés
@@ -204,6 +217,12 @@ a:hover { text-decoration: underline; }
 .sidebar-footer .user-info {
   flex: 1 1 auto;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+.sidebar-footer .user-name,
+.sidebar-footer .user-role {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1016,6 +1035,7 @@ body.login-page {
 @media (min-width: 769px) and (max-width: 1024px) {
   :root { --sidebar-w: 60px; }
   .brand-info, .nav-item span, .sidebar-footer .user-info,
+  .sidebar-footer-chevron,
   .nav-section, .sidebar-badge { display: none; }
   .nav-item { justify-content: center; padding: 10px; }
   .nav-item i { width: auto; }

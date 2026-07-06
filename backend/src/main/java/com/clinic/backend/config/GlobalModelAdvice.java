@@ -48,6 +48,13 @@ public class GlobalModelAdvice {
         return role == null ? "/login" : RoleProfile.fromRole(role).homepage;
     }
 
+    // ── Rôle courant (ex. "MEDECIN") — libellé du pied de sidebar via #{role.X} ──
+
+    @ModelAttribute("currentRole")
+    public String currentRoleAttr() {
+        return currentRole();
+    }
+
     // ── Module courant (fil d'Ariane, P6 WS5) ────────────────────────────────────
     // Le module dont l'URL de base est le plus long préfixe de l'URI courante
     // (ex. /consultations/5/prescription → CONSULTATIONS). null si aucun (ex. /profile).

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html th:replace="~{layouts/base :: layout(#{profile.title}, ~{::content})}">
+<body><th:block th:fragment="content">
+
+<div th:if="${success}" class="alert alert-success" th:text="${success}">OK</div>
+<div th:if="${error}" class="alert alert-error" th:text="${error}">Erreur</div>
+
+<!-- ── Identité (lecture seule) ─────────────────────────────────────────────── -->
+<div class="panel" style="margin-bottom:20px;">
+    <div class="panel-header"><span th:text="#{profile.identity.title}">Mon compte</span></div>
+    <div class="panel-body">
+        <div class="form-grid-2">
+            <div class="form-group">
+                <span class="form-label" th:text="#{profile.identity.fullname}">Nom complet</span>
+                <div th:text="${account.fullName} ?: '—'">—</div>
+            </div>
+            <div class="form-group">
+                <span class="form-label" th:text="#{profile.identity.username}">Nom d'utilisateur</span>
+                <div th:text="${account.username}">user</div>
+            </div>
+            <div class="form-group">
+                <span class="form-label" th:text="#{profile.identity.role}">Rôle</span>
+                <div><span class="badge" th:text="#{${'role.' + account.role}}">Rôle</span></div>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <span class="form-label" th:text="#{profile.identity.member_since}">Membre depuis</span>
+                <div th:text="${account.createdAt != null} ? ${#temporals.format(account.createdAt, 'dd/MM/yyyy')} : '—'">—</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Sécurité : MFA ───────────────────────────────────────────────────────── -->
+<div class="panel" style="margin-bottom:20px;">
+    <div class="panel-header"><span th:text="#{profile.security.title}">Sécurité</span></div>
+    <div class="panel-body">
+        <p style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <span th:text="#{profile.security.mfa}">Authentification en deux étapes</span>
+            <span th:if="${mfaEnabled}" class="badge badge-green" th:text="#{mfa.index.status_on}">✓ Activé</span>
+            <span th:unless="${mfaEnabled}" class="badge badge-yellow" th:text="#{mfa.index.status_off}">Non activé</span>
+        </p>
+        <a th:href="@{/mfa}" class="btn btn-ghost btn-sm" th:text="#{profile.security.manage}">Gérer la sécurité</a>
+    </div>
+</div>
+
+<!-- ── Changer le mot de passe ──────────────────────────────────────────────── -->
+<div class="panel">
+    <div class="panel-header"><span th:text="#{profile.password.title}">Changer mon mot de passe</span></div>
+    <form th:action="@{/profile/password}" method="post" class="form-card">
+        <div class="form-group">
+            <label class="form-label" for="currentPassword" th:text="#{profile.password.current}">Mot de passe actuel</label>
+            <input type="password" id="currentPassword" name="currentPassword" class="form-control" required autocomplete="current-password"/>
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="newPassword" th:text="#{profile.password.new}">Nouveau mot de passe</label>
+            <input type="password" id="newPassword" name="newPassword" class="form-control" required autocomplete="new-password"/>
+            <small class="form-hint" th:text="#{profile.password.hint}">Au moins 8 caractères, dont un chiffre.</small>
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="confirmPassword" th:text="#{profile.password.confirm}">Confirmer le nouveau mot de passe</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required autocomplete="new-password"/>
+        </div>
+        <button type="submit" class="btn btn-primary" th:text="#{profile.password.submit}">Mettre à jour</button>
+    </form>
+</div>
+
+</th:block></body>
+</html>

@@ -106,10 +106,15 @@
         </nav>
         <!-- Identité de l'utilisateur connecté ; les actions (MFA, déconnexion)
              sont dans la box de profil en haut à droite. -->
-        <div class="sidebar-footer">
+        <a class="sidebar-footer" th:href="@{/profile}" th:title="#{profile.title}">
             <span class="user-avatar" aria-hidden="true"><svg class="nav-icon"><use href="#ic-user"></use></svg></span>
-            <span class="user-info" sec:authentication="name" th:title="#{layout.user}">Utilisateur</span>
-        </div>
+            <span class="user-info">
+                <span class="user-name" sec:authentication="name">Utilisateur</span>
+                <span class="user-role" th:if="${currentRole != null}"
+                      th:text="#{${'role.' + currentRole}}">Rôle</span>
+            </span>
+            <svg class="nav-icon sidebar-footer-chevron" aria-hidden="true"><use href="#ic-chevron-right"></use></svg>
+        </a>
     </aside>
     <!-- Voile (mobile) : assombrit le contenu quand le tiroir sidebar est ouvert -->
     <div class="sidebar-scrim" id="sidebar-scrim" hidden></div>
