@@ -61,12 +61,13 @@ import java.time.LocalDateTime;
 
 /**
  * Données de test (utilisateurs de démo, patients, RDV, etc.).
- * Actif sur tout profil SAUF {@code prod} — on ne seede jamais de comptes
- * de démonstration (ex. {@code admin/admin123}) dans une clinique réelle.
- * L'amorçage prod se fait via {@link ProdDataInitializer} (admin depuis l'env).
+ * Actif sur tout profil SAUF {@code prod} et {@code desktop} — on ne seede jamais
+ * de comptes de démonstration (ex. {@code admin/admin123}) dans une clinique réelle.
+ * L'amorçage prod se fait via {@link ProdDataInitializer} (admin depuis l'env) ;
+ * le mode {@code desktop} (installation tout-en-un) passe par l'assistant web /setup.
  */
 @Configuration
-@Profile("!prod")
+@Profile("!prod & !desktop")
 public class DataInitializer {
 
     @Bean

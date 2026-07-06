@@ -1,0 +1,5 @@
+# EnvironmentPostProcessor du mode desktop tout-en-un : génère/charge les secrets
+# locaux (JWT, chiffrement PHI, webhook, monitoring) avant la création du contexte,
+# uniquement quand le profil `desktop` est actif. Voir DesktopSecretsEnvironmentPostProcessor.
+org.springframework.boot.env.EnvironmentPostProcessor=\
+com.clinic.backend.desktop.DesktopSecretsEnvironmentPostProcessor
