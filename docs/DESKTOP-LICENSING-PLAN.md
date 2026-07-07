@@ -41,22 +41,21 @@
 
 ---
 
-## Phase 2 — Packaging jpackage
+## Phase 2 — Packaging jpackage ✅ app-image (2026-07-07)
 
-**But :** un installeur Windows signé, JRE embarqué, lancement d'un clic.
+**But :** paquet Windows autonome, JRE embarqué, lancement d'un clic.
 
-- [ ] `jlink` → JRE minimal (modules réellement utilisés).
-- [ ] `jpackage` → `.msi`/`.exe` avec JRE bundlé + binaire PG + le JAR Spring Boot.
-- [ ] **Slimmer les binaires PG** sur `embedded-postgres-binaries-windows-amd64` seul (le pom tire actuellement le bundle multi-plateforme).
-- [ ] **Fournir `pg_dump.exe` officiel** (PostgreSQL 14 Windows) dans l'installeur + pointer `app.desktop.backup.pg-dump-path` dessus → active les sauvegardes automatiques (report de Phase 1 : les binaires embarqués « réduits » ne l'incluent pas).
-- [ ] **Launcher** : au lancement, démarre le serveur (profil `desktop`), attend `/actuator/health` UP, puis ouvre l'UI.
-  - v1 : ouvre le **navigateur système** sur `http://localhost:PORT` (le plus simple).
-  - v2 optionnelle : **WebView JavaFX** pour une fenêtre "app" sans barre navigateur (réutilise le skill JavaFX gelé du dossier `desktop/`).
-- [ ] **Signature de code : différée en v1.** Installs sur site assistées → l'avertissement SmartScreen est cliqué par le technicien, pas le client final. Documenter l'étape « Exécuter quand même ». Le jour venu : **Azure Trusted Signing** (~10$/mois, cloud, sans token matériel, réputation SmartScreen progressive ; vérifier éligibilité géo) ; **EV** (~300-600 €/an + token) si réputation instantanée requise.
-- [ ] Icône, nom, entrée menu démarrer, désinstalleur.
-- [ ] **Auto-update** : v1 = installeurs versionnés manuels. v2 = Tauri sidecar / `update4j` / Velopack si le besoin se confirme.
+- [x] `jpackage` (JDK 24) → **app-image** portable `dist\ClinicApp\ClinicApp.exe` (launcher natif + runtime JRE bundlé + jar Spring Boot). Profil `desktop` figé via `--java-options -Dspring.profiles.active=desktop` + `-Djava.awt.headless=false`. Script `packaging\build-desktop.ps1` (+ `packaging\README.md`).
+- [x] **Slimmé** sur `embedded-postgres-binaries-windows-amd64` seul (exclusions pom des binaires darwin/linux/alpine) — vérifié : le jar packagé ne contient QUE le binaire Windows.
+- [x] **Launcher** : l'app **est** le serveur ; `DesktopBrowserOpener` (@Profile desktop, sur `ApplicationReadyEvent`) ouvre le navigateur système sur `http://localhost:8080/` (désactivable `app.desktop.open-browser=false`). *(v2 optionnelle : WebView JavaFX pour une fenêtre sans barre navigateur.)*
+- [x] Nom/vendor/version dans jpackage.
+- [~] **Installeur `.msi`/`.exe`** : le script le produit avec `-Installer` **si WiX est sur le PATH** ; WiX absent sur ce poste → app-image livrée (zippable). Installer WiX Toolset pour générer le `.msi` (menu démarrer, désinstalleur, dir-chooser déjà câblés).
+- [ ] **`pg_dump.exe` officiel** (PostgreSQL 14) : à fournir via `-PgDump` (le script le copie dans `app\`) + pointer `app.desktop.backup.pg-dump-path` → active les sauvegardes (report Phase 1 toujours ouvert ; pas de PG14 client sous la main ici).
+- [ ] **jlink runtime minimal** : jpackage bundle actuellement le runtime JDK complet (image ~293 Mo). Générer un runtime `jlink` ciblé (via `jdeps`) en `--runtime-image` pour réduire — optimisation, non bloquante.
+- [ ] **Signature de code** : différée (installs sur site assistées). Le jour venu → **Azure Trusted Signing** (cloud, sans token) sur le `.exe`/`.msi`, sinon EV. Étape « Exécuter quand même » à documenter côté client.
+- [ ] **Icône** de marque (`-Icon xxx.ico`) + **auto-update** (v2 : Velopack/update4j).
 
-**Vérif :** install sur une VM Windows vierge (sans Java installé) → l'app démarre et `/setup` s'affiche.
+**Vérifié :** app-image construite (293 Mo, JRE bundlé), **`ClinicApp.exe` lancé** (home isolé) → PostgreSQL embarqué démarre, secrets auto-générés, Tomcat 8080, `Started` ~49 s, `/actuator/health` UP, `/setup` 200, `/` → 302 /login. Suite complète : **309 verts, 0 régression**. Reste à valider sur une **VM Windows vierge** (sans Java installé) pour prouver l'autonomie du runtime bundlé.
 
 ---
 
@@ -112,5 +111,6 @@ Séquence par défaut proposée : **1 (base) → 3 (licence) → 2 (packaging) �
 |---|---|---|
 | 2026-07-06 | — | Plan créé et validé (topologie tout-en-un, PG embarqué, plan-first). Rien implémenté. |
 | 2026-07-06 | — | 2 arbitrages tranchés : expiration = écritures bloquées / lecture+export toujours ouverts / bandeau J-7 ; signature = différée puis Azure Trusted Signing. |
+| 2026-07-07 | 2 | **Phase 2 (app-image) implémentée + vérifiée** : `packaging/build-desktop.ps1` (jpackage), `DesktopBrowserOpener`, binaires PG slimmés windows-amd64, `dist/` gitignoré. ClinicApp.exe packagé boote (PG embarqué, /setup 200, health UP). Reste : `.msi` (WiX absent ici), pg_dump officiel, jlink minimal, signature, VM vierge. 309 tests verts. |
 | 2026-07-06 | 3 | **Phase 3 implémentée + vérifiée** (pkg `license` : Ed25519 offline, LicenseService/Calculator, TrialStore 3-sources, LicenseGuardInterceptor read-only, page /license, bandeau, LicenseKeyTool, V38). Enforcement opt-in (desktop true, ailleurs false). E2E desktop : essai J-30 → activation ACTIVE → expiré=lecture-seule (POST bloqué, GET OK). Suite : 309 verts / 0 régression. Clé publique éditeur embarquée ; clé privée hors dépôt. |
 | 2026-07-06 | 1 | **Phase 1 implémentée + vérifiée** (zonky embedded-postgres 2.2.2, profil desktop, EPP secrets, DataInitializer re-gated). Boot desktop OK : 37 migrations Flyway sur PG 14.22 réel, /setup 200, health UP. Report Phase 2 : bundler `pg_dump` officiel (binaires zonky réduits sans pg_dump) → active les sauvegardes auto. Option future : wrapper Hikari sur le DataSource. |

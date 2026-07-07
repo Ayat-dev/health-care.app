@@ -145,6 +145,23 @@
             <groupId>io.zonky.test</groupId>
             <artifactId>embedded-postgres</artifactId>
             <version>2.2.2</version>
+            <!-- Cible desktop = Windows uniquement : on ne garde que les binaires
+                 windows-amd64 (tirés par défaut) et on retire les autres plateformes
+                 (~30-45 Mo). Aucun test n'utilise zonky → sans risque pour dev/CI. -->
+            <exclusions>
+                <exclusion>
+                    <groupId>io.zonky.test.postgres</groupId>
+                    <artifactId>embedded-postgres-binaries-darwin-amd64</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.zonky.test.postgres</groupId>
+                    <artifactId>embedded-postgres-binaries-linux-amd64</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.zonky.test.postgres</groupId>
+                    <artifactId>embedded-postgres-binaries-linux-amd64-alpine</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- JWT 0.13.0 -->
