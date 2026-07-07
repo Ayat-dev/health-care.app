@@ -87,13 +87,16 @@ Architecture (miroir des patterns `setup` / `mfa`), pkg `com.clinic.backend.lice
 
 ---
 
-## Phase 4 — Génération de clés + paiement
+## Phase 4 — Génération de clés + vente ✅ v1 manuelle (2026-07-07)
 
 **But :** transformer un paiement en clé signée, d'abord manuellement.
 
-- [~] **Outil CLI interne** (offline, clé privée) : socle livré en Phase 3 = `LicenseKeyTool` (`keygen`, `issue <cléPrivée> <clinique> <edition> <jours> [maxUsers]`). Reste à emballer en CLI conviviale (args nommés) + doc d'usage éditeur. Ne JAMAIS embarquer la clé privée dans l'app distribuée.
-- [ ] **Flux v1 (manuel, marché Niger)** : client paie (virement / mobile money / espèces via revendeur) → tu génères la clé avec le CLI → tu l'emailes. Suffisant pour lancer.
-- [ ] **Flux v2 (automatisé, international)** : Lemon Squeezy ou Paddle (Merchant of Record, gèrent la TVA) → webhook d'achat → service qui génère + envoie la clé automatiquement.
+- [x] **CLI éditeur conviviale** (offline, args nommés) : `LicenseKeyTool` = `keygen` / `issue` / `list` / `verify`. `issue` accepte `--clinic --edition --days|--expires --max-users --features --id` et **enregistre** la licence au registre. Clé privée jamais dans l'app.
+- [x] **Registre des licences émises** (`LicenseRegistry` + `LicenseRecord`, JSON Lines append-only) pour le suivi commercial (renouvellements/support) ; `list` l'affiche, `verify` contrôle une clé.
+- [x] **Flux v1 (manuel, marché Niger)** documenté : `docs/LICENSING-SALES.md` (préparer la clé éditeur, émettre, livrer, activer dans `/license`, renouveler, suivre).
+- [ ] **Flux v2 (automatisé, international)** : **design documenté** dans `LICENSING-SALES.md` (Lemon Squeezy/Paddle → webhook → service éditeur qui appelle `LicenseCodec.encode`). **Non codé** : nécessite un compte marchand + infra éditeur, et l'émetteur doit vivre HORS de l'app cliente (il détient la clé privée). Point d'extension prêt (`License`/`LicenseCodec`/`LicenseRegistry` sans dépendance Spring).
+
+**Vérifié :** `LicenseRegistryTest` (append/read) vert ; démo CLI live keygen→issue(×2, registre)→list→verify → **signature VALIDE**, contenu décodé (features/maxUsers/échéance). Suite complète : **311 verts**.
 
 ---
 
@@ -111,6 +114,7 @@ Séquence par défaut proposée : **1 (base) → 3 (licence) → 2 (packaging) �
 |---|---|---|
 | 2026-07-06 | — | Plan créé et validé (topologie tout-en-un, PG embarqué, plan-first). Rien implémenté. |
 | 2026-07-06 | — | 2 arbitrages tranchés : expiration = écritures bloquées / lecture+export toujours ouverts / bandeau J-7 ; signature = différée puis Azure Trusted Signing. |
+| 2026-07-07 | 4 | **Phase 4 v1 (manuelle) implémentée + vérifiée** : CLI `LicenseKeyTool` (keygen/issue/list/verify, args nommés), `LicenseRegistry`+`LicenseRecord` (registre JSONL), runbook `docs/LICENSING-SALES.md`. Démo live OK (signature VALIDE). v2 auto (Lemon Squeezy/webhook) = design documenté, non codé (infra éditeur, hors app). 311 tests verts. |
 | 2026-07-07 | 2 | **Phase 2 (app-image) implémentée + vérifiée** : `packaging/build-desktop.ps1` (jpackage), `DesktopBrowserOpener`, binaires PG slimmés windows-amd64, `dist/` gitignoré. ClinicApp.exe packagé boote (PG embarqué, /setup 200, health UP). Reste : `.msi` (WiX absent ici), pg_dump officiel, jlink minimal, signature, VM vierge. 309 tests verts. |
 | 2026-07-06 | 3 | **Phase 3 implémentée + vérifiée** (pkg `license` : Ed25519 offline, LicenseService/Calculator, TrialStore 3-sources, LicenseGuardInterceptor read-only, page /license, bandeau, LicenseKeyTool, V38). Enforcement opt-in (desktop true, ailleurs false). E2E desktop : essai J-30 → activation ACTIVE → expiré=lecture-seule (POST bloqué, GET OK). Suite : 309 verts / 0 régression. Clé publique éditeur embarquée ; clé privée hors dépôt. |
 | 2026-07-06 | 1 | **Phase 1 implémentée + vérifiée** (zonky embedded-postgres 2.2.2, profil desktop, EPP secrets, DataInitializer re-gated). Boot desktop OK : 37 migrations Flyway sur PG 14.22 réel, /setup 200, health UP. Report Phase 2 : bundler `pg_dump` officiel (binaires zonky réduits sans pg_dump) → active les sauvegardes auto. Option future : wrapper Hikari sur le DataSource. |
