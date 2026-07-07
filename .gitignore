@@ -6,6 +6,11 @@ target/
 
 # Packaging desktop (jpackage) — app-image/installeurs volumineux, artefacts de build
 dist/
+# Outils de build téléchargés localement (WiX 3.14, etc.) — non versionnés
+packaging/tools/
+# Certificats de signature de code — JAMAIS versionnés (clé privée)
+*.pfx
+*.snk
 
 # NetBeans
 nbproject/private/
