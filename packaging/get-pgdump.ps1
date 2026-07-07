@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Récupère un pg_dump.exe officiel (PostgreSQL 14) dans packaging\tools\pgdump\ pour activer
     les sauvegardes automatiques du mode desktop.

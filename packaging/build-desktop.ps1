@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Construit (et signe) le paquet desktop tout-en-un ClinicApp (Phase 2) avec jpackage.
 
@@ -52,7 +52,8 @@ param(
     [string]$CertThumbprint,
     [string]$Pfx,
     [string]$PfxPassword,
-    [string]$TimestampUrl = 'http://timestamp.digicert.com'
+    [string]$TimestampUrl = 'http://timestamp.digicert.com',
+    [switch]$Jlink
 )
 
 $ErrorActionPreference = 'Stop'
@@ -172,6 +173,14 @@ Copy-Item $fatJar.FullName (Join-Path $Stage $fatJar.Name)
 if (Test-Path $Dest) { Remove-Item $Dest -Recurse -Force }
 New-Item -ItemType Directory -Path $Dest | Out-Null
 
+# Runtime minimal (jlink) au lieu du runtime JDK complet bundlé par jpackage (~118 → ~62 Mo).
+$runtimeImage = $null
+if ($Jlink) {
+    Write-Host "   jlink : génération d'un runtime minimal…" -ForegroundColor Cyan
+    $runtimeImage = & (Join-Path $PSScriptRoot 'make-runtime.ps1') `
+        -Jar $fatJar.FullName -Out (Join-Path $Target 'runtime-min') | Select-Object -Last 1
+}
+
 $appImageArgs = @(
     '--type', 'app-image',
     '--name', $AppName,
@@ -184,6 +193,7 @@ $appImageArgs = @(
     '--java-options', '-Dspring.profiles.active=desktop',
     '--java-options', '-Djava.awt.headless=false'
 )
+if ($runtimeImage) { $appImageArgs += @('--runtime-image', $runtimeImage) }
 if ($Icon) { $appImageArgs += @('--icon', $Icon) }
 Invoke-Native -Exe 'jpackage' -Arguments $appImageArgs
 

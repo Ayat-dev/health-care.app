@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Génère un certificat de signature de code AUTO-SIGNÉ, à usage de TEST uniquement.
 

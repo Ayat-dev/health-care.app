@@ -81,6 +81,14 @@ uploads, sauvegardes. Survit à une réinstallation de l'app. Surcharge : `CLINI
   (`-Pfx`). Aucun changement de script : seul le paramètre d'identité change.
 - **Icône** : fournir un `.ico` de marque via `-Icon` (défaut jpackage sinon).
 - **Auto-update** : v1 = installeurs versionnés manuels. v2 = Velopack / update4j si besoin.
-- **jlink** (runtime minimal) : jpackage bundle actuellement le runtime du JDK courant. Pour
-  réduire la taille, générer un runtime `jlink` ciblé (via `jdeps`) et le passer en
-  `--runtime-image` — optimisation, non bloquante.
+- **jlink** (runtime minimal) — **implémenté**. `-Jlink` génère (via `make-runtime.ps1` :
+  `jdeps` + set de modules de sûreté) un runtime réduit passé en `--runtime-image` : runtime
+  **~118 → ~62 Mo**, empreinte **installée** ~293 → ~237 Mo.
+  ```powershell
+  pwsh packaging\build-desktop.ps1 -Jlink -Installer -Sign -CertThumbprint <TP>
+  ```
+  ⚠ Le **`.msi` ne rétrécit quasiment pas** (~206 vs ~205 Mo) : le runtime jlink est déjà compressé
+  (ne se recompresse pas dans le CAB) et le fat jar de 183 Mo domine. jlink réduit le **footprint
+  installé** et la surface d'attaque, pas le poids de téléchargement. Validé par boot-test
+  (démarrage, sauvegarde, `/setup` rendu, aucun module manquant). Un chemin rare échouant sur un
+  module absent → l'ajouter à `$extra` dans `make-runtime.ps1`.
