@@ -143,6 +143,13 @@ if ($Sign -and -not ($CertThumbprint -or $Pfx)) {
 if ($Installer) { Ensure-Wix }
 if ($Sign)      { $script:SignTool = Resolve-SignTool; Write-Host "signtool : $script:SignTool" }
 
+# pg_dump : si non fourni, prendre le binaire récupéré localement (packaging\tools\pgdump\pg_dump.exe,
+# cf. get-pgdump.ps1) s'il existe. -PgDump explicite l'emporte.
+if (-not $PgDump) {
+    $localPgDump = Join-Path $PSScriptRoot 'tools\pgdump\pg_dump.exe'
+    if (Test-Path $localPgDump) { $PgDump = $localPgDump; Write-Host "pg_dump local : $PgDump" }
+}
+
 Write-Host "== 1/4  Assemblage du jar Spring Boot ==" -ForegroundColor Cyan
 Push-Location $Backend
 try {
@@ -183,15 +190,18 @@ Invoke-Native -Exe 'jpackage' -Arguments $appImageArgs
 $AppImageDir = Join-Path $Dest $AppName          # dist\ClinicApp
 $LauncherExe = Join-Path $AppImageDir "$AppName.exe"
 
-# pg_dump officiel (facultatif) : les binaires PG embarqués (zonky réduits) ne l'incluent
-# pas ; le fournir active les sauvegardes automatiques. Copié AVANT l'emballage msi pour
-# qu'il soit inclus dans l'installeur.
+# pg_dump officiel : les binaires PG embarqués (zonky réduits) n'incluent PAS pg_dump, mais
+# fournissent toutes ses DLL. On copie donc le SEUL pg_dump.exe dans app\ (voisin du jar) ; à
+# l'exécution DesktopBackupService le retrouve automatiquement et résout ses DLL via le PATH du
+# répertoire zonky — aucun app.desktop.backup.pg-dump-path à renseigner. Copié AVANT l'emballage
+# msi pour qu'il soit inclus dans l'installeur.
 if ($PgDump) {
+    if (-not (Test-Path $PgDump)) { throw "pg_dump introuvable : $PgDump" }
     $appDir = Join-Path $AppImageDir 'app'
-    if (Test-Path $appDir) {
-        Copy-Item $PgDump (Join-Path $appDir 'pg_dump.exe')
-        Write-Host "   pg_dump.exe embarqué -> définir app.desktop.backup.pg-dump-path sur ce fichier."
-    }
+    Copy-Item $PgDump (Join-Path $appDir 'pg_dump.exe')
+    Write-Host "   pg_dump.exe embarqué (sauvegardes automatiques activées, DLL via zonky)."
+} else {
+    Write-Host "   (pas de -PgDump : sauvegardes automatiques désactivées — cf. packaging\get-pgdump.ps1)"
 }
 
 # Signer le launcher AVANT l'emballage msi -> l'exe interne à l'installeur est signé lui aussi.

@@ -64,9 +64,17 @@ uploads, sauvegardes. Survit à une réinstallation de l'app. Surcharge : `CLINI
 
 ## Points reportés / à finaliser
 
-- **Sauvegardes automatiques** : les binaires PG embarqués (zonky « réduits ») n'incluent
-  pas `pg_dump`. Fournir un `pg_dump.exe` officiel PostgreSQL 14 via `-PgDump` (le script le
-  copie dans `app\`) puis pointer `app.desktop.backup.pg-dump-path` dessus.
+- **Sauvegardes automatiques** — **câblées**. Les binaires PG embarqués (zonky « réduits »)
+  n'incluent pas `pg_dump` mais fournissent **toutes ses DLL** (libpq, libssl/crypto, libintl,
+  zlib…). Il suffit donc du **seul** `pg_dump.exe` officiel (PostgreSQL 14.x) :
+  ```powershell
+  pwsh packaging\get-pgdump.ps1        # extrait pg_dump.exe seul (~700 Ko) via HTTP Range
+  ```
+  → dépose `packaging\tools\pgdump\pg_dump.exe`, que `build-desktop.ps1` **embarque
+  automatiquement** dans `app\`. À l'exécution, `DesktopBackupService` le retrouve à côté du jar
+  et résout ses DLL en injectant le répertoire des binaires zonky dans le `PATH` — **aucun**
+  `app.desktop.backup.pg-dump-path` à renseigner (cette propriété reste une surcharge facultative).
+  Sans `pg_dump.exe`, l'app tourne normalement, sauvegardes désactivées (warning clair).
 - **Signature de code** : chaîne **implémentée + prouvée** avec un certif auto-signé de test
   (`-Sign`, cf. ci-dessus). Reste à brancher un **vrai** certif pour la distribution → **Azure
   Trusted Signing** (cloud, sans token, `-CertThumbprint` d'un certif du magasin) ou un **PFX** EV
