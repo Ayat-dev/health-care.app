@@ -31,8 +31,8 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Long
         LEFT JOIN FETCH c.patient
         LEFT JOIN FETCH c.doctor
         LEFT JOIN FETCH c.department
-        WHERE (:from IS NULL OR c.consultationDate >= :from)
-          AND (:to   IS NULL OR c.consultationDate <  :to)
+        WHERE (CAST(:from AS timestamp) IS NULL OR c.consultationDate >= :from)
+          AND (CAST(:to AS timestamp)   IS NULL OR c.consultationDate <  :to)
           AND (:doctorId  IS NULL OR c.doctor.id  = :doctorId)
           AND (:patientId IS NULL OR c.patient.id = :patientId)
           AND (:status    IS NULL OR :status = '' OR c.status = :status)

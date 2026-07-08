@@ -48,8 +48,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
         LEFT JOIN FETCH a.patient
         LEFT JOIN FETCH a.doctor
         LEFT JOIN FETCH a.department
-        WHERE (:from IS NULL OR a.startTime >= :from)
-          AND (:to   IS NULL OR a.startTime <  :to)
+        WHERE (CAST(:from AS timestamp) IS NULL OR a.startTime >= :from)
+          AND (CAST(:to AS timestamp)   IS NULL OR a.startTime <  :to)
           AND (:doctorId  IS NULL OR a.doctor.id  = :doctorId)
           AND (:patientId IS NULL OR a.patient.id = :patientId)
           AND (:status    IS NULL OR :status = '' OR a.status = :status)

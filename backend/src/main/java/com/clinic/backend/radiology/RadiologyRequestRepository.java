@@ -37,8 +37,8 @@ public interface RadiologyRequestRepository extends JpaRepository<RadiologyReque
         SELECT r FROM RadiologyRequest r
         LEFT JOIN FETCH r.patient
         LEFT JOIN FETCH r.doctor
-        WHERE (:from IS NULL OR r.requestedAt >= :from)
-          AND (:to   IS NULL OR r.requestedAt <  :to)
+        WHERE (CAST(:from AS timestamp) IS NULL OR r.requestedAt >= :from)
+          AND (CAST(:to AS timestamp)   IS NULL OR r.requestedAt <  :to)
           AND (:patientId IS NULL OR r.patient.id = :patientId)
           AND (:doctorId  IS NULL OR r.doctor.id  = :doctorId)
           AND (:status    IS NULL OR :status = '' OR r.status = :status)
@@ -61,7 +61,7 @@ public interface RadiologyRequestRepository extends JpaRepository<RadiologyReque
         LEFT JOIN FETCH i.exam
         LEFT JOIN FETCH r.report
         WHERE r.status IN ('EN_ATTENTE', 'EN_COURS')
-        ORDER BY CASE WHEN r.priority = 'URGENT' THEN 0 ELSE 1 END, r.requestedAt ASC
+        ORDER BY r.priority DESC, r.requestedAt ASC
         """)
     List<RadiologyRequest> findWorklist();
 

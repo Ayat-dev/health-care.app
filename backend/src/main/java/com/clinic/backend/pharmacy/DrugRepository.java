@@ -14,9 +14,9 @@ public interface DrugRepository extends JpaRepository<Drug, Long> {
     @Query("""
         SELECT d FROM Drug d
         WHERE (:q IS NULL OR :q = '' OR
-               LOWER(d.name) LIKE LOWER(CONCAT('%',:q,'%')) OR
-               LOWER(d.genericName) LIKE LOWER(CONCAT('%',:q,'%')) OR
-               LOWER(d.code) LIKE LOWER(CONCAT('%',:q,'%')))
+               LOWER(d.name) LIKE LOWER(CONCAT('%',CAST(:q AS string),'%')) OR
+               LOWER(d.genericName) LIKE LOWER(CONCAT('%',CAST(:q AS string),'%')) OR
+               LOWER(d.code) LIKE LOWER(CONCAT('%',CAST(:q AS string),'%')))
           AND (:category IS NULL OR :category = '' OR d.category = :category)
         ORDER BY d.name ASC
         """)

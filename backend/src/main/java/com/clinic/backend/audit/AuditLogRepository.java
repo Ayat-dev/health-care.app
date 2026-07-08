@@ -16,11 +16,11 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
      */
     @Query("""
             SELECT a FROM AuditLog a
-            WHERE (:username IS NULL OR LOWER(a.username) LIKE LOWER(CONCAT('%', :username, '%')))
+            WHERE (:username IS NULL OR LOWER(a.username) LIKE LOWER(CONCAT('%', CAST(:username AS string), '%')))
               AND (:entityType IS NULL OR a.entityType = :entityType)
               AND (:action IS NULL OR a.action = :action)
-              AND (:from IS NULL OR a.createdAt >= :from)
-              AND (:to IS NULL OR a.createdAt <= :to)
+              AND (CAST(:from AS timestamp) IS NULL OR a.createdAt >= :from)
+              AND (CAST(:to AS timestamp) IS NULL OR a.createdAt <= :to)
             ORDER BY a.createdAt DESC, a.id DESC
             """)
     List<AuditLog> search(@Param("username") String username,

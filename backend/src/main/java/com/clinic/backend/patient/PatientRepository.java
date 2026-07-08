@@ -15,22 +15,22 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
         LEFT JOIN FETCH p.assignedDoctor
         WHERE p.deletedAt IS NULL
         AND (:q IS NULL OR :q = '' OR
-             LOWER(p.firstName) LIKE LOWER(CONCAT('%',:q,'%')) OR
-             LOWER(p.lastName)  LIKE LOWER(CONCAT('%',:q,'%')) OR
-             LOWER(p.recordNumber) LIKE LOWER(CONCAT('%',:q,'%')) OR
-             p.phone LIKE CONCAT('%',:q,'%') OR
-             p.nationalId LIKE CONCAT('%',:q,'%'))
+             LOWER(p.firstName) LIKE LOWER(CONCAT('%',CAST(:q AS string),'%')) OR
+             LOWER(p.lastName)  LIKE LOWER(CONCAT('%',CAST(:q AS string),'%')) OR
+             LOWER(p.recordNumber) LIKE LOWER(CONCAT('%',CAST(:q AS string),'%')) OR
+             p.phone LIKE CONCAT('%',CAST(:q AS string),'%') OR
+             p.nationalId LIKE CONCAT('%',CAST(:q AS string),'%'))
         ORDER BY p.lastName, p.firstName
         """,
         countQuery = """
         SELECT COUNT(p) FROM Patient p
         WHERE p.deletedAt IS NULL
         AND (:q IS NULL OR :q = '' OR
-             LOWER(p.firstName) LIKE LOWER(CONCAT('%',:q,'%')) OR
-             LOWER(p.lastName)  LIKE LOWER(CONCAT('%',:q,'%')) OR
-             LOWER(p.recordNumber) LIKE LOWER(CONCAT('%',:q,'%')) OR
-             p.phone LIKE CONCAT('%',:q,'%') OR
-             p.nationalId LIKE CONCAT('%',:q,'%'))
+             LOWER(p.firstName) LIKE LOWER(CONCAT('%',CAST(:q AS string),'%')) OR
+             LOWER(p.lastName)  LIKE LOWER(CONCAT('%',CAST(:q AS string),'%')) OR
+             LOWER(p.recordNumber) LIKE LOWER(CONCAT('%',CAST(:q AS string),'%')) OR
+             p.phone LIKE CONCAT('%',CAST(:q AS string),'%') OR
+             p.nationalId LIKE CONCAT('%',CAST(:q AS string),'%'))
         """)
     Page<Patient> search(@Param("q") String q, Pageable pageable);
 

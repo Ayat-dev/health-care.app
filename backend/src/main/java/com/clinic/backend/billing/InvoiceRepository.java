@@ -40,8 +40,8 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
         SELECT inv FROM Invoice inv
         LEFT JOIN FETCH inv.patient
         LEFT JOIN FETCH inv.insurance
-        WHERE (:from IS NULL OR inv.createdAt >= :from)
-          AND (:to   IS NULL OR inv.createdAt <  :to)
+        WHERE (CAST(:from AS timestamp) IS NULL OR inv.createdAt >= :from)
+          AND (CAST(:to AS timestamp)   IS NULL OR inv.createdAt <  :to)
           AND (:patientId IS NULL OR inv.patient.id = :patientId)
           AND (:status    IS NULL OR :status = '' OR inv.status = :status)
         ORDER BY inv.createdAt DESC

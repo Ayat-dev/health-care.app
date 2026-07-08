@@ -26,8 +26,8 @@ public interface PaymentWebhookEventRepository extends JpaRepository<PaymentWebh
             SELECT e FROM PaymentWebhookEvent e
             WHERE (:provider IS NULL OR e.provider = :provider)
               AND (:status IS NULL OR e.status = :status)
-              AND (:from IS NULL OR e.receivedAt >= :from)
-              AND (:to IS NULL OR e.receivedAt <= :to)
+              AND (CAST(:from AS timestamp) IS NULL OR e.receivedAt >= :from)
+              AND (CAST(:to AS timestamp) IS NULL OR e.receivedAt <= :to)
             ORDER BY e.receivedAt DESC
             """)
     List<PaymentWebhookEvent> search(@Param("provider") String provider,
